@@ -2,7 +2,7 @@
 name: "✨ Feat"
 about: 새로운 기능 구현 이슈
 title: "[FEAT] "
-labels: feature
+labels: ["✨ feat"]
 assignees: ''
 ---
 
@@ -17,6 +17,7 @@ assignees: ''
 - [ ] 
 - [ ] 
 - [ ] 
+
 ---
 
 ## 📌 참고 사항
