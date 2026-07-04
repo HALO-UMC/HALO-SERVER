@@ -1,6 +1,8 @@
 package com.umc.halo.global.config;
 
+import com.umc.halo.global.security.JwtAccessDeniedHandler;
 import com.umc.halo.global.security.JwtAuthFilter;
+import com.umc.halo.global.security.JwtAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     // 인증 없이 접근 가능한 경로(Public)
     private static final String[] PUBLIC_URIS = {
@@ -47,11 +51,13 @@ public class SecurityConfig {
                         // 그 외 전부 인증 필요(Private)
                         .anyRequest().authenticated()
                 )
-                // JWT 인증 필터를 스프링 기본 인증 필터 앞에 등록
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // 인증/인가 실패 응답통일(EntryPoint/AccessDeniedHandler) 등록
-        //   → #1 머지 후 추가 예정
+        // 인증/인가 실패 시 공통 응답 포맷으로 반환
+                .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .accessDeniedHandler(jwtAccessDeniedHandler)
+        )
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
