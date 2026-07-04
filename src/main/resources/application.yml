@@ -28,4 +28,4 @@ jwt:
   token:
     secretKey: ${JWT_SECRET_KEY}
     expiration:
-      access: 3600000   # 1시간 
+      access: 3600000   # 1시간
