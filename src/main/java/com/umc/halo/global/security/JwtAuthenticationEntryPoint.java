@@ -1,11 +1,8 @@
 package com.umc.halo.global.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.umc.halo.global.apiPayload.ApiResponse;
 import com.umc.halo.global.apiPayload.code.GeneralErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -15,10 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Component
-@RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
-
-    private final ObjectMapper objectMapper;
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
@@ -27,7 +21,10 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(errorCode.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write(
-                objectMapper.writeValueAsString(ApiResponse.onFailure(errorCode, null)));
+
+        String body = String.format(
+                "{\"isSuccess\": false, \"code\": \"%s\", \"message\": \"%s\", \"result\": null}",
+                errorCode.getCode(), errorCode.getMessage());
+        response.getWriter().write(body);
     }
 }
