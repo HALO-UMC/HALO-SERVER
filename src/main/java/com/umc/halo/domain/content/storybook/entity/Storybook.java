@@ -1,15 +1,15 @@
 package com.umc.halo.domain.content.storybook.entity;
 
 import com.umc.halo.domain.tag.entity.Tag;
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "storybook")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Storybook {
+public class Storybook extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,10 +40,4 @@ public class Storybook {
 
     @Column(name = "character_image_url", length = 255)
     private String characterImageUrl;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

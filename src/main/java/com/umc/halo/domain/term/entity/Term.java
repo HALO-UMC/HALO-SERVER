@@ -1,14 +1,14 @@
 package com.umc.halo.domain.term.entity;
 
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "term")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Term {
+public class Term extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,10 +26,4 @@ public class Term {
 
     @Column(name = "is_required", nullable = false)
     private Boolean isRequired = true;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

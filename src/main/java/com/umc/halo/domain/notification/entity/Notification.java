@@ -1,6 +1,7 @@
 package com.umc.halo.domain.notification.entity;
 
 import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -9,7 +10,9 @@ import java.time.LocalDateTime;
 @Table(name = "notification")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Notification {
+@Builder
+@AllArgsConstructor
+public class Notification extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,13 +37,8 @@ public class Notification {
     private LocalDateTime sentAt;
 
     @Column(name = "is_read", nullable = false)
+    @Builder.Default
     private Boolean isRead = false;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     public enum NotificationType { ANNIVERSARY_D7, ANNIVERSARY_DDAY, TODAY_CHAPTER, RETENTION }
 }

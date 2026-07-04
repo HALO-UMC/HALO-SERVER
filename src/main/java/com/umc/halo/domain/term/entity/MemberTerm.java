@@ -1,15 +1,15 @@
 package com.umc.halo.domain.term.entity;
 
 import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "member_term")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberTerm {
+public class MemberTerm extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,11 +25,5 @@ public class MemberTerm {
     private Member member;
 
     @Column(name = "is_agreed", nullable = false)
-    private Boolean isAgreed = true;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Boolean isAgreed = false;
 }

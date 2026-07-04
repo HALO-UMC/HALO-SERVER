@@ -3,16 +3,16 @@ package com.umc.halo.domain.record.entity;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
 import com.umc.halo.domain.content.scenecard.entity.SceneCard;
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "member_chapter")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberChapter {
+public class MemberChapter extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,12 +53,6 @@ public class MemberChapter {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     public enum Emotion { CURIOUS, WARM, TOUCHED, AWKWARD, CLOSER }
     public enum CoverType { SCENE_CARD, IMAGE }
