@@ -53,8 +53,4 @@ public class MemberChapter extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
-
-    public enum Emotion { CURIOUS, WARM, TOUCHED, AWKWARD, CLOSER }
-    public enum CoverType { SCENE_CARD, IMAGE }
-    public enum Status { DRAFT, COMPLETED }
 }

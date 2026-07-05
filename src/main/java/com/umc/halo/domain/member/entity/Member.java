@@ -45,8 +45,4 @@ public class Member extends BaseEntity {
     @Column(name = "onboarding_completed", nullable = false)
     @Builder.Default
     private Boolean onboardingCompleted = false;
-
-    public enum Provider { GOOGLE, KAKAO }
-    public enum Gender { MALE, FEMALE }
-    public enum AgeGroup { TEENS, TWENTIES, THIRTIES, FORTIES, FIFTIES_PLUS }
 }

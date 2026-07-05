@@ -47,6 +47,4 @@ public class Anniversary extends BaseEntity {
 
     @Column(length = 255)
     private String memo;
-
-    public enum Target { MOTHER, FATHER, FAMILY }
 }

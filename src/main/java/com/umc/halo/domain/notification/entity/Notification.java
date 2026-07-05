@@ -39,6 +39,4 @@ public class Notification extends BaseEntity {
     @Column(name = "is_read", nullable = false)
     @Builder.Default
     private Boolean isRead = false;
-
-    public enum NotificationType { ANNIVERSARY_D7, ANNIVERSARY_DDAY, TODAY_CHAPTER, RETENTION }
 }

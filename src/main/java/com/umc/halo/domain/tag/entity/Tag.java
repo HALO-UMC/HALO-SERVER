@@ -27,7 +27,4 @@ public class Tag extends BaseEntity {
 
     @Column(length = 255)
     private String description;
-
-    public enum Category { PARENT_TENDENCY, CURRENT_RELATIONSHIP, DESIRED_DIRECTION, COMMUNICATION_LEVEL }
-    public enum Subtitle { POSITIVE, NEUTRAL, CAUTIOUS }
 }
