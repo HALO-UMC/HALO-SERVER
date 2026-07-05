@@ -22,4 +22,9 @@ logging:
   level:
     root: info
     org.hibernate.SQL: !!str debug
-    org.hibernate.orm.jdbc.bind: trace
+
+jwt:
+  token:
+    secretKey: ${JWT_SECRET_KEY}
+    expiration:
+      access: 3600000   # 1시간
