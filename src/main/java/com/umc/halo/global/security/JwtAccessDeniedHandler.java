@@ -17,14 +17,6 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException {
-        GeneralErrorCode errorCode = GeneralErrorCode.FORBIDDEN;
-        response.setStatus(errorCode.getStatus().value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
-        String body = String.format(
-                "{\"isSuccess\": false, \"code\": \"%s\", \"message\": \"%s\", \"result\": null}",
-                errorCode.getCode(), errorCode.getMessage());
-        response.getWriter().write(body);
+        SecurityResponseWriter.write(response, GeneralErrorCode.FORBIDDEN);
     }
 }
