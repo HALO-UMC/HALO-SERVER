@@ -22,7 +22,6 @@ logging:
   level:
     root: info
     org.hibernate.SQL: !!str debug
-    org.hibernate.orm.jdbc.bind: trace
 
 jwt:
   token:
