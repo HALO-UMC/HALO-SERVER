@@ -34,12 +34,12 @@ HALO Backend는 Spring Boot 기반의 REST API 서버입니다.
 
 # 👥 팀원 소개
 
-|      이름      | 담당 도메인             |                       GitHub                       |
-|:------------:|--------------------|:--------------------------------------------------:|
-| **김서현 (PL)** | 테마 전시관, 캘린더        |    [@seohyeonS2](https://github.com/seohyeonS2)    |
-|   **홍정민**    | 회원, 온보딩, 관계 정보, 약관 | [@jmjmin24](https://github.com/jmjmjmin24-commits) |
-|   **한혜담**    | 스토리북, 장(Chapter)   |        [@hhd517](https://github.com/hhd517)        |
-|   **신재현**    | 알림, 기념일            |  [@shin-jaehyun](https://github.com/shin-jaehyun)  |
+|      이름      | 담당 도메인             |                            GitHub                            |
+|:------------:|--------------------|:------------------------------------------------------------:|
+| **김서현 (PL)** | 테마 전시관, 캘린더        |         [@seohyeonS2](https://github.com/seohyeonS2)         |
+|   **홍정민**    | 회원, 온보딩, 관계 정보, 약관 | [@jmjmjmin24-commits](https://github.com/jmjmjmin24-commits) |
+|   **한혜담**    | 스토리북, 장(Chapter)   |             [@hhd517](https://github.com/hhd517)             |
+|   **신재현**    | 알림, 기념일            |       [@shin-jaehyun](https://github.com/shin-jaehyun)       |
 
 > 역할은 프로젝트 진행 상황에 따라 변경될 수 있습니다.
 
