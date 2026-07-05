@@ -2,16 +2,16 @@ package com.umc.halo.domain.record.entity;
 
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "member_storybook")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberStorybook {
+public class MemberStorybook extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,10 +31,4 @@ public class MemberStorybook {
 
     @Column(name = "last_completed_date")
     private LocalDate lastCompletedDate;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

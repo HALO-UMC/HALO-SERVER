@@ -1,14 +1,14 @@
 package com.umc.halo.domain.notification.entity;
 
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "common_anniversary")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CommonAnniversary {
+public class CommonAnniversary extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,10 +32,4 @@ public class CommonAnniversary {
 
     @Column(name = "day_alarm_enabled", nullable = false)
     private Boolean dayAlarmEnabled = true;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

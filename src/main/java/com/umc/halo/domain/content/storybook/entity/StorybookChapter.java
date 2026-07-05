@@ -1,15 +1,15 @@
 package com.umc.halo.domain.content.storybook.entity;
 
 import com.umc.halo.domain.content.chapter.entity.Chapter;
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "storybook_chapter")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StorybookChapter {
+public class StorybookChapter extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,10 +26,4 @@ public class StorybookChapter {
 
     @Column(name = "chapter_order", nullable = false)
     private Integer chapterOrder;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

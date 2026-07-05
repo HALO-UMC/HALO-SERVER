@@ -1,14 +1,14 @@
 package com.umc.halo.domain.setting.entity;
 
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bgm")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Bgm {
+public class Bgm extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,10 +23,4 @@ public class Bgm {
 
     @Column(name = "image_url", length = 255)
     private String imageUrl;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

@@ -1,16 +1,18 @@
 package com.umc.halo.domain.notification.entity;
 
 import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "anniversary")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Anniversary {
+@Builder
+@AllArgsConstructor
+public class Anniversary extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,22 +34,17 @@ public class Anniversary {
     private Target target;
 
     @Column(name = "is_repeated", nullable = false)
+    @Builder.Default
     private Boolean isRepeated = true;
 
     @Column(name = "seven_days_alarm_enabled", nullable = false)
+    @Builder.Default
     private Boolean sevenDaysAlarmEnabled = true;
 
     @Column(name = "day_alarm_enabled", nullable = false)
+    @Builder.Default
     private Boolean dayAlarmEnabled = true;
 
     @Column(length = 255)
     private String memo;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    public enum Target { MOTHER, FATHER, FAMILY }
 }

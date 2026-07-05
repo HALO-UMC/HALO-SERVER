@@ -1,15 +1,15 @@
 package com.umc.halo.domain.record.entity;
 
 import com.umc.halo.domain.content.chapter.entity.ChapterQuestion;
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "member_chapter_answer")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberChapterAnswer {
+public class MemberChapterAnswer extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,10 +26,4 @@ public class MemberChapterAnswer {
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String answer;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

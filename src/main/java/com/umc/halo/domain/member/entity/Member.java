@@ -1,14 +1,22 @@
 package com.umc.halo.domain.member.entity;
 
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "member")
+@Table(
+        name = "member",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_member_guest_uuid", columnNames = {"guest_uuid"}),
+                @UniqueConstraint(name = "uk_member_provider", columnNames = {"provider", "provider_id"})
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member {
+@Builder
+@AllArgsConstructor
+public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,15 +43,6 @@ public class Member {
     private AgeGroup ageGroup;
 
     @Column(name = "onboarding_completed", nullable = false)
+    @Builder.Default
     private Boolean onboardingCompleted = false;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    public enum Provider { GOOGLE, KAKAO }
-    public enum Gender { MALE, FEMALE }
-    public enum AgeGroup { TEENS, TWENTIES, THIRTIES, FORTIES, FIFTIES_PLUS }
 }

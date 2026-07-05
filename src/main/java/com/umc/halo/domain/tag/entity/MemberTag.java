@@ -1,15 +1,20 @@
 package com.umc.halo.domain.tag.entity;
 
 import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "member_tag")
+@Table(
+        name = "member_tag",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"tag_id", "member_id"})
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberTag {
+@Builder
+@AllArgsConstructor
+public class MemberTag extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,10 +28,4 @@ public class MemberTag {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }

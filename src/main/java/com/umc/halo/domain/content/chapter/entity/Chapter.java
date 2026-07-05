@@ -1,14 +1,14 @@
 package com.umc.halo.domain.content.chapter.entity;
 
+import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "chapter")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Chapter {
+public class Chapter extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,10 +29,4 @@ public class Chapter {
 
     @Column(columnDefinition = "TEXT")
     private String description;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 }
