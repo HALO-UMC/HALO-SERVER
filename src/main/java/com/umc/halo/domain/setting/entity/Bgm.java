@@ -1,6 +1,6 @@
 package com.umc.halo.domain.setting.entity;
 
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,6 +8,8 @@ import lombok.*;
 @Table(name = "bgm")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Bgm extends BaseEntity {
 
     @Id

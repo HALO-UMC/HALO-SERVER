@@ -8,6 +8,8 @@ import lombok.*;
 @Table(name = "chapter")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Chapter extends BaseEntity {
 
     @Id

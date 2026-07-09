@@ -8,6 +8,8 @@ import lombok.*;
 @Table(name = "storybook")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Storybook extends BaseEntity {
 
     @Id

@@ -1,6 +1,6 @@
 package com.umc.halo.domain.term.entity;
 
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,6 +8,8 @@ import lombok.*;
 @Table(name = "term")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Term extends BaseEntity {
 
     @Id
@@ -25,5 +27,6 @@ public class Term extends BaseEntity {
     private String description;
 
     @Column(name = "is_required", nullable = false)
+    @Builder.Default
     private Boolean isRequired = true;
 }

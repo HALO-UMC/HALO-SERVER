@@ -1,6 +1,6 @@
 package com.umc.halo.domain.notification.entity;
 
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,6 +8,8 @@ import lombok.*;
 @Table(name = "common_anniversary")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CommonAnniversary extends BaseEntity {
 
     @Id
@@ -25,11 +27,14 @@ public class CommonAnniversary extends BaseEntity {
     private Integer day;
 
     @Column(name = "is_lunar", nullable = false)
+    @Builder.Default
     private Boolean isLunar = false;
 
     @Column(name = "seven_days_alarm_enabled", nullable = false)
+    @Builder.Default
     private Boolean sevenDaysAlarmEnabled = true;
 
     @Column(name = "day_alarm_enabled", nullable = false)
+    @Builder.Default
     private Boolean dayAlarmEnabled = true;
 }
