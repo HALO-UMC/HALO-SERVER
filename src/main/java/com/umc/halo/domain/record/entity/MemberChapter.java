@@ -5,6 +5,7 @@ import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
 import com.umc.halo.domain.content.scenecard.entity.SceneCard;
 import com.umc.halo.domain.record.enums.*;
 import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.global.enums.Emotion;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
