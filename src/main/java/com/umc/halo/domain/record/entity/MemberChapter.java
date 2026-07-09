@@ -1,6 +1,6 @@
 package com.umc.halo.domain.record.entity;
 
-import com.umc.halo.domain.content.scenecard.entity.*;
+import com.umc.halo.domain.content.chapter.entity.*;
 import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.record.enums.*;

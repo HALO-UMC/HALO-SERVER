@@ -1,6 +1,5 @@
-package com.umc.halo.domain.content.scenecard.entity;
+package com.umc.halo.domain.content.chapter.entity;
 
-import com.umc.halo.domain.content.chapter.entity.Chapter;
 import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
