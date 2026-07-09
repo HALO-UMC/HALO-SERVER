@@ -1,6 +1,7 @@
 package com.umc.halo.domain.tag.entity;
 
 import com.umc.halo.domain.content.storybook.entity.*;
+import com.umc.halo.domain.tag.enums.PriorityLevel;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -3,6 +3,7 @@ package com.umc.halo.domain.record.entity;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
 import com.umc.halo.domain.content.scenecard.entity.SceneCard;
+import com.umc.halo.domain.record.enums.*;
 import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

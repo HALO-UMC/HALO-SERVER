@@ -1,4 +1,4 @@
-package com.umc.halo.domain.tag.entity;
+package com.umc.halo.domain.tag.enums;
 
 public enum Category {
     PARENT_TENDENCY,      // 부모님 성향

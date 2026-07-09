@@ -1,6 +1,7 @@
 package com.umc.halo.domain.content.storybook.entity;
 
-import com.umc.halo.domain.record.entity.*;
+import com.umc.halo.domain.content.storybook.enums.Variant;
+import com.umc.halo.domain.record.enums.Emotion;
 import jakarta.persistence.*;
 import lombok.*;
 

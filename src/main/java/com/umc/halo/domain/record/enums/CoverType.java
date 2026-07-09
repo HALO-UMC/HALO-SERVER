@@ -1,4 +1,4 @@
-package com.umc.halo.domain.record.entity;
+package com.umc.halo.domain.record.enums;
 
 public enum CoverType {
     SCENE_CARD, // 장면카드로 남기기

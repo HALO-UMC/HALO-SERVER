@@ -1,4 +1,4 @@
-package com.umc.halo.domain.content.storybook.entity;
+package com.umc.halo.domain.content.storybook.enums;
 
 public enum Variant {
     ORIGINAL,

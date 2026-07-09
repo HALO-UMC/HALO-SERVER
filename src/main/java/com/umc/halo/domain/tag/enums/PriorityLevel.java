@@ -1,4 +1,4 @@
-package com.umc.halo.domain.tag.entity;
+package com.umc.halo.domain.tag.enums;
 
 public enum PriorityLevel {
     PRIMARY,

@@ -1,4 +1,4 @@
-package com.umc.halo.domain.record.entity;
+package com.umc.halo.domain.record.enums;
 
 public enum Emotion {
     GRATEFUL,    // 감사했어요

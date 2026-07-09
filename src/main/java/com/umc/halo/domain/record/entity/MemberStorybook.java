@@ -2,6 +2,7 @@ package com.umc.halo.domain.record.entity;
 
 import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.member.entity.*;
+import com.umc.halo.domain.record.enums.*;
 import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;

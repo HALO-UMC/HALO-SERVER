@@ -1,5 +1,6 @@
 package com.umc.halo.domain.member.entity;
 
+import com.umc.halo.domain.member.enums.*;
 import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
