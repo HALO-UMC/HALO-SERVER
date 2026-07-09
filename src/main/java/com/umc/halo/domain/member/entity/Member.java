@@ -1,5 +1,6 @@
 package com.umc.halo.domain.member.entity;
 
+import com.umc.halo.domain.member.enums.*;
 import com.umc.halo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,4 +46,7 @@ public class Member extends BaseEntity {
     @Column(name = "onboarding_completed", nullable = false)
     @Builder.Default
     private Boolean onboardingCompleted = false;
+
+    @Column(name = "refresh_token", length = 500)
+    private String refreshToken;
 }

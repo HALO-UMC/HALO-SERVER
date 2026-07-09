@@ -1,7 +1,6 @@
 package com.umc.halo.domain.content.storybook.entity;
 
-import com.umc.halo.domain.tag.entity.Tag;
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,10 +14,6 @@ public class Storybook extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "storybook_id")
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id", nullable = false)
-    private Tag tag;
 
     @Column(length = 50, nullable = false)
     private String title;
@@ -35,6 +30,7 @@ public class Storybook extends BaseEntity {
     @Column(name = "image_url", length = 255, nullable = false)
     private String imageUrl;
 
-    @Column(name = "character_image_url", length = 255)
-    private String characterImageUrl;
+    @Column(name = "spine_color", length = 7, nullable = false)
+    private String spineColor;
+
 }

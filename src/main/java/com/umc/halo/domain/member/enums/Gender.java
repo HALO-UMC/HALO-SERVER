@@ -1,4 +1,4 @@
-package com.umc.halo.domain.member.entity;
+package com.umc.halo.domain.member.enums;
 
 public enum Gender {
     MALE,  // 남성

@@ -1,4 +1,4 @@
-package com.umc.halo.domain.notification.entity;
+package com.umc.halo.domain.notification.enums;
 
 public enum Target {
     MOTHER, // 어머니

@@ -1,6 +1,6 @@
 package com.umc.halo.domain.content.chapter.entity;
 
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,4 +29,7 @@ public class Chapter extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(name = "image_description", length = 255, nullable = false)
+    private String imageDescription;
 }

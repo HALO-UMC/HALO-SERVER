@@ -1,4 +1,4 @@
-package com.umc.halo.domain.tag.entity;
+package com.umc.halo.domain.tag.enums;
 
 public enum Subtitle {
     POSITIVE, // 긍정적인 성향

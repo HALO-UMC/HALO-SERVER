@@ -1,4 +1,4 @@
-package com.umc.halo.domain.notification.entity;
+package com.umc.halo.domain.notification.enums;
 
 public enum NotificationType {
     ANNIVERSARY_D7,   // 기념일 7일 전
