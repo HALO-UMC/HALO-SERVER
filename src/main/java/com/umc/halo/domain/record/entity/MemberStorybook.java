@@ -34,7 +34,7 @@ public class MemberStorybook extends BaseEntity {
     @Column(name = "last_completed_date")
     private LocalDate lastCompletedDate;
 
-    @Column(nullable = false)
+    @Column
     @Enumerated(EnumType.STRING)
     private Emotion emotion;
 }

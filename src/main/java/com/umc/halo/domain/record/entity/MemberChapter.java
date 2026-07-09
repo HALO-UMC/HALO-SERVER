@@ -1,14 +1,15 @@
 package com.umc.halo.domain.record.entity;
 
-import com.umc.halo.domain.member.entity.Member;
-import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
-import com.umc.halo.domain.content.scenecard.entity.SceneCard;
+import com.umc.halo.domain.content.scenecard.entity.*;
+import com.umc.halo.domain.content.storybook.entity.*;
+import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.record.enums.*;
-import com.umc.halo.global.entity.BaseEntity;
-import com.umc.halo.global.enums.Emotion;
+import com.umc.halo.global.entity.*;
+import com.umc.halo.global.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
+
+import java.time.*;
 
 @Entity
 @Table(name = "member_chapter")
@@ -37,7 +38,7 @@ public class MemberChapter extends BaseEntity {
     private Emotion emotion;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "cover_type", nullable = false)
+    @Column(name = "cover_type")
     private CoverType coverType;
 
     @Column(name = "image_url", length = 255)
