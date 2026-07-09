@@ -1,10 +1,11 @@
 package com.umc.halo.domain.notification.entity;
 
-import com.umc.halo.domain.member.entity.Member;
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.domain.member.entity.*;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
+
+import java.time.*;
 
 @Entity
 @Table(name = "notification")
@@ -33,7 +34,7 @@ public class Notification extends BaseEntity {
     @Column(length = 255, nullable = false)
     private String message;
 
-    @Column(name = "sent_at", nullable = false)
+    @Column(name = "sent_at")
     private LocalDateTime sentAt;
 
     @Column(name = "is_read", nullable = false)

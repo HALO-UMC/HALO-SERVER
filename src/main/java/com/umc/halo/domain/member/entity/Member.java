@@ -45,4 +45,7 @@ public class Member extends BaseEntity {
     @Column(name = "onboarding_completed", nullable = false)
     @Builder.Default
     private Boolean onboardingCompleted = false;
+
+    @Column(name = "refresh_token", length = 500)
+    private String refreshToken;
 }

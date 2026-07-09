@@ -1,9 +1,10 @@
 package com.umc.halo.domain.record.entity;
 
 public enum Emotion {
-    CURIOUS, // 궁금함
-    WARM,    // 따뜻함
-    TOUCHED, // 뭉클함
-    AWKWARD, // 어색함
-    CLOSER   // 가까워짐
+    GRATEFUL,    // 감사했어요
+    SAD,         // 슬펐어요
+    THOUGHTFUL,  // 생각이 많아요
+    ANGRY,       // 화가 났어요
+    AWKWARD,     // 어색했어요
+    HAPPY       // 즐거웠어요
 }

@@ -1,11 +1,12 @@
 package com.umc.halo.domain.record.entity;
 
-import com.umc.halo.domain.member.entity.Member;
-import com.umc.halo.domain.content.storybook.entity.Storybook;
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.domain.content.storybook.entity.*;
+import com.umc.halo.domain.member.entity.*;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
+
+import java.time.*;
 
 @Entity
 @Table(name = "member_storybook")
@@ -31,4 +32,8 @@ public class MemberStorybook extends BaseEntity {
 
     @Column(name = "last_completed_date")
     private LocalDate lastCompletedDate;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Emotion emotion;
 }
