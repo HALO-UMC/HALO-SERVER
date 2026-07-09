@@ -32,9 +32,6 @@ public class Storybook extends BaseEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 
-    @Column(length = 255)
-    private String summary;
-
     @Column(name = "image_url", length = 255, nullable = false)
     private String imageUrl;
 

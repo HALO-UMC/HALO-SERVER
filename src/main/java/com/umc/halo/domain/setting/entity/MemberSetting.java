@@ -39,8 +39,9 @@ public class MemberSetting extends BaseEntity {
     @Builder.Default
     private Boolean regularNotificationEnabled = true;
 
-    @Column(name = "regular_notification_time")
-    private LocalTime regularNotificationTime;
+    @Column(name = "regular_notification_time", nullable = false)
+    @Builder.Default
+    private LocalTime regularNotificationTime = LocalTime.of(21,0);
 
     @Column(name = "today_chapter_notification_enabled", nullable = false)
     @Builder.Default
