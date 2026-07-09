@@ -1,7 +1,8 @@
 package com.umc.halo.domain.content.storybook.entity;
 
-import com.umc.halo.domain.content.storybook.enums.Variant;
-import com.umc.halo.global.enums.Emotion;
+import com.umc.halo.domain.content.storybook.enums.*;
+import com.umc.halo.global.entity.*;
+import com.umc.halo.global.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +10,7 @@ import lombok.*;
 @Table(name = "storybook_character")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StorybookCharacter {
+public class StorybookCharacter extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

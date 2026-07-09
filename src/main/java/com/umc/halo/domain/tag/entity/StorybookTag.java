@@ -1,15 +1,23 @@
 package com.umc.halo.domain.tag.entity;
 
 import com.umc.halo.domain.content.storybook.entity.*;
-import com.umc.halo.domain.tag.enums.PriorityLevel;
+import com.umc.halo.domain.tag.enums.*;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "storybook_tag")
+@Table(
+        name = "storybook_tag",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_storybook_tag_storybook_tag",
+                        columnNames = {"storybook_id", "tag_id"}
+                )
+        })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class StorybookTag {
+public class StorybookTag extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
