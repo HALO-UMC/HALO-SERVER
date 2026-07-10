@@ -18,6 +18,7 @@ public class LocalDataSeeder implements CommandLineRunner {
     private final TagSeeder tagSeeder;
     private final RecordSeeder recordSeeder;
     private final TermSeeder termSeeder;
+    private final NotificationSeeder notificationSeeder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -30,6 +31,7 @@ public class LocalDataSeeder implements CommandLineRunner {
         tagSeeder.seed();
         recordSeeder.seed();
         termSeeder.seed();
+        notificationSeeder.seed();
 
     }
 
