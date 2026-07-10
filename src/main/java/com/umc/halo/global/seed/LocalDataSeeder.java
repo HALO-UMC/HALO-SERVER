@@ -13,6 +13,7 @@ import org.springframework.stereotype.*;
 public class LocalDataSeeder implements CommandLineRunner {
 
     private final MemberSeeder memberSeeder;
+    private final ChapterSeeder chapterSeeder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -20,6 +21,7 @@ public class LocalDataSeeder implements CommandLineRunner {
         log.info("로컬 데이터 초기화");
 
         memberSeeder.seed();
+        chapterSeeder.seed();
 
     }
 
