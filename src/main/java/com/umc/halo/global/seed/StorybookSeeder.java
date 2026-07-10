@@ -152,7 +152,7 @@ public class StorybookSeeder {
 
     @Transactional
     public void seed() {
-        List<Chapter> chapters = chapterRepository.findAll();
+        List<Chapter> chapters = chapterRepository.findAllByOrderByIdAsc();
         List<Storybook> storybooks = seedStorybooks();
 
         for (int i = 0; i < storybooks.size(); i++) {
