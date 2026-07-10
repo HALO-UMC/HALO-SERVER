@@ -1,0 +1,54 @@
+package com.umc.halo.global.seed;
+
+import com.umc.halo.domain.member.entity.*;
+import com.umc.halo.domain.member.enums.*;
+import com.umc.halo.domain.member.repository.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import org.springframework.stereotype.*;
+import org.springframework.transaction.annotation.*;
+
+import java.time.*;
+import java.util.*;
+
+@Component
+@Slf4j
+@RequiredArgsConstructor
+public class MemberSeeder {
+    private final MemberRepository memberRepository;
+
+    @Transactional
+    public List<Member> seed() {
+
+        List<Member> members = List.of(
+                Member.builder()
+                        .name("김하로")
+                        .guestUuid(UUID.randomUUID().toString())
+                        .provider(Provider.KAKAO)
+                        .providerId("kakao-0001")
+                        .gender(Gender.FEMALE)
+                        .birthDate(LocalDate.of(2000, 5, 12))
+                        .onboardingCompleted(true)
+                        .build(),
+                Member.builder()
+                        .name("이온")
+                        .guestUuid(UUID.randomUUID().toString())
+                        .provider(Provider.GOOGLE)
+                        .providerId("google-0001")
+                        .gender(Gender.MALE)
+                        .birthDate(LocalDate.of(1993, 8, 23))
+                        .onboardingCompleted(true)
+                        .build(),
+                Member.builder()
+                        .name("송하루")
+                        .guestUuid(UUID.randomUUID().toString())
+                        .gender(Gender.MALE)
+                        .birthDate(LocalDate.of(2011, 4, 5))
+                        .build()
+        );
+        List<Member> savedMembers = memberRepository.saveAll(members);
+        log.info("Member {}건 시딩 완료", savedMembers.size());
+
+        return savedMembers;
+    }
+}
