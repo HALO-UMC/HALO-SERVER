@@ -1,9 +1,11 @@
 package com.umc.halo.domain.member.entity;
 
 import com.umc.halo.domain.member.enums.*;
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.*;
 
 @Entity
 @Table(
@@ -27,7 +29,7 @@ public class Member extends BaseEntity {
     @Column(name = "guest_uuid", length = 36)
     private String guestUuid;
 
-    @Column(length = 10)
+    @Column(length = 10, nullable = false)
     private String name;
 
     @Enumerated(EnumType.STRING)
@@ -36,12 +38,12 @@ public class Member extends BaseEntity {
     @Column(name = "provider_id", length = 255)
     private String providerId;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "age_group")
-    private AgeGroup ageGroup;
+    @Column(name = "birth_date", nullable = false)
+    private LocalDate birthDate;
 
     @Column(name = "onboarding_completed", nullable = false)
     @Builder.Default
