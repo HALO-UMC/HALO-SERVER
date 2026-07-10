@@ -5,6 +5,8 @@ import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.*;
+
 @Entity
 @Table(
         name = "member",
@@ -40,8 +42,8 @@ public class Member extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column(name = "age_group", nullable = false)
-    private AgeGroup ageGroup;
+    @Column(name = "birth_date", nullable = false)
+    private LocalDate birthDate;
 
     @Column(name = "onboarding_completed", nullable = false)
     @Builder.Default
