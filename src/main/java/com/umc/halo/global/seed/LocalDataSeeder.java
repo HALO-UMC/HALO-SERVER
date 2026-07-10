@@ -15,6 +15,7 @@ public class LocalDataSeeder implements CommandLineRunner {
     private final MemberSeeder memberSeeder;
     private final ChapterSeeder chapterSeeder;
     private final StorybookSeeder storybookSeeder;
+    private final TagSeeder tagSeeder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -24,6 +25,7 @@ public class LocalDataSeeder implements CommandLineRunner {
         memberSeeder.seed();
         chapterSeeder.seed();
         storybookSeeder.seed();
+        tagSeeder.seed();
 
     }
 
