@@ -1,7 +1,6 @@
-package com.umc.halo.domain.content.scenecard.entity;
+package com.umc.halo.domain.content.chapter.entity;
 
-import com.umc.halo.domain.content.chapter.entity.Chapter;
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,6 +8,8 @@ import lombok.*;
 @Table(name = "scene_card")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class SceneCard extends BaseEntity {
 
     @Id

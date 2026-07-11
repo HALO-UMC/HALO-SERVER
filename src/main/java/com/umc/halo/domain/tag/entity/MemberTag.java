@@ -1,7 +1,7 @@
 package com.umc.halo.domain.tag.entity;
 
-import com.umc.halo.domain.member.entity.Member;
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.domain.member.entity.*;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +13,7 @@ import lombok.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberTag extends BaseEntity {
 
     @Id

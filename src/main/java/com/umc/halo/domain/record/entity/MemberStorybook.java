@@ -13,6 +13,8 @@ import java.time.*;
 @Table(name = "member_storybook")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberStorybook extends BaseEntity {
 
     @Id

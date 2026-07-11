@@ -1,7 +1,7 @@
 package com.umc.halo.domain.tag.entity;
 
 import com.umc.halo.domain.tag.enums.*;
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,6 +9,8 @@ import lombok.*;
 @Table(name = "tag")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Tag extends BaseEntity {
 
     @Id

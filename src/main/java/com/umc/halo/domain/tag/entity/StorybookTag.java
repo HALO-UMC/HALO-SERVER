@@ -17,6 +17,8 @@ import lombok.*;
         })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class StorybookTag extends BaseEntity {
 
     @Id

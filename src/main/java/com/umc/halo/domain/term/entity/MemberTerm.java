@@ -1,7 +1,7 @@
 package com.umc.halo.domain.term.entity;
 
-import com.umc.halo.domain.member.entity.Member;
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.domain.member.entity.*;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,6 +9,8 @@ import lombok.*;
 @Table(name = "member_term")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberTerm extends BaseEntity {
 
     @Id
@@ -25,5 +27,6 @@ public class MemberTerm extends BaseEntity {
     private Member member;
 
     @Column(name = "is_agreed", nullable = false)
+    @Builder.Default
     private Boolean isAgreed = false;
 }

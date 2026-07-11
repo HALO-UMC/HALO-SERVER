@@ -1,18 +1,19 @@
 package com.umc.halo.domain.notification.entity;
 
-import com.umc.halo.domain.member.entity.Member;
-import com.umc.halo.domain.notification.enums.Target;
-import com.umc.halo.global.entity.BaseEntity;
+import com.umc.halo.domain.member.entity.*;
+import com.umc.halo.domain.notification.enums.*;
+import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
+
+import java.time.*;
 
 @Entity
 @Table(name = "anniversary")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Anniversary extends BaseEntity {
 
     @Id
