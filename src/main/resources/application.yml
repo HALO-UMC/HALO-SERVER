@@ -28,3 +28,6 @@ jwt:
     secretKey: ${JWT_SECRET_KEY}
     expiration:
       access: 3600000   # 1시간
+
+kakao:
+  client-id: ${KAKAO_REST_API_KEY}

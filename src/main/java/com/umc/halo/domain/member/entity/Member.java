@@ -11,7 +11,6 @@ import java.time.*;
 @Table(
         name = "member",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_member_guest_uuid", columnNames = {"guest_uuid"}),
                 @UniqueConstraint(name = "uk_member_provider", columnNames = {"provider", "provider_id"})
         }
 )
