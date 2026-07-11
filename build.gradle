@@ -42,6 +42,9 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
     implementation 'io.jsonwebtoken:jjwt-impl:0.13.0'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+
+    // OIDC ID Token
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
 }
 
 tasks.named('test') {

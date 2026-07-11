@@ -31,3 +31,5 @@ jwt:
 
 kakao:
   client-id: ${KAKAO_REST_API_KEY}
+  jwks-uri: https://kauth.kakao.com/.well-known/jwks.json
+  issuer: https://kauth.kakao.com
