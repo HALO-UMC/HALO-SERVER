@@ -44,6 +44,10 @@ public class Member extends BaseEntity {
     @Builder.Default
     private Boolean onboardingCompleted = false;
 
-    @Column(name = "refresh_token", length = 500)
-    private String refreshToken;
+    @Column(name = "refresh_token_hash", length = 64)
+    private String refreshTokenHash;
+
+    public void updateRefreshTokenToHash(String refreshTokenHash) {
+        this.refreshTokenHash = refreshTokenHash;
+    }
 }
