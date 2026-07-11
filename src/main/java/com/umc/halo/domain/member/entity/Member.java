@@ -26,10 +26,7 @@ public class Member extends BaseEntity {
     @Column(name = "member_id")
     private Long id;
 
-    @Column(name = "guest_uuid", length = 36)
-    private String guestUuid;
-
-    @Column(length = 10, nullable = false)
+    @Column(length = 10)
     private String name;
 
     @Enumerated(EnumType.STRING)
@@ -38,11 +35,10 @@ public class Member extends BaseEntity {
     @Column(name = "provider_id", length = 255)
     private String providerId;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column(name = "birth_date", nullable = false)
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     @Column(name = "onboarding_completed", nullable = false)
