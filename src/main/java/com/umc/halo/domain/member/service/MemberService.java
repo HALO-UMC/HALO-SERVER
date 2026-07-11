@@ -4,12 +4,16 @@ import com.umc.halo.domain.member.converter.MemberConverter;
 import com.umc.halo.domain.member.dto.request.LoginRequestDTO;
 import com.umc.halo.domain.member.dto.response.LoginResponseDTO;
 import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.domain.member.enums.Provider;
+import com.umc.halo.domain.member.exception.code.AuthErrorCode;
 import com.umc.halo.domain.member.oauth.OidcProvider;
 import com.umc.halo.domain.member.oauth.OidcProviderFactory;
 import com.umc.halo.domain.member.repository.MemberRepository;
+import com.umc.halo.global.apiPayload.exception.ProjectException;
 import com.umc.halo.global.security.HashUtil;
 import com.umc.halo.global.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,16 +29,29 @@ public class MemberService {
     @Transactional
     public LoginResponseDTO.LoginResponse login(LoginRequestDTO.Login dto) {
 
-        OidcProvider oidcProvider = oidcProviderFactory.getProvider(dto.provider());
+        Provider provider;
+
+        try {
+            provider = Provider.valueOf(dto.provider());
+        } catch (IllegalArgumentException e) {
+            throw new ProjectException(AuthErrorCode.UNSUPPORTED_PROVIDER);
+        }
+
+        OidcProvider oidcProvider = oidcProviderFactory.getProvider(provider);
         String providerId = oidcProvider.verify(dto.providerToken());
 
-        Member member = memberRepository.findByProviderAndProviderId(dto.provider(), providerId).orElse(null);
+        Member member = memberRepository.findByProviderAndProviderId(provider, providerId).orElse(null);
         boolean isNewUser = false;
 
         if (member == null) {
-            member = MemberConverter.toMember(dto.provider(), providerId);
-            memberRepository.save(member);
-            isNewUser = true;
+            try{
+                member = MemberConverter.toMember(provider, providerId);
+                memberRepository.save(member);
+                isNewUser = true;
+            } catch (DataIntegrityViolationException e) {
+                member = memberRepository.findByProviderAndProviderId(provider, providerId).orElseThrow(() -> e);
+            }
+
         }
 
         String accessToken = jwtUtil.createAccessToken(member.getId());

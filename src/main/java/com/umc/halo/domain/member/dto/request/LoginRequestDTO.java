@@ -9,7 +9,7 @@ public class LoginRequestDTO {
     // 로그인
     public record Login (
             @NotNull
-            Provider provider,
+            String provider,
             @NotBlank
             String providerToken
     ) {}

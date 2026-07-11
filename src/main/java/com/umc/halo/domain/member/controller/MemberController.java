@@ -7,6 +7,7 @@ import com.umc.halo.domain.member.exception.code.AuthSuccessCode;
 import com.umc.halo.domain.member.service.MemberService;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import com.umc.halo.global.apiPayload.code.BaseSuccessCode;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +23,7 @@ public class MemberController implements MemberControllerDocs {
 
     @PostMapping("/v1/auth/login")
     public ApiResponse<LoginResponseDTO.LoginResponse> login(
-            @RequestBody LoginRequestDTO.Login dto
+            @RequestBody @Valid LoginRequestDTO.Login dto
     ) {
         BaseSuccessCode code = AuthSuccessCode.LOGIN_SUCCESS;
         return ApiResponse.onSuccess(code, memberService.login(dto));

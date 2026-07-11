@@ -35,6 +35,7 @@ public class JwtUtil {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(String.valueOf(memberId))
+                .claim("type", "access")
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(accessExpiration)))
                 .signWith(secretKey)
@@ -46,6 +47,7 @@ public class JwtUtil {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(String.valueOf(memberId))
+                .claim("type", "refresh")
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(refreshExpiration)))
                 .signWith(secretKey)
