@@ -24,7 +24,6 @@ public interface MemberControllerDocs {
                     description = "성공 예시",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ApiResponse.class),
                             examples = @ExampleObject(value = """
                                     {
                                         "isSuccess": true,
@@ -46,7 +45,6 @@ public interface MemberControllerDocs {
                     description = "provider가 KAKAO/GOOGLE 외 값",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ApiResponse.class),
                             examples = @ExampleObject(value = """
                                     {
                                         "isSuccess":false,
@@ -63,7 +61,6 @@ public interface MemberControllerDocs {
                     description = "providerToken 검증 실패",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ApiResponse.class),
                             examples = @ExampleObject(value = """
                                     {
                                         "isSuccess":false,
