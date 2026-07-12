@@ -91,7 +91,7 @@ public class MemberService {
 
     @Transactional
     public void logout(Long memberId) {
-        Member member = memberRepository.findById(memberId)
+        Member member = memberRepository.findByIdForUpdate(memberId)
                 .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
         member.deleteRefreshToken();
     }
