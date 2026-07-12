@@ -1,12 +1,11 @@
 package com.umc.halo.domain.member.controller.docs;
 
-import com.umc.halo.domain.member.dto.request.LoginRequestDTO;
-import com.umc.halo.domain.member.dto.response.LoginResponseDTO;
+import com.umc.halo.domain.member.dto.MemberReqDTO;
+import com.umc.halo.domain.member.dto.MemberResDTO;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -73,5 +72,5 @@ public interface MemberControllerDocs {
                     )
             )
     })
-    ApiResponse<LoginResponseDTO.LoginResponse> login(@RequestBody LoginRequestDTO.Login dto);
+    ApiResponse<MemberResDTO.LoginResponse> login(@RequestBody MemberReqDTO.Login dto);
 }

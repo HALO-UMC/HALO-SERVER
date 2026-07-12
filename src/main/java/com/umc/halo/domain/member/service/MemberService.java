@@ -1,8 +1,8 @@
 package com.umc.halo.domain.member.service;
 
 import com.umc.halo.domain.member.converter.MemberConverter;
-import com.umc.halo.domain.member.dto.request.LoginRequestDTO;
-import com.umc.halo.domain.member.dto.response.LoginResponseDTO;
+import com.umc.halo.domain.member.dto.MemberReqDTO;
+import com.umc.halo.domain.member.dto.MemberResDTO;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.enums.Provider;
 import com.umc.halo.domain.member.exception.code.AuthErrorCode;
@@ -27,7 +27,7 @@ public class MemberService {
     private final OidcProviderFactory oidcProviderFactory;
 
     @Transactional
-    public LoginResponseDTO.LoginResponse login(LoginRequestDTO.Login dto) {
+    public MemberResDTO.LoginResponse login(MemberReqDTO.Login dto) {
 
         Provider provider;
 
