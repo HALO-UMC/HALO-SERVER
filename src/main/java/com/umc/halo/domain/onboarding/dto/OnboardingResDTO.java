@@ -8,4 +8,10 @@ public class OnboardingResDTO {
     public record NicknameCheck(
             Boolean isAvailable
     ) {}
+
+    @Builder
+    public record Save(
+            Integer onboardingStep,
+            Boolean onboardingCompleted
+    ) {}
 }
