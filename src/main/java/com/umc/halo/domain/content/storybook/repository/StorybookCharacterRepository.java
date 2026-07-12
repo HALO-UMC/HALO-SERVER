@@ -1,9 +1,12 @@
 package com.umc.halo.domain.content.storybook.repository;
 
 import com.umc.halo.domain.content.storybook.entity.*;
+import com.umc.halo.domain.content.storybook.enums.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.*;
 
 @Repository
 public interface StorybookCharacterRepository extends JpaRepository<StorybookCharacter, Long> {
+
+    StorybookCharacter findByStorybookAndVariant(Storybook storybook, Variant variant);
 }
