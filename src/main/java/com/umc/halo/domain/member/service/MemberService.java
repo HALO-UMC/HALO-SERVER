@@ -1,12 +1,12 @@
 package com.umc.halo.domain.member.service;
 
 import com.umc.halo.domain.member.converter.MemberConverter;
-import com.umc.halo.domain.member.dto.request.LoginRequestDTO;
-import com.umc.halo.domain.member.dto.response.LoginResponseDTO;
+import com.umc.halo.domain.member.dto.MemberReqDTO;
+import com.umc.halo.domain.member.dto.MemberResDTO;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.enums.Provider;
 import com.umc.halo.domain.member.exception.code.AuthErrorCode;
-import com.umc.halo.domain.member.oauth.OidcProvider;
+import com.umc.halo.domain.member.oauth.AbstractOidcProvider;
 import com.umc.halo.domain.member.oauth.OidcProviderFactory;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.global.apiPayload.exception.ProjectException;
@@ -27,7 +27,7 @@ public class MemberService {
     private final OidcProviderFactory oidcProviderFactory;
 
     @Transactional
-    public LoginResponseDTO.LoginResponse login(LoginRequestDTO.Login dto) {
+    public MemberResDTO.Login login(MemberReqDTO.Login dto) {
 
         Provider provider;
 
@@ -37,7 +37,7 @@ public class MemberService {
             throw new ProjectException(AuthErrorCode.UNSUPPORTED_PROVIDER);
         }
 
-        OidcProvider oidcProvider = oidcProviderFactory.getProvider(provider);
+        AbstractOidcProvider oidcProvider = oidcProviderFactory.getProvider(provider);
         String providerId = oidcProvider.verify(dto.providerToken());
 
         Member member = memberRepository.findByProviderAndProviderId(provider, providerId).orElse(null);

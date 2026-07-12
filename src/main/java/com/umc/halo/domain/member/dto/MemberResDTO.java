@@ -1,11 +1,11 @@
-package com.umc.halo.domain.member.dto.response;
+package com.umc.halo.domain.member.dto;
 
 import lombok.Builder;
 
-public class LoginResponseDTO {
+public class MemberResDTO {
 
     @Builder
-    public record LoginResponse (
+    public record Login(
             String accessToken,
             String refreshToken,
             Boolean isNewUser,
