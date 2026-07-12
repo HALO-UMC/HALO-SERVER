@@ -12,6 +12,7 @@ import com.umc.halo.domain.content.storybook.repository.*;
 import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.member.repository.*;
 import com.umc.halo.domain.record.entity.*;
+import com.umc.halo.domain.record.enums.*;
 import com.umc.halo.domain.record.repository.*;
 import com.umc.halo.global.apiPayload.code.*;
 import com.umc.halo.global.apiPayload.exception.*;
@@ -53,23 +54,56 @@ public class ChapterService {
         // memberStorybook 조회
         Optional<MemberStorybook> memberStorybookOpt = memberStorybookRepository.findByStorybookAndMember(storybook, member);
 
+        // memberChapter 조회
+        MemberChapter memberChapter = memberChapterRepository.findByMemberAndStorybookChapter(member, storybookChapter);
+
         // memberStorybook이 있을 경우
         memberStorybookOpt.ifPresent(ms -> {
             Integer lastChapterOrder = ms.getLastChapterOrder();
             LocalDate lastCompletedDate = ms.getLastCompletedDate();
 
-            // 이미 완료한 장
-            if (lastChapterOrder >= chapterOrder) {
+            // lastCompletedDate가 오늘인 경우
+            if ((lastCompletedDate != null) && (lastCompletedDate.isEqual(LocalDate.now()))) {
+                throw new ChapterException(ChapterErrorCode.ALREADY_RECEIVED_TODAY);
+            }
+
+            // lastChapterOrder > chapterOrder 인 경우 이미 완료한 장
+            if (lastChapterOrder > chapterOrder) {
                 throw new ChapterException(ChapterErrorCode.COMPLETED_CHAPTER);
             }
 
+            // lastChapterOrder == chapterOrder 인 경우 status가 draft이면 가능, completed이면 불가능
+            else if (lastChapterOrder == chapterOrder) {
+
+                // 이미 완료한 장 (memberChapter가 completed)
+                if ((memberChapter != null) && (memberChapter.getStatus() == Status.COMPLETED)) {
+                    throw new ChapterException(ChapterErrorCode.COMPLETED_CHAPTER);
+                }
+            }
+
+
+            // lastChapterOrder == chapterOrder-1인 경우 status가 completed (&& lastCompletedDate가 이전)일 경우만 가능
+            else if (lastChapterOrder == chapterOrder - 1) {
+
+                // lastChapterOrder의 memberChapter
+                StorybookChapter prevStorybookChapter = storybookChapterRepository.findByStorybookIdAndChapterOrder(storybookId, chapterOrder - 1)
+                        .orElseThrow(() -> new ChapterException(ChapterErrorCode.NOT_FOUND_CHAPTER));
+                MemberChapter prevMemberChapter = memberChapterRepository.findByMemberAndStorybookChapter(member, prevStorybookChapter);
+
+                // 아직 열리지 않은 장 (lastChapterOrder의 memberChapter가 completed가 아님)
+                if ((prevMemberChapter == null) || (prevMemberChapter.getStatus() == Status.DRAFT)) {
+                    throw new ChapterException(ChapterErrorCode.UNOPENED_CHAPTER);
+                }
+
+            }
+
             // 아직 열리지 않은 장
-            if ((lastChapterOrder != chapterOrder - 1) || !(lastCompletedDate.isBefore(LocalDate.now()))) {
+            else if (lastChapterOrder < chapterOrder - 1) {
                 throw new ChapterException(ChapterErrorCode.UNOPENED_CHAPTER);
             }
         });
 
-        // memberStorybook이 없을 경우
+        // 아직 열리지 않은 장(memberStorybook이 없으며 chapterOrder가 1이 아닐 경우)
         if (memberStorybookOpt.isEmpty() && chapterOrder != 1) {
             throw new ChapterException(ChapterErrorCode.UNOPENED_CHAPTER);
         }
@@ -84,8 +118,6 @@ public class ChapterService {
         // sceneCard 조회
         List<SceneCard> sceneCards = sceneCardRepository.findByChapter(chapter);
 
-        //memberChapter 조회
-        MemberChapter memberChapter = memberChapterRepository.findByMemberAndStorybookChapter(member, storybookChapter);
 
         //memberChapterAnswer 조회
         List<MemberChapterAnswer> answers = memberChapter == null

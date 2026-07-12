@@ -137,7 +137,7 @@ public interface ChapterControllerDocs {
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = {
                                             @ExampleObject(
-                                                    name = "아직 열리지 않은 장 (순서상 다음 장이 아니거나, 오늘 이미 다음 장을 받음)",
+                                                    name = "아직 열리지 않은 장 (순서상 다음 장이 아님)",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -154,6 +154,17 @@ public interface ChapterControllerDocs {
                                                                 "isSuccess": false,
                                                                 "code": "CHAPTER403_2",
                                                                 "message": "이미 완료한 장입니다.",
+                                                                "result": null
+                                                            }
+                                                            """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "오늘 이미 장을 완료하여 새 장을 받을 수 없는 경우",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "CHAPTER403_3",
+                                                                "message": "오늘 이미 장을 조회하였습니다.",
                                                                 "result": null
                                                             }
                                                             """
