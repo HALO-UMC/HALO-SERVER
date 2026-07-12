@@ -13,6 +13,9 @@ import com.umc.halo.domain.tag.entity.Tag;
 import com.umc.halo.domain.tag.repository.MemberTagRepository;
 import com.umc.halo.domain.tag.repository.TagRepository;
 import com.umc.halo.domain.onboarding.dto.OnboardingReqDTO;
+import com.umc.halo.domain.member.enums.Gender;
+import com.umc.halo.domain.tag.enums.Category;
+import java.util.ArrayList;
 
 import java.util.regex.Pattern;
 import java.util.List;
@@ -31,6 +34,7 @@ public class OnboardingService {
     private static final int GOAL_TAG_MIN = 1;
     private static final int GOAL_TAG_MAX = 2;
 
+    // 닉네임 중복 확인
     @Transactional(readOnly = true)
     public OnboardingResDTO.NicknameCheck checkNickname(String nickname) {
 
@@ -121,5 +125,54 @@ public class OnboardingService {
                     .build();
             memberTagRepository.save(memberTag);
         }
+    }
+
+    // 온보딩 진행 상태 조회
+    @Transactional(readOnly = true)
+    public OnboardingResDTO.Status getStatus(Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new OnboardingException(OnboardingErrorCode.MISSING_REQUIRED_FIELD));
+
+        // 아직 온보딩 시작 전 → savedData 없음
+        if (member.getOnboardingStep() == null) {
+            return OnboardingResDTO.Status.builder()
+                    .onboardingCompleted(member.getOnboardingCompleted())
+                    .currentStep(null)
+                    .savedData(null)
+                    .build();
+        }
+
+        // 저장된 태그들을 카테고리별로 분류
+        List<Long> parentTagIds = new ArrayList<>();
+        Long currentRelationTagId = null;
+        List<Long> goalTagIds = new ArrayList<>();
+
+        for (MemberTag memberTag : memberTagRepository.findAllByMember(member)) {
+            Category category = memberTag.getTag().getCategory();
+            Long tagId = memberTag.getTag().getId();
+
+            switch (category) {
+                case PARENT_TENDENCY -> parentTagIds.add(tagId);
+                case CURRENT_RELATIONSHIP -> currentRelationTagId = tagId;
+                case DESIRED_DIRECTION -> goalTagIds.add(tagId);
+                default -> { /* 온보딩과 무관한 카테고리는 무시 */ }
+            }
+        }
+
+        OnboardingResDTO.SavedData savedData = OnboardingResDTO.SavedData.builder()
+                .name(member.getName())
+                .gender(member.getGender())
+                .birthDate(member.getBirthDate())
+                .parentPersonalityTagIds(parentTagIds)
+                .currentRelationStateTagId(currentRelationTagId)
+                .goalRelationshipTagIds(goalTagIds)
+                .build();
+
+        return OnboardingResDTO.Status.builder()
+                .onboardingCompleted(member.getOnboardingCompleted())
+                .currentStep(member.getOnboardingStep())
+                .savedData(savedData)
+                .build();
     }
 }
