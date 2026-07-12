@@ -13,13 +13,13 @@ public class MemberConverter {
                 .build();
     }
 
-    public static MemberResDTO.LoginResponse toLoginResponse(
+    public static MemberResDTO.Login toLoginResponse(
             String accessToken,
             String refreshToken,
             Boolean isNewUser,
             Boolean onboardingCompleted
     ) {
-        return MemberResDTO.LoginResponse.builder()
+        return MemberResDTO.Login.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .isNewUser(isNewUser)

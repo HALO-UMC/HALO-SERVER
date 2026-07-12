@@ -22,7 +22,7 @@ public class MemberController implements MemberControllerDocs {
     private final MemberService memberService;
 
     @PostMapping("/v1/auth/login")
-    public ApiResponse<MemberResDTO.LoginResponse> login(
+    public ApiResponse<MemberResDTO.Login> login(
             @RequestBody @Valid MemberReqDTO.Login dto
     ) {
         BaseSuccessCode code = AuthSuccessCode.LOGIN_SUCCESS;

@@ -72,5 +72,5 @@ public interface MemberControllerDocs {
                     )
             )
     })
-    ApiResponse<MemberResDTO.LoginResponse> login(@RequestBody MemberReqDTO.Login dto);
+    ApiResponse<MemberResDTO.Login> login(@RequestBody MemberReqDTO.Login dto);
 }

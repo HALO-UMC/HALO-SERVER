@@ -27,7 +27,7 @@ public class MemberService {
     private final OidcProviderFactory oidcProviderFactory;
 
     @Transactional
-    public MemberResDTO.LoginResponse login(MemberReqDTO.Login dto) {
+    public MemberResDTO.Login login(MemberReqDTO.Login dto) {
 
         Provider provider;
 
