@@ -2,6 +2,7 @@ package com.umc.halo.domain.content.storybook.controller;
 
 import com.umc.halo.domain.content.storybook.apiPayload.StorybookSuccessCode;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
+import com.umc.halo.domain.content.storybook.dto.response.StorybookStartResponse;
 import com.umc.halo.domain.content.storybook.service.StorybookService;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,18 @@ public class StorybookController implements StorybookControllerDocs {
         return ApiResponse.onSuccess(
                 StorybookSuccessCode.GET_STORYBOOK_DETAIL,
                 storybookService.getStorybookDetail(storybookId, memberId)
+        );
+    }
+
+    @PostMapping("/storybooks/{storybookId}/start")
+    @Override
+    public ApiResponse<StorybookStartResponse.StartStorybook> startStorybook(
+            @PathVariable Long storybookId,
+            @AuthenticationPrincipal Long memberId
+    ) {
+        return ApiResponse.onSuccess(
+                StorybookSuccessCode.START_STORYBOOK,
+                storybookService.startStorybook(storybookId, memberId)
         );
     }
 }
