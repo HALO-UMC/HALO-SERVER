@@ -2,6 +2,7 @@ package com.umc.halo.domain.content.storybook.service;
 
 import com.umc.halo.domain.content.storybook.apiPayload.StorybookErrorCode;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
+import com.umc.halo.domain.content.storybook.dto.response.StorybookStartResponse;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
 import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
 import com.umc.halo.domain.content.storybook.enums.ChapterViewStatus;
@@ -10,8 +11,10 @@ import com.umc.halo.domain.content.storybook.repository.StorybookRepository;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.record.entity.MemberChapter;
+import com.umc.halo.domain.record.entity.MemberStorybook;
 import com.umc.halo.domain.record.enums.Status;
 import com.umc.halo.domain.record.repository.MemberChapterRepository;
+import com.umc.halo.domain.record.repository.MemberStorybookRepository;
 import com.umc.halo.global.apiPayload.code.GeneralErrorCode;
 import com.umc.halo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +36,7 @@ public class StorybookService {
     private final StorybookChapterRepository storybookChapterRepository;
     private final MemberChapterRepository memberChapterRepository;
     private final MemberRepository memberRepository;
+    private final MemberStorybookRepository memberStorybookRepository;
 
     public StorybookDetailResponse.GetStorybookDetail getStorybookDetail(Long storybookId, Long memberId) {
 
@@ -88,6 +92,34 @@ public class StorybookService {
                 storybook.getDescription(),
                 storybook.getImageUrl(),
                 chapterInfos
+        );
+    }
+
+    @Transactional
+    public StorybookStartResponse.StartStorybook startStorybook(Long storybookId, Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ProjectException(GeneralErrorCode.NOT_FOUND));
+
+        Storybook storybook = storybookRepository.findById(storybookId)
+                .orElseThrow(() -> new ProjectException(StorybookErrorCode.NOT_FOUND));
+
+        if (memberStorybookRepository.existsByMemberAndStorybook(member, storybook)) {
+            throw new ProjectException(StorybookErrorCode.ALREADY_STARTED);
+        }
+
+        MemberStorybook memberStorybook = MemberStorybook.builder()
+                .member(member)
+                .storybook(storybook)
+                .lastChapterOrder(1)
+                .build();
+
+        memberStorybookRepository.save(memberStorybook);
+
+        return new StorybookStartResponse.StartStorybook(
+                memberStorybook.getId(),
+                storybook.getId(),
+                memberStorybook.getLastChapterOrder()
         );
     }
 }
