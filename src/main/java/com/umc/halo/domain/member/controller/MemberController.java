@@ -28,4 +28,12 @@ public class MemberController implements MemberControllerDocs {
         BaseSuccessCode code = AuthSuccessCode.LOGIN_SUCCESS;
         return ApiResponse.onSuccess(code, memberService.login(dto));
     }
+
+    @PostMapping("/v1/auth/reissue")
+    public ApiResponse<MemberResDTO.TokenReissue> tokenReissue(
+            @RequestBody @Valid MemberReqDTO.TokenReissue dto
+    ) {
+        BaseSuccessCode code = AuthSuccessCode.TOKEN_REISSUE_SUCCESS;
+        return ApiResponse.onSuccess(code, memberService.tokenReissue(dto));
+    }
 }

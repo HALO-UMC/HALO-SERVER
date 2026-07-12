@@ -28,4 +28,14 @@ public class MemberConverter {
                 .onboardingCompleted(onboardingCompleted)
                 .build();
     }
+
+    public static MemberResDTO.TokenReissue toTokenReissueResponse(
+            String accessToken,
+            String refreshToken
+    ) {
+        return MemberResDTO.TokenReissue.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
 }
