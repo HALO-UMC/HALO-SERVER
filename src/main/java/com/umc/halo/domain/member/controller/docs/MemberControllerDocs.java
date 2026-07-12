@@ -74,6 +74,7 @@ public interface MemberControllerDocs {
     })
     ApiResponse<MemberResDTO.Login> login(@RequestBody MemberReqDTO.Login dto);
 
+    // 토큰 재발급 API
     @Operation(
             summary = "토큰 재발급 API"
     )

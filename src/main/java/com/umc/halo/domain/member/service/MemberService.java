@@ -73,7 +73,7 @@ public class MemberService {
         }
 
         Long memberId = jwtUtil.getMemberId(refreshToken);
-        Member member = memberRepository.findById(memberId)
+        Member member = memberRepository.findByIdForUpdate(memberId)
                 .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
 
         if (!hashUtil.matches(refreshToken, member.getRefreshTokenHash())) {
