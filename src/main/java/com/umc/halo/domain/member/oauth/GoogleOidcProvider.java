@@ -14,12 +14,11 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 
 @Component
-public class GoogleOidcProvider implements OidcProvider {
+public class GoogleOidcProvider extends AbstractOidcProvider {
 
     private final String clientId;
     private final String jwksUri;
     private final String issuer;
-    private final OidcJwksClient oidcJwksClient;
 
     public GoogleOidcProvider(
             @Value("${google.client-id}") String clientId,
@@ -27,59 +26,25 @@ public class GoogleOidcProvider implements OidcProvider {
             @Value("${google.issuer}") String issuer,
             OidcJwksClient oidcJwksClient
     ) {
+        super(oidcJwksClient);
         this.clientId = clientId;
         this.jwksUri = jwksUri;
         this.issuer = issuer;
-        this.oidcJwksClient = oidcJwksClient;
     }
 
     @Override
-    public String verify(String providerToken) {
+    protected String getClientId() {
+        return clientId;
+    }
 
-        try {
-            SignedJWT signedJWT = SignedJWT.parse(providerToken);
-            String kid = signedJWT.getHeader().getKeyID();
+    @Override
+    protected String getIssuer() {
+        return issuer;
+    }
 
-            if (kid == null) {
-                throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
-            }
-
-            RSAPublicKey publicKey = oidcJwksClient.getPublicKey(jwksUri, kid);
-            JWSVerifier verifier = new RSASSAVerifier(publicKey);
-
-            if (!signedJWT.verify(verifier)) {
-                throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
-            }
-
-            JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
-
-            if (!issuer.equals(claims.getIssuer())) {
-                throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
-            }
-
-            if (claims.getAudience() == null || !claims.getAudience().contains(clientId)) {
-                throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
-            }
-
-            Date expiration = claims.getExpirationTime();
-
-            if (expiration == null || expiration.before(new Date())) {
-                throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
-            }
-
-            String subject = claims.getSubject();
-
-            if (subject == null) {
-                throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
-            }
-
-            return subject;
-
-        } catch (ProjectException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
-        }
+    @Override
+    protected String getJwksUri() {
+        return jwksUri;
     }
 
     @Override
