@@ -11,7 +11,15 @@ import java.util.Optional;
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
-    Optional<Member> findByProviderAndProviderId(Provider provider, String providerId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        select m
+        from Member m
+        where m.provider = :provider
+        and m.providerId = :providerId
+    """)
+    Optional<Member> findByProviderAndProviderIdForUpdate(@Param("provider") Provider provider, @Param("providerId") String providerId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

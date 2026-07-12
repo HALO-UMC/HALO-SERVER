@@ -42,7 +42,7 @@ public class MemberService {
         AbstractOidcProvider oidcProvider = oidcProviderFactory.getProvider(provider);
         OidcUserInfo oidcUserInfo = oidcProvider.verify(dto.providerToken());
 
-        Member member = memberRepository.findByProviderAndProviderId(provider, oidcUserInfo.providerId()).orElse(null);
+        Member member = memberRepository.findByProviderAndProviderIdForUpdate(provider, oidcUserInfo.providerId()).orElse(null);
         boolean isNewUser = false;
 
         if (member == null) {
@@ -51,7 +51,7 @@ public class MemberService {
                 memberRepository.save(member);
                 isNewUser = true;
             } catch (DataIntegrityViolationException e) {
-                member = memberRepository.findByProviderAndProviderId(provider, oidcUserInfo.providerId()).orElseThrow(() -> e);
+                member = memberRepository.findByProviderAndProviderIdForUpdate(provider, oidcUserInfo.providerId()).orElseThrow(() -> e);
             }
 
         }
