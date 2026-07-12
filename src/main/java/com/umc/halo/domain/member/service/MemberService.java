@@ -6,11 +6,13 @@ import com.umc.halo.domain.member.dto.MemberResDTO;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.enums.Provider;
 import com.umc.halo.domain.member.exception.code.AuthErrorCode;
+import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.oauth.AbstractOidcProvider;
 import com.umc.halo.domain.member.oauth.OidcProviderFactory;
+import com.umc.halo.domain.member.oauth.OidcUserInfo;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.global.apiPayload.exception.ProjectException;
-import com.umc.halo.global.security.HashUtil;
+import com.umc.halo.global.util.HashUtil;
 import com.umc.halo.global.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -38,18 +40,18 @@ public class MemberService {
         }
 
         AbstractOidcProvider oidcProvider = oidcProviderFactory.getProvider(provider);
-        String providerId = oidcProvider.verify(dto.providerToken());
+        OidcUserInfo oidcUserInfo = oidcProvider.verify(dto.providerToken());
 
-        Member member = memberRepository.findByProviderAndProviderId(provider, providerId).orElse(null);
+        Member member = memberRepository.findByProviderAndProviderIdForUpdate(provider, oidcUserInfo.providerId()).orElse(null);
         boolean isNewUser = false;
 
         if (member == null) {
             try{
-                member = MemberConverter.toMember(provider, providerId);
+                member = MemberConverter.toMember(provider, oidcUserInfo);
                 memberRepository.save(member);
                 isNewUser = true;
             } catch (DataIntegrityViolationException e) {
-                member = memberRepository.findByProviderAndProviderId(provider, providerId).orElseThrow(() -> e);
+                member = memberRepository.findByProviderAndProviderIdForUpdate(provider, oidcUserInfo.providerId()).orElseThrow(() -> e);
             }
 
         }
@@ -59,5 +61,29 @@ public class MemberService {
         member.updateRefreshTokenToHash(hashUtil.hash(refreshToken));
 
         return MemberConverter.toLoginResponse(accessToken, refreshToken, isNewUser, member.getOnboardingCompleted());
+    }
+
+    @Transactional
+    public MemberResDTO.TokenReissue tokenReissue(MemberReqDTO.TokenReissue dto) {
+
+        String refreshToken = dto.refreshToken();
+
+        if (!jwtUtil.isValid(refreshToken) || !jwtUtil.isRefreshToken(refreshToken)) {
+            throw new ProjectException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        Long memberId = jwtUtil.getMemberId(refreshToken);
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+
+        if (!hashUtil.matches(refreshToken, member.getRefreshTokenHash())) {
+            throw new ProjectException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        String newAccessToken = jwtUtil.createAccessToken(memberId);
+        String newRefreshToken = jwtUtil.createRefreshToken(memberId);
+        member.updateRefreshTokenToHash(hashUtil.hash(newRefreshToken));
+
+        return MemberConverter.toTokenReissueResponse(newAccessToken, newRefreshToken);
     }
 }

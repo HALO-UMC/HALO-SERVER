@@ -1,6 +1,5 @@
-package com.umc.halo.global.security;
+package com.umc.halo.global.util;
 
-import com.umc.halo.global.apiPayload.exception.ProjectException;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -20,5 +19,9 @@ public class HashUtil {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public boolean matches(String token, String hashedToken) {
+        return hash(token).equals(hashedToken);
     }
 }

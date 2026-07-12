@@ -3,13 +3,15 @@ package com.umc.halo.domain.member.converter;
 import com.umc.halo.domain.member.dto.MemberResDTO;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.enums.Provider;
+import com.umc.halo.domain.member.oauth.OidcUserInfo;
 
 public class MemberConverter {
 
-    public static Member toMember(Provider provider, String providerId) {
+    public static Member toMember(Provider provider, OidcUserInfo oidcUserInfo) {
         return Member.builder()
                 .provider(provider)
-                .providerId(providerId)
+                .providerId(oidcUserInfo.providerId())
+                .email(oidcUserInfo.email())
                 .build();
     }
 
@@ -24,6 +26,16 @@ public class MemberConverter {
                 .refreshToken(refreshToken)
                 .isNewUser(isNewUser)
                 .onboardingCompleted(onboardingCompleted)
+                .build();
+    }
+
+    public static MemberResDTO.TokenReissue toTokenReissueResponse(
+            String accessToken,
+            String refreshToken
+    ) {
+        return MemberResDTO.TokenReissue.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 }
