@@ -1,5 +1,6 @@
 package com.umc.halo.domain.content.storybook.service;
 
+import com.umc.halo.domain.content.storybook.apiPayload.StorybookErrorCode;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
 import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
@@ -7,9 +8,12 @@ import com.umc.halo.domain.content.storybook.enums.ChapterViewStatus;
 import com.umc.halo.domain.content.storybook.repository.StorybookChapterRepository;
 import com.umc.halo.domain.content.storybook.repository.StorybookRepository;
 import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.record.entity.MemberChapter;
 import com.umc.halo.domain.record.enums.Status;
 import com.umc.halo.domain.record.repository.MemberChapterRepository;
+import com.umc.halo.global.apiPayload.code.GeneralErrorCode;
+import com.umc.halo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,11 +32,15 @@ public class StorybookService {
     private final StorybookRepository storybookRepository;
     private final StorybookChapterRepository storybookChapterRepository;
     private final MemberChapterRepository memberChapterRepository;
+    private final MemberRepository memberRepository;
 
-    public StorybookDetailResponse.GetStorybookDetail getStorybookDetail(Long storybookId, Member member) {
+    public StorybookDetailResponse.GetStorybookDetail getStorybookDetail(Long storybookId, Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ProjectException(GeneralErrorCode.NOT_FOUND));
 
         Storybook storybook = storybookRepository.findById(storybookId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스토리북입니다."));
+                .orElseThrow(() -> new ProjectException(StorybookErrorCode.NOT_FOUND));
 
         List<StorybookChapter> storybookChapters =
                 storybookChapterRepository.findByStorybook_IdOrderByChapterOrderAsc(storybookId);
