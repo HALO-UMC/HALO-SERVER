@@ -8,6 +8,7 @@ import com.umc.halo.domain.member.enums.Provider;
 import com.umc.halo.domain.member.exception.code.AuthErrorCode;
 import com.umc.halo.domain.member.oauth.AbstractOidcProvider;
 import com.umc.halo.domain.member.oauth.OidcProviderFactory;
+import com.umc.halo.domain.member.oauth.OidcUserInfo;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.global.apiPayload.exception.ProjectException;
 import com.umc.halo.global.security.HashUtil;
@@ -38,18 +39,18 @@ public class MemberService {
         }
 
         AbstractOidcProvider oidcProvider = oidcProviderFactory.getProvider(provider);
-        String providerId = oidcProvider.verify(dto.providerToken());
+        OidcUserInfo oidcUserInfo = oidcProvider.verify(dto.providerToken());
 
-        Member member = memberRepository.findByProviderAndProviderId(provider, providerId).orElse(null);
+        Member member = memberRepository.findByProviderAndProviderId(provider, oidcUserInfo.providerId()).orElse(null);
         boolean isNewUser = false;
 
         if (member == null) {
             try{
-                member = MemberConverter.toMember(provider, providerId);
+                member = MemberConverter.toMember(provider, oidcUserInfo);
                 memberRepository.save(member);
                 isNewUser = true;
             } catch (DataIntegrityViolationException e) {
-                member = memberRepository.findByProviderAndProviderId(provider, providerId).orElseThrow(() -> e);
+                member = memberRepository.findByProviderAndProviderId(provider, oidcUserInfo.providerId()).orElseThrow(() -> e);
             }
 
         }

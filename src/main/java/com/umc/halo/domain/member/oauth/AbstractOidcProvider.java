@@ -31,7 +31,7 @@ public abstract class AbstractOidcProvider {
         return getIssuer().equals(issuer);
     }
 
-    public final String verify(String providerToken) {
+    public final OidcUserInfo verify(String providerToken) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(providerToken);
             String kid = signedJWT.getHeader().getKeyID();
@@ -69,7 +69,9 @@ public abstract class AbstractOidcProvider {
                 throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
             }
 
-            return subject;
+            String email = claims.getStringClaim("email");
+
+            return new OidcUserInfo(subject, email);
 
         } catch (ProjectException e) {
             throw e;
