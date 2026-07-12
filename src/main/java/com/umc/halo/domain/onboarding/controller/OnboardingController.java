@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class OnboardingController implements OnboardingControllerDocs {
 
     private final OnboardingService onboardingService;
-
+    // 닉네임 중복 확인
     @GetMapping("/nickname/check")
     public ApiResponse<OnboardingResDTO.NicknameCheck> checkNickname(
             @RequestParam String nickname
@@ -31,7 +31,7 @@ public class OnboardingController implements OnboardingControllerDocs {
         return ApiResponse.onSuccess(code, onboardingService.checkNickname(nickname));
     }
 
-
+    // 온보딩 정보 저장
     @PostMapping
     public ApiResponse<OnboardingResDTO.Save> saveOnboarding(
             @AuthenticationPrincipal Long memberId,
@@ -39,5 +39,14 @@ public class OnboardingController implements OnboardingControllerDocs {
     ) {
         BaseSuccessCode code = OnboardingSuccessCode.SAVE_SUCCESS;
         return ApiResponse.onSuccess(code, onboardingService.saveOnboarding(memberId, request));
+    }
+
+    // 온보딩 진행 상태 조회
+    @GetMapping("/status")
+    public ApiResponse<OnboardingResDTO.Status> getStatus(
+            @AuthenticationPrincipal Long memberId
+    ) {
+        BaseSuccessCode code = OnboardingSuccessCode.STATUS_SUCCESS;
+        return ApiResponse.onSuccess(code, onboardingService.getStatus(memberId));
     }
 }
