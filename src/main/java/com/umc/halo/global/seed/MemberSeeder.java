@@ -23,7 +23,6 @@ public class MemberSeeder {
         List<Member> members = List.of(
                 Member.builder()
                         .name("김하로")
-                        .guestUuid(UUID.randomUUID().toString())
                         .provider(Provider.KAKAO)
                         .providerId("kakao-0001")
                         .gender(Gender.FEMALE)
@@ -32,7 +31,6 @@ public class MemberSeeder {
                         .build(),
                 Member.builder()
                         .name("이온")
-                        .guestUuid(UUID.randomUUID().toString())
                         .provider(Provider.GOOGLE)
                         .providerId("google-0001")
                         .gender(Gender.MALE)
@@ -41,7 +39,6 @@ public class MemberSeeder {
                         .build(),
                 Member.builder()
                         .name("송하루")
-                        .guestUuid(UUID.randomUUID().toString())
                         .gender(Gender.MALE)
                         .birthDate(LocalDate.of(2011, 4, 5))
                         .build()

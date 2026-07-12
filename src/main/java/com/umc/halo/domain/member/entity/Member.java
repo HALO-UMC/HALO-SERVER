@@ -11,7 +11,6 @@ import java.time.*;
 @Table(
         name = "member",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_member_guest_uuid", columnNames = {"guest_uuid"}),
                 @UniqueConstraint(name = "uk_member_provider", columnNames = {"provider", "provider_id"})
         }
 )
@@ -26,10 +25,7 @@ public class Member extends BaseEntity {
     @Column(name = "member_id")
     private Long id;
 
-    @Column(name = "guest_uuid", length = 36)
-    private String guestUuid;
-
-    @Column(length = 10, nullable = false)
+    @Column(length = 10)
     private String name;
 
     @Enumerated(EnumType.STRING)
@@ -38,17 +34,23 @@ public class Member extends BaseEntity {
     @Column(name = "provider_id", length = 255)
     private String providerId;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column(name = "birth_date", nullable = false)
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     @Column(name = "onboarding_completed", nullable = false)
     @Builder.Default
     private Boolean onboardingCompleted = false;
 
-    @Column(name = "refresh_token", length = 500)
-    private String refreshToken;
+    @Column(name = "refresh_token_hash", length = 64)
+    private String refreshTokenHash;
+
+    @Column(name = "onboarding_step")
+    private Integer onboardingStep;
+
+    public void updateRefreshTokenToHash(String refreshTokenHash) {
+        this.refreshTokenHash = refreshTokenHash;
+    }
 }
