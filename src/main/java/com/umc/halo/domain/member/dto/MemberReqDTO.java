@@ -1,10 +1,9 @@
-package com.umc.halo.domain.member.dto.request;
+package com.umc.halo.domain.member.dto;
 
-import com.umc.halo.domain.member.enums.Provider;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public class LoginRequestDTO {
+public class MemberReqDTO {
 
     // 로그인
     public record Login (
