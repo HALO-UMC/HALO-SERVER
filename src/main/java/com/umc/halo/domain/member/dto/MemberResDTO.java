@@ -11,4 +11,10 @@ public class MemberResDTO {
             Boolean isNewUser,
             Boolean onboardingCompleted
     ) {}
+
+    @Builder
+    public record TokenReissue(
+            String accessToken,
+            String refreshToken
+    ) {}
 }

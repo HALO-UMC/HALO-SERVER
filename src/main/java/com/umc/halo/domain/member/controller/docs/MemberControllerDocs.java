@@ -46,7 +46,7 @@ public interface MemberControllerDocs {
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
                                     {
-                                        "isSuccess":false,
+                                        "isSuccess": false,
                                         "code": "AUTH400_1",
                                         "message": "지원하지 않는 소셜 로그인 제공자입니다.",
                                         "result": null
@@ -62,7 +62,7 @@ public interface MemberControllerDocs {
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
                                     {
-                                        "isSuccess":false,
+                                        "isSuccess": false,
                                         "code": "AUTH401_3",
                                         "message": "소셜 인증 토큰 검증에 실패했습니다.",
                                         "result": null
@@ -73,4 +73,47 @@ public interface MemberControllerDocs {
             )
     })
     ApiResponse<MemberResDTO.Login> login(@RequestBody MemberReqDTO.Login dto);
+
+    // 토큰 재발급 API
+    @Operation(
+            summary = "토큰 재발급 API"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": true,
+                                        "code": "AUTH200_2",
+                                        "message": "토큰 재발급 성공",
+                                        "result": {
+                                            "accessToken": "eyJ...",
+                                            "refreshToken": "eyJ..."
+                                        }
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "refreshToken 만료·위변조·저장값 불일치",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "AUTH401_2",
+                                        "message": "refreshToken이 만료되었거나 유효하지 않습니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            )
+    })
+    ApiResponse<MemberResDTO.TokenReissue> tokenReissue(@RequestBody MemberReqDTO.TokenReissue dto);
 }
