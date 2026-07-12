@@ -9,6 +9,7 @@ import com.umc.halo.global.apiPayload.ApiResponse;
 import com.umc.halo.global.apiPayload.code.BaseSuccessCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,5 +36,15 @@ public class MemberController implements MemberControllerDocs {
     ) {
         BaseSuccessCode code = AuthSuccessCode.TOKEN_REISSUE_SUCCESS;
         return ApiResponse.onSuccess(code, memberService.tokenReissue(dto));
+    }
+
+    @PostMapping("/v1/auth/logout")
+    public ApiResponse<Void> logout(
+            @AuthenticationPrincipal Long memberId
+    ) {
+        memberService.logout(memberId);
+        BaseSuccessCode code = AuthSuccessCode.LOGOUT_SUCCESS;
+        return ApiResponse.onSuccess(code);
+
     }
 }
