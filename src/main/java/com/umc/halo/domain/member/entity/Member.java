@@ -47,6 +47,9 @@ public class Member extends BaseEntity {
     @Column(name = "refresh_token_hash", length = 64)
     private String refreshTokenHash;
 
+    @Column(name = "onboarding_step")
+    private Integer onboardingStep;
+
     public void updateRefreshTokenToHash(String refreshTokenHash) {
         this.refreshTokenHash = refreshTokenHash;
     }
