@@ -51,4 +51,9 @@ public class GoogleOidcProvider extends AbstractOidcProvider {
     public Provider getProvider() {
         return Provider.GOOGLE;
     }
+
+    @Override
+    protected boolean isValidIssuer(String issuer) {
+        return "accounts.google.com".equals(issuer) || "https://accounts.google.com".equals(issuer);
+    }
 }

@@ -25,6 +25,12 @@ public abstract class AbstractOidcProvider {
 
     protected abstract String getJwksUri();
 
+    public abstract Provider getProvider();
+
+    protected boolean isValidIssuer(String issuer) {
+        return getIssuer().equals(issuer);
+    }
+
     public final String verify(String providerToken) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(providerToken);
@@ -43,7 +49,7 @@ public abstract class AbstractOidcProvider {
 
             JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
 
-            if (!getIssuer().equals(claims.getIssuer())) {
+            if (!isValidIssuer(claims.getIssuer())) {
                 throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
             }
 
@@ -71,6 +77,4 @@ public abstract class AbstractOidcProvider {
             throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
         }
     }
-
-    public abstract Provider getProvider();
 }
