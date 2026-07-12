@@ -1,5 +1,6 @@
 package com.umc.halo.global.apiPayload;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.umc.halo.global.apiPayload.code.BaseErrorCode;
@@ -11,6 +12,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @JsonPropertyOrder({"isSuccess", "code", "message", "result"})
+@JsonIgnoreProperties({"success"})
 public class ApiResponse<T> {
 
 	@JsonProperty("isSuccess")
