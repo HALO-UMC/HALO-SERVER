@@ -28,3 +28,9 @@ jwt:
     secretKey: ${JWT_SECRET_KEY}
     expiration:
       access: 3600000   # 1시간
+      refresh: 1209600000 # 2주
+
+kakao:
+  client-id: ${KAKAO_REST_API_KEY}
+  jwks-uri: https://kauth.kakao.com/.well-known/jwks.json
+  issuer: https://kauth.kakao.com
