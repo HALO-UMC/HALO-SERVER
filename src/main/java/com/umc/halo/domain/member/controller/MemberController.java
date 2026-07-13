@@ -4,16 +4,15 @@ import com.umc.halo.domain.member.controller.docs.MemberControllerDocs;
 import com.umc.halo.domain.member.dto.MemberReqDTO;
 import com.umc.halo.domain.member.dto.MemberResDTO;
 import com.umc.halo.domain.member.exception.code.AuthSuccessCode;
+import com.umc.halo.domain.member.exception.code.MemberSuccessCode;
 import com.umc.halo.domain.member.service.MemberService;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import com.umc.halo.global.apiPayload.code.BaseSuccessCode;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,11 +39,22 @@ public class MemberController implements MemberControllerDocs {
 
     @PostMapping("/v1/auth/logout")
     public ApiResponse<Void> logout(
+            @Parameter(hidden = true)
             @AuthenticationPrincipal Long memberId
     ) {
         memberService.logout(memberId);
         BaseSuccessCode code = AuthSuccessCode.LOGOUT_SUCCESS;
         return ApiResponse.onSuccess(code);
 
+    }
+
+    @DeleteMapping("/v1/members/me")
+    public ApiResponse<Void> withdraw(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal Long memberId
+    ) {
+        memberService.withdraw(memberId);
+        BaseSuccessCode code = MemberSuccessCode.DELETE_SUCCESS;
+        return ApiResponse.onSuccess(code);
     }
 }
