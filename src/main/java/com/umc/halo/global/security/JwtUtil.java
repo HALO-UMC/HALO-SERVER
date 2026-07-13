@@ -69,6 +69,11 @@ public class JwtUtil {
         }
     }
 
+    // refreshToken인지 검증
+    public boolean isRefreshToken(String token) {
+        return "refresh".equals(getClaims(token).get("type", String.class));
+    }
+
     private Claims getClaims(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)

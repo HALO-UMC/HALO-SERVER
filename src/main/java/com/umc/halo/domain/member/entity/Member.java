@@ -40,12 +40,15 @@ public class Member extends BaseEntity {
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
-    @Column(name = "onboarding_completed", nullable = false)
-    @Builder.Default
-    private Boolean onboardingCompleted = false;
+    @Column(name = "email", length = 255)
+    private String email;
 
     @Column(name = "refresh_token_hash", length = 64)
     private String refreshTokenHash;
+
+    @Column(name = "onboarding_completed", nullable = false)
+    @Builder.Default
+    private Boolean onboardingCompleted = false;
 
     @Column(name = "onboarding_step")
     private Integer onboardingStep;
@@ -69,5 +72,8 @@ public class Member extends BaseEntity {
 
     public void completeOnboarding() {
         this.onboardingCompleted = true;
+    }
+    public void deleteRefreshToken() {
+        this.refreshTokenHash = null;
     }
 }

@@ -27,7 +27,9 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/v3/api-docs/**",
             // 인증(소셜 로그인 / 토큰 재발급)
-            "/api/v1/auth/**",
+            "/api/v1/auth/login",
+            "/api/v1/auth/reissue",
+
     };
 
     @Bean
