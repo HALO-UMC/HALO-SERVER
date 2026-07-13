@@ -9,4 +9,6 @@ import java.util.*;
 @Repository
 public interface MemberChapterAnswerRepository extends JpaRepository<MemberChapterAnswer, Long> {
     List<MemberChapterAnswer> findByMemberChapter(MemberChapter memberChapter);
+
+    void deleteAllByMemberChapter(MemberChapter memberChapter);
 }
