@@ -115,9 +115,8 @@ public class MemberService {
     @Transactional
     public void withdraw(Long memberId) {
 
-        if (!memberRepository.existsById(memberId)) {
-            throw new ProjectException(MemberErrorCode.NOT_FOUND);
-        }
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
 
         memberChapterAnswerRepository.deleteByMemberChapterMemberId(memberId);
         memberChapterRepository.deleteByMemberId(memberId);
@@ -128,6 +127,6 @@ public class MemberService {
         anniversaryRepository.deleteByMemberId(memberId);
         memberTagRepository.deleteByMemberId(memberId);
 
-        memberRepository.deleteById(memberId);
+        memberRepository.delete(member);
     }
 }

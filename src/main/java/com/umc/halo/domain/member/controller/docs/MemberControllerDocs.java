@@ -4,6 +4,7 @@ import com.umc.halo.domain.member.dto.MemberReqDTO;
 import com.umc.halo.domain.member.dto.MemberResDTO;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -157,7 +158,7 @@ public interface MemberControllerDocs {
                     )
             )
     })
-    ApiResponse<Void> logout(@AuthenticationPrincipal Long memberId);
+    ApiResponse<Void> logout(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId);
 
     // 회원 탈퇴 API
     @Operation(
@@ -213,5 +214,5 @@ public interface MemberControllerDocs {
                     )
             )
     })
-    ApiResponse<Void> withdraw(@AuthenticationPrincipal Long memberId);
+    ApiResponse<Void> withdraw(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId);
 }

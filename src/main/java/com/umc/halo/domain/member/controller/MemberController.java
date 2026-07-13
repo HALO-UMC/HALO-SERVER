@@ -8,6 +8,7 @@ import com.umc.halo.domain.member.exception.code.MemberSuccessCode;
 import com.umc.halo.domain.member.service.MemberService;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import com.umc.halo.global.apiPayload.code.BaseSuccessCode;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -38,6 +39,7 @@ public class MemberController implements MemberControllerDocs {
 
     @PostMapping("/v1/auth/logout")
     public ApiResponse<Void> logout(
+            @Parameter(hidden = true)
             @AuthenticationPrincipal Long memberId
     ) {
         memberService.logout(memberId);
@@ -48,6 +50,7 @@ public class MemberController implements MemberControllerDocs {
 
     @DeleteMapping("/v1/members/me")
     public ApiResponse<Void> withdraw(
+            @Parameter(hidden = true)
             @AuthenticationPrincipal Long memberId
     ) {
         memberService.withdraw(memberId);
