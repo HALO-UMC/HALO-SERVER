@@ -56,4 +56,8 @@ public class Member extends BaseEntity {
     public void updateRefreshTokenToHash(String refreshTokenHash) {
         this.refreshTokenHash = refreshTokenHash;
     }
+
+    public void deleteRefreshToken() {
+        this.refreshTokenHash = null;
+    }
 }

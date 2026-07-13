@@ -27,7 +27,8 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/v3/api-docs/**",
             // 인증(소셜 로그인 / 토큰 재발급)
-            "/api/v1/auth/**",
+            "/api/v1/auth/login",
+            "/api/v1/auth/reissue",
             // 온보딩 (로그인 전 guest_uuid 기반)
             "/api/v1/onboarding/**"
     };
