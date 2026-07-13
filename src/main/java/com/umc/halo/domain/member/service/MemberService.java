@@ -19,6 +19,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -85,5 +87,12 @@ public class MemberService {
         member.updateRefreshTokenToHash(hashUtil.hash(newRefreshToken));
 
         return MemberConverter.toTokenReissueResponse(newAccessToken, newRefreshToken);
+    }
+
+    @Transactional
+    public void logout(Long memberId) {
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+        member.deleteRefreshToken();
     }
 }
