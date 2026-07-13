@@ -11,6 +11,14 @@ import com.umc.halo.domain.member.oauth.AbstractOidcProvider;
 import com.umc.halo.domain.member.oauth.OidcProviderFactory;
 import com.umc.halo.domain.member.oauth.OidcUserInfo;
 import com.umc.halo.domain.member.repository.MemberRepository;
+import com.umc.halo.domain.notification.repository.AnniversaryRepository;
+import com.umc.halo.domain.notification.repository.NotificationRepository;
+import com.umc.halo.domain.record.repository.MemberChapterAnswerRepository;
+import com.umc.halo.domain.record.repository.MemberChapterRepository;
+import com.umc.halo.domain.record.repository.MemberStorybookRepository;
+import com.umc.halo.domain.setting.repository.MemberSettingRepository;
+import com.umc.halo.domain.tag.repository.MemberTagRepository;
+import com.umc.halo.domain.term.repository.MemberTermRepository;
 import com.umc.halo.global.apiPayload.exception.ProjectException;
 import com.umc.halo.global.util.HashUtil;
 import com.umc.halo.global.security.JwtUtil;
@@ -26,6 +34,14 @@ import java.util.Optional;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final MemberTermRepository memberTermRepository;
+    private final MemberSettingRepository memberSettingRepository;
+    private final NotificationRepository notificationRepository;
+    private final AnniversaryRepository anniversaryRepository;
+    private final MemberStorybookRepository memberStorybookRepository;
+    private final MemberChapterRepository memberChapterRepository;
+    private final MemberChapterAnswerRepository memberChapterAnswerRepository;
+    private final MemberTagRepository memberTagRepository;
     private final JwtUtil jwtUtil;
     private final HashUtil hashUtil;
     private final OidcProviderFactory oidcProviderFactory;
@@ -94,5 +110,23 @@ public class MemberService {
         Member member = memberRepository.findByIdForUpdate(memberId)
                 .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
         member.deleteRefreshToken();
+    }
+
+    @Transactional
+    public void withdraw(Long memberId) {
+
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+
+        memberChapterAnswerRepository.deleteByMemberChapterMemberId(memberId);
+        memberChapterRepository.deleteByMemberId(memberId);
+        memberStorybookRepository.deleteByMemberId(memberId);
+        memberTermRepository.deleteByMemberId(memberId);
+        memberSettingRepository.deleteByMemberId(memberId);
+        notificationRepository.deleteByMemberId(memberId);
+        anniversaryRepository.deleteByMemberId(memberId);
+        memberTagRepository.deleteByMemberId(memberId);
+
+        memberRepository.delete(member);
     }
 }

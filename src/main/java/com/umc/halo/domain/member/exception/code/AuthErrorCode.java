@@ -15,9 +15,6 @@ public enum AuthErrorCode implements BaseErrorCode {
             "지원하지 않는 소셜 로그인 제공자입니다."),
 
     // 401
-    INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED,
-            "AUTH401_1",
-            "토큰이 만료되었습니다."),
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED,
             "AUTH401_2",
             "refreshToken이 만료되었거나 유효하지 않습니다."),

@@ -18,7 +18,7 @@ public enum GeneralErrorCode implements BaseErrorCode {
 	NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON404_1", "요청하신 리소스를 찾을 수 없습니다."),
 
 	// 401 Unauthorized (인증 실패)
-	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON401_1", "인증이 필요합니다."),
+	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH401_1", "토큰이 만료되었습니다."),
 
 	// 403 Forbidden (권한 없음)
 	FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403_1", "접근 권한이 없습니다."),
