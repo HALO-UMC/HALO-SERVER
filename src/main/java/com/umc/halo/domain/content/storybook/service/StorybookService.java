@@ -2,20 +2,28 @@ package com.umc.halo.domain.content.storybook.service;
 
 import com.umc.halo.domain.content.storybook.apiPayload.StorybookErrorCode;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
+import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookStartResponse;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
 import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
 import com.umc.halo.domain.content.storybook.enums.ChapterViewStatus;
+import com.umc.halo.domain.content.storybook.enums.StorybookStatus;
 import com.umc.halo.domain.content.storybook.repository.StorybookChapterRepository;
 import com.umc.halo.domain.content.storybook.repository.StorybookRepository;
 import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.record.entity.MemberChapter;
 import com.umc.halo.domain.record.entity.MemberStorybook;
 import com.umc.halo.domain.record.enums.Status;
 import com.umc.halo.domain.record.repository.MemberChapterRepository;
 import com.umc.halo.domain.record.repository.MemberStorybookRepository;
-import com.umc.halo.global.apiPayload.code.GeneralErrorCode;
+import com.umc.halo.domain.tag.entity.StorybookTag;
+import com.umc.halo.domain.tag.entity.Tag;
+import com.umc.halo.domain.tag.enums.Category;
+import com.umc.halo.domain.tag.enums.PriorityLevel;
+import com.umc.halo.domain.tag.repository.StorybookTagRepository;
+import com.umc.halo.domain.tag.repository.TagRepository;
 import com.umc.halo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,8 +31,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,11 +48,13 @@ public class StorybookService {
     private final MemberChapterRepository memberChapterRepository;
     private final MemberRepository memberRepository;
     private final MemberStorybookRepository memberStorybookRepository;
+    private final TagRepository tagRepository;
+    private final StorybookTagRepository storybookTagRepository;
 
     public StorybookDetailResponse.GetStorybookDetail getStorybookDetail(Long storybookId, Long memberId) {
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ProjectException(GeneralErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
 
         Storybook storybook = storybookRepository.findById(storybookId)
                 .orElseThrow(() -> new ProjectException(StorybookErrorCode.NOT_FOUND));
@@ -99,7 +112,7 @@ public class StorybookService {
     public StorybookStartResponse.StartStorybook startStorybook(Long storybookId, Long memberId) {
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ProjectException(GeneralErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
 
         Storybook storybook = storybookRepository.findById(storybookId)
                 .orElseThrow(() -> new ProjectException(StorybookErrorCode.NOT_FOUND));
@@ -121,5 +134,102 @@ public class StorybookService {
                 storybook.getId(),
                 memberStorybook.getLastChapterOrder()
         );
+    }
+
+    public StorybookListResponse.GetStorybookList getStorybookList(Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+
+        List<Storybook> storybooks = storybookRepository.findAll().stream()
+                .sorted(Comparator.comparing(Storybook::getThemeOrder))
+                .toList();
+
+        Map<Long, MemberStorybook> memberStorybookMap = memberStorybookRepository.findByMember(member).stream()
+                .collect(Collectors.toMap(ms -> ms.getStorybook().getId(), Function.identity()));
+
+        List<StorybookListResponse.StorybookSummary> storybookSummaries = storybooks.stream()
+                .map(storybook -> buildStorybookSummary(member, storybook, memberStorybookMap.get(storybook.getId())))
+                .toList();
+
+        List<StorybookListResponse.SituationalRecommendation> situationalRecommendations =
+                buildSituationalRecommendations();
+
+        return new StorybookListResponse.GetStorybookList(storybookSummaries, situationalRecommendations);
+    }
+
+    private StorybookListResponse.StorybookSummary buildStorybookSummary(
+            Member member, Storybook storybook, MemberStorybook memberStorybook) {
+
+        if (memberStorybook == null) {
+            return new StorybookListResponse.StorybookSummary(
+                    storybook.getId(),
+                    storybook.getTitle(),
+                    storybook.getThemeOrder(),
+                    storybook.getShortDescription(),
+                    storybook.getImageUrl(),
+                    StorybookStatus.NOT_STARTED,
+                    null,
+                    null
+            );
+        }
+
+        int totalChapters =
+                storybookChapterRepository.findByStorybook_IdOrderByChapterOrderAsc(storybook.getId()).size();
+
+        List<MemberChapter> memberChapters =
+                memberChapterRepository.findByMemberAndStorybookChapter_Storybook_Id(member, storybook.getId());
+
+        long completedCount = memberChapters.stream()
+                .filter(mc -> mc.getStatus() == Status.COMPLETED)
+                .count();
+
+        boolean completedToday = memberChapters.stream()
+                .anyMatch(mc -> mc.getStatus() == Status.COMPLETED
+                        && mc.getCompletedDate() != null
+                        && mc.getCompletedDate().isEqual(LocalDate.now()));
+
+        StorybookStatus status;
+        if (completedCount == totalChapters) {
+            status = StorybookStatus.COMPLETED;
+        } else if (completedToday) {
+            status = StorybookStatus.TODAY_DONE;
+        } else {
+            status = StorybookStatus.IN_PROGRESS;
+        }
+
+        return new StorybookListResponse.StorybookSummary(
+                storybook.getId(),
+                storybook.getTitle(),
+                storybook.getThemeOrder(),
+                storybook.getShortDescription(),
+                storybook.getImageUrl(),
+                status,
+                memberStorybook.getLastChapterOrder(),
+                memberStorybook.getLastCompletedDate()
+        );
+    }
+
+    private List<StorybookListResponse.SituationalRecommendation> buildSituationalRecommendations() {
+
+        List<Tag> desiredDirectionTags = tagRepository.findByCategory(Category.DESIRED_DIRECTION);
+
+        return desiredDirectionTags.stream()
+                .map(tag -> {
+                    List<StorybookTag> primaryStorybookTags =
+                            storybookTagRepository.findByTagAndPriorityLevel(tag, PriorityLevel.PRIMARY);
+
+                    List<StorybookListResponse.RecommendedStorybook> recommendedStorybooks = primaryStorybookTags.stream()
+                            .map(st -> new StorybookListResponse.RecommendedStorybook(
+                                    st.getStorybook().getId(),
+                                    st.getStorybook().getTitle(),
+                                    st.getStorybook().getImageUrl(),
+                                    st.getPhrase()
+                            ))
+                            .toList();
+
+                    return new StorybookListResponse.SituationalRecommendation(tag.getTitle(), recommendedStorybooks);
+                })
+                .toList();
     }
 }
