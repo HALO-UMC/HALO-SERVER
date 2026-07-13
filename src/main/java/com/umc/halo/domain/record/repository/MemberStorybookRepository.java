@@ -6,8 +6,12 @@ import com.umc.halo.domain.record.entity.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.*;
 
+import java.util.List;
+
 @Repository
 public interface MemberStorybookRepository extends JpaRepository<MemberStorybook, Long> {
 
     boolean existsByMemberAndStorybook(Member member, Storybook storybook);
+
+    List<MemberStorybook> findByMember(Member member);
 }
