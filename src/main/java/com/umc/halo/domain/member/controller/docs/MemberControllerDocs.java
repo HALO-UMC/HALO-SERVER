@@ -158,4 +158,60 @@ public interface MemberControllerDocs {
             )
     })
     ApiResponse<Void> logout(@AuthenticationPrincipal Long memberId);
+
+    // 회원 탈퇴 API
+    @Operation(
+            summary = "회원 탈퇴 API"
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": true,
+                                        "code": "MEMBER200_2",
+                                        "message": "회원 탈퇴가 완료되었습니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "AUTH401_1",
+                                        "message": "토큰이 만료되었습니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "해당 member 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "MEMBER404_1",
+                                        "message": "존재하지 않는 회원입니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            )
+    })
+    ApiResponse<Void> withdraw(@AuthenticationPrincipal Long memberId);
 }

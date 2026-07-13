@@ -6,4 +6,5 @@ import org.springframework.stereotype.*;
 
 @Repository
 public interface MemberChapterAnswerRepository extends JpaRepository<MemberChapterAnswer, Long> {
+    void deleteByMemberChapterMemberId(Long memberId);
 }
