@@ -1,6 +1,7 @@
 package com.umc.halo.domain.content.storybook.controller;
 
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
+import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookStartResponse;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +15,27 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @Tag(name = "스토리북", description = "스토리북 목록/상세/시작하기 관련 API")
 public interface StorybookControllerDocs {
+
+    @Operation(
+            summary = "스토리북 목록 조회 By 한혜담",
+            description = "사용자의 스토리북 목록과 진행 상태, 상황별 추천 5개 카테고리를 조회합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    { ... STORYBOOK200_1 example ... }
+                                    """)
+                    )
+            )
+    })
+    ApiResponse<StorybookListResponse.GetStorybookList> getStorybookList(
+            @AuthenticationPrincipal Long memberId
+    );
 
     @Operation(
             summary = "스토리북 상세 조회 By 한혜담",

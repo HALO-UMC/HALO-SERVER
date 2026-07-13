@@ -2,6 +2,7 @@ package com.umc.halo.domain.content.storybook.controller;
 
 import com.umc.halo.domain.content.storybook.apiPayload.StorybookSuccessCode;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
+import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookStartResponse;
 import com.umc.halo.domain.content.storybook.service.StorybookService;
 import com.umc.halo.global.apiPayload.ApiResponse;
@@ -15,6 +16,17 @@ import org.springframework.web.bind.annotation.*;
 public class StorybookController implements StorybookControllerDocs {
 
     private final StorybookService storybookService;
+
+    @GetMapping("/storybooks")
+    @Override
+    public ApiResponse<StorybookListResponse.GetStorybookList> getStorybookList(
+            @AuthenticationPrincipal Long memberId
+    ) {
+        return ApiResponse.onSuccess(
+                StorybookSuccessCode.GET_STORYBOOK_LIST,
+                storybookService.getStorybookList(memberId)
+        );
+    }
 
     @GetMapping("/storybooks/{storybookId}")
     @Override
