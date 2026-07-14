@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -117,8 +118,15 @@ public class StorybookService {
         Storybook storybook = storybookRepository.findById(storybookId)
                 .orElseThrow(() -> new ProjectException(StorybookErrorCode.NOT_FOUND));
 
-        if (memberStorybookRepository.existsByMemberAndStorybook(member, storybook)) {
-            throw new ProjectException(StorybookErrorCode.ALREADY_STARTED);
+        Optional<MemberStorybook> existing =
+                memberStorybookRepository.findByMemberAndStorybook(member, storybook);
+
+        if (existing.isPresent()) {
+            if (isStorybookCompleted(member, storybook)) {
+                throw new ProjectException(StorybookErrorCode.ALREADY_COMPLETED);
+            } else {
+                throw new ProjectException(StorybookErrorCode.ALREADY_IN_PROGRESS);
+            }
         }
 
         MemberStorybook memberStorybook = MemberStorybook.builder()
@@ -132,7 +140,7 @@ public class StorybookService {
         return new StorybookStartResponse.StartStorybook(
                 memberStorybook.getId(),
                 storybook.getId(),
-                memberStorybook.getLastChapterOrder()
+                StorybookStatus.IN_PROGRESS
         );
     }
 
@@ -174,15 +182,10 @@ public class StorybookService {
             );
         }
 
-        int totalChapters =
-                storybookChapterRepository.findByStorybook_IdOrderByChapterOrderAsc(storybook.getId()).size();
-
         List<MemberChapter> memberChapters =
                 memberChapterRepository.findByMemberAndStorybookChapter_Storybook_Id(member, storybook.getId());
 
-        long completedCount = memberChapters.stream()
-                .filter(mc -> mc.getStatus() == Status.COMPLETED)
-                .count();
+        boolean completed = isCompleted(storybook, memberChapters);
 
         boolean completedToday = memberChapters.stream()
                 .anyMatch(mc -> mc.getStatus() == Status.COMPLETED
@@ -190,7 +193,7 @@ public class StorybookService {
                         && mc.getCompletedDate().isEqual(LocalDate.now()));
 
         StorybookStatus status;
-        if (completedCount == totalChapters) {
+        if (completed) {
             status = StorybookStatus.COMPLETED;
         } else if (completedToday) {
             status = StorybookStatus.TODAY_DONE;
@@ -208,6 +211,23 @@ public class StorybookService {
                 memberStorybook.getLastChapterOrder(),
                 memberStorybook.getLastCompletedDate()
         );
+    }
+
+    private boolean isStorybookCompleted(Member member, Storybook storybook) {
+        List<MemberChapter> memberChapters =
+                memberChapterRepository.findByMemberAndStorybookChapter_Storybook_Id(member, storybook.getId());
+        return isCompleted(storybook, memberChapters);
+    }
+
+    private boolean isCompleted(Storybook storybook, List<MemberChapter> memberChapters) {
+        int totalChapters =
+                storybookChapterRepository.findByStorybook_IdOrderByChapterOrderAsc(storybook.getId()).size();
+
+        long completedCount = memberChapters.stream()
+                .filter(mc -> mc.getStatus() == Status.COMPLETED)
+                .count();
+
+        return completedCount == totalChapters;
     }
 
     private List<StorybookListResponse.SituationalRecommendation> buildSituationalRecommendations() {
