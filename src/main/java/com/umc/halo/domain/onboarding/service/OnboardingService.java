@@ -15,6 +15,8 @@ import com.umc.halo.domain.tag.repository.TagRepository;
 import com.umc.halo.domain.onboarding.dto.OnboardingReqDTO;
 import com.umc.halo.domain.member.enums.Gender;
 import com.umc.halo.domain.tag.enums.Category;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 import java.util.regex.Pattern;
@@ -77,6 +79,10 @@ public class OnboardingService {
             case 2 -> {
                 if (request.gender() == null || request.birthDate() == null) {
                     throw new OnboardingException(OnboardingErrorCode.MISSING_REQUIRED_FIELD);
+                }
+                if (request.birthDate().isAfter(LocalDate.now())) {
+
+                    throw new OnboardingException(OnboardingErrorCode.INVALID_BIRTH_DATE);
                 }
                 member.updateGenderAndBirthDate(request.gender(), request.birthDate());
             }
