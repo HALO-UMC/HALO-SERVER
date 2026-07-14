@@ -5,9 +5,12 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface StorybookChapterRepository extends JpaRepository<StorybookChapter, Long> {
 
     List<StorybookChapter> findByStorybook_IdOrderByChapterOrderAsc(Long storybookId);
+
+    Optional<StorybookChapter> findByStorybook_IdAndChapterOrder(Long storybookId, Integer chapterOrder);
 }
