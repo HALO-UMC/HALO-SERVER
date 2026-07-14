@@ -11,4 +11,6 @@ import java.util.List;
 public interface StorybookTagRepository extends JpaRepository<StorybookTag, Long> {
 
     List<StorybookTag> findByTagAndPriorityLevel(Tag tag, PriorityLevel priorityLevel);
+
+    List<StorybookTag> findByTagIn(List<Tag> tags);
 }
