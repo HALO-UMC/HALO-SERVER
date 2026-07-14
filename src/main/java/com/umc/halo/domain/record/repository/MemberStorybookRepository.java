@@ -17,4 +17,6 @@ public interface MemberStorybookRepository extends JpaRepository<MemberStorybook
     Optional<MemberStorybook> findByMemberAndStorybook(Member member, Storybook storybook);
 
     List<MemberStorybook> findByMember(Member member);
+
+    void deleteByMemberId(Long memberId);
 }

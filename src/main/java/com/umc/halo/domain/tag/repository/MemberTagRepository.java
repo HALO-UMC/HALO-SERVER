@@ -12,4 +12,6 @@ import java.util.List;
 public interface MemberTagRepository extends JpaRepository<MemberTag, Long> {
 
     List<MemberTag> findByMemberAndTag_Category(Member member, Category category);
+
+    void deleteByMemberId(Long memberId);
 }

@@ -11,4 +11,6 @@ import java.util.List;
 public interface MemberChapterRepository extends JpaRepository<MemberChapter, Long> {
 
     List<MemberChapter> findByMemberAndStorybookChapter_Storybook_Id(Member member, Long storybookId);
+
+    void deleteByMemberId(Long memberId);
 }
