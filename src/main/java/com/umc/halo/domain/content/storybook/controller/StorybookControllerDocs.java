@@ -1,5 +1,7 @@
 package com.umc.halo.domain.content.storybook.controller;
 
+import com.umc.halo.domain.content.storybook.apiPayload.HomeSuccessCode;
+import com.umc.halo.domain.content.storybook.dto.response.HomeResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookRecommendResponse;
@@ -14,11 +16,32 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-@Tag(name = "스토리북", description = "스토리북 목록/상세/시작하기/추천 관련 API")
+@Tag(name = "스토리북", description = "홈/스토리북 목록/상세/시작하기/추천 관련 API")
 public interface StorybookControllerDocs {
 
     @Operation(
-            summary = "스토리북 목록 조회 By 한혜담",
+            summary = "홈 화면 조회",
+            description = "사용자의 진행 중인 스토리북 현황, 책장 목록, 추천 스토리북과 홈 화면 상태를 조회합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    { ... HOME200_1 example ... }
+                                    """)
+                    )
+            )
+    })
+    ApiResponse<HomeResponse.GetHome> getHome(
+            @AuthenticationPrincipal Long memberId
+    );
+
+    @Operation(
+            summary = "스토리북 목록 조회",
             description = "사용자의 스토리북 목록과 진행 상태, 상황별 추천 5개 카테고리를 조회합니다."
     )
     @ApiResponses(value = {
@@ -39,7 +62,7 @@ public interface StorybookControllerDocs {
     );
 
     @Operation(
-            summary = "스토리북 상세 조회 By 한혜담",
+            summary = "스토리북 상세 조회",
             description = "스토리북 상세 정보와 10개 장 목록(진행 상태 포함)을 조회합니다."
     )
     @ApiResponses(value = {
@@ -61,7 +84,7 @@ public interface StorybookControllerDocs {
     );
 
     @Operation(
-            summary = "스토리북 시작하기 By 한혜담",
+            summary = "스토리북 시작하기",
             description = "선택한 스토리북을 시작합니다. 이미 진행중이면 409(STORYBOOK409_1), 이미 완료했으면 409(STORYBOOK409_2)를 반환합니다."
     )
     @ApiResponses(value = {
@@ -83,7 +106,7 @@ public interface StorybookControllerDocs {
     );
 
     @Operation(
-            summary = "추천 스토리북 조회 By 한혜담",
+            summary = "추천 스토리북 조회",
             description = "온보딩 시 선택한 목적 태그를 기반으로 추천 스토리북 2개를 조회합니다."
     )
     @ApiResponses(value = {

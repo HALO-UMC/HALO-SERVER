@@ -1,6 +1,8 @@
 package com.umc.halo.domain.content.storybook.controller;
 
+import com.umc.halo.domain.content.storybook.apiPayload.HomeSuccessCode;
 import com.umc.halo.domain.content.storybook.apiPayload.StorybookSuccessCode;
+import com.umc.halo.domain.content.storybook.dto.response.HomeResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookRecommendResponse;
@@ -17,6 +19,17 @@ import org.springframework.web.bind.annotation.*;
 public class StorybookController implements StorybookControllerDocs {
 
     private final StorybookService storybookService;
+
+    @GetMapping("/home")
+    @Override
+    public ApiResponse<HomeResponse.GetHome> getHome(
+            @AuthenticationPrincipal Long memberId
+    ) {
+        return ApiResponse.onSuccess(
+                HomeSuccessCode.GET_HOME,
+                storybookService.getHome(memberId)
+        );
+    }
 
     @GetMapping("/storybooks")
     @Override
