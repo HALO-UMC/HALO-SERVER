@@ -3,6 +3,7 @@ package com.umc.halo.domain.content.storybook.service;
 import com.umc.halo.domain.content.storybook.apiPayload.StorybookErrorCode;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
+import com.umc.halo.domain.content.storybook.dto.response.StorybookRecommendResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookStartResponse;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
 import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
@@ -18,10 +19,12 @@ import com.umc.halo.domain.record.entity.MemberStorybook;
 import com.umc.halo.domain.record.enums.Status;
 import com.umc.halo.domain.record.repository.MemberChapterRepository;
 import com.umc.halo.domain.record.repository.MemberStorybookRepository;
+import com.umc.halo.domain.tag.entity.MemberTag;
 import com.umc.halo.domain.tag.entity.StorybookTag;
 import com.umc.halo.domain.tag.entity.Tag;
 import com.umc.halo.domain.tag.enums.Category;
 import com.umc.halo.domain.tag.enums.PriorityLevel;
+import com.umc.halo.domain.tag.repository.MemberTagRepository;
 import com.umc.halo.domain.tag.repository.StorybookTagRepository;
 import com.umc.halo.domain.tag.repository.TagRepository;
 import com.umc.halo.global.apiPayload.exception.ProjectException;
@@ -32,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,6 +55,7 @@ public class StorybookService {
     private final MemberStorybookRepository memberStorybookRepository;
     private final TagRepository tagRepository;
     private final StorybookTagRepository storybookTagRepository;
+    private final MemberTagRepository memberTagRepository;
 
     public StorybookDetailResponse.GetStorybookDetail getStorybookDetail(Long storybookId, Long memberId) {
 
@@ -164,6 +169,68 @@ public class StorybookService {
                 buildSituationalRecommendations();
 
         return new StorybookListResponse.GetStorybookList(storybookSummaries, situationalRecommendations);
+    }
+
+    public StorybookRecommendResponse.GetRecommendedStorybooks getRecommendedStorybooks(Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+
+        List<Tag> desiredTags = memberTagRepository.findByMemberAndTag_Category(member, Category.DESIRED_DIRECTION).stream()
+                .map(MemberTag::getTag)
+                .toList();
+
+        List<StorybookTag> matchedStorybookTags = desiredTags.isEmpty()
+                ? List.of()
+                : storybookTagRepository.findByTagIn(desiredTags);
+
+        // 스토리북 하나당 가장 우선순위 높은(PRIMARY 우선) 매칭 하나만 남기기
+        Map<Long, StorybookTag> bestMatchByStorybook = new LinkedHashMap<>();
+        for (StorybookTag st : matchedStorybookTags) {
+            Long storybookId = st.getStorybook().getId();
+            StorybookTag existing = bestMatchByStorybook.get(storybookId);
+            if (existing == null || (existing.getPriorityLevel() == PriorityLevel.SECONDARY
+                    && st.getPriorityLevel() == PriorityLevel.PRIMARY)) {
+                bestMatchByStorybook.put(storybookId, st);
+            }
+        }
+
+        List<StorybookRecommendResponse.RecommendedStorybook> recommendations = bestMatchByStorybook.values().stream()
+                .sorted(Comparator.comparing(StorybookTag::getPriorityLevel))
+                .limit(2)
+                .map(st -> new StorybookRecommendResponse.RecommendedStorybook(
+                        st.getStorybook().getId(),
+                        st.getStorybook().getTitle(),
+                        st.getStorybook().getShortDescription(),
+                        st.getStorybook().getImageUrl(),
+                        st.getPhrase()
+                ))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        // 매칭이 2개 미만이면 테마 순서대로 기본 스토리북으로 채움
+        if (recommendations.size() < 2) {
+            Set<Long> alreadyIncluded = recommendations.stream()
+                    .map(StorybookRecommendResponse.RecommendedStorybook::storybookId)
+                    .collect(Collectors.toSet());
+
+            List<Storybook> fallbackStorybooks = storybookRepository.findAll().stream()
+                    .sorted(Comparator.comparing(Storybook::getThemeOrder))
+                    .filter(sb -> !alreadyIncluded.contains(sb.getId()))
+                    .toList();
+
+            for (Storybook sb : fallbackStorybooks) {
+                if (recommendations.size() >= 2) break;
+                recommendations.add(new StorybookRecommendResponse.RecommendedStorybook(
+                        sb.getId(),
+                        sb.getTitle(),
+                        sb.getShortDescription(),
+                        sb.getImageUrl(),
+                        sb.getShortDescription()
+                ));
+            }
+        }
+
+        return new StorybookRecommendResponse.GetRecommendedStorybooks(recommendations);
     }
 
     private StorybookListResponse.StorybookSummary buildStorybookSummary(
