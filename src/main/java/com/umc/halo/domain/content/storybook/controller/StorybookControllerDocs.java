@@ -2,6 +2,7 @@ package com.umc.halo.domain.content.storybook.controller;
 
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
+import com.umc.halo.domain.content.storybook.dto.response.StorybookRecommendResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookStartResponse;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-@Tag(name = "스토리북", description = "스토리북 목록/상세/시작하기 관련 API")
+@Tag(name = "스토리북", description = "스토리북 목록/상세/시작하기/추천 관련 API")
 public interface StorybookControllerDocs {
 
     @Operation(
@@ -78,6 +79,27 @@ public interface StorybookControllerDocs {
     })
     ApiResponse<StorybookStartResponse.StartStorybook> startStorybook(
             @Parameter(description = "스토리북 ID", required = true) Long storybookId,
+            @AuthenticationPrincipal Long memberId
+    );
+
+    @Operation(
+            summary = "추천 스토리북 조회 By 한혜담",
+            description = "온보딩 시 선택한 목적 태그를 기반으로 추천 스토리북 2개를 조회합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    { ... STORYBOOK200_4 example ... }
+                                    """)
+                    )
+            )
+    })
+    ApiResponse<StorybookRecommendResponse.GetRecommendedStorybooks> getRecommendedStorybooks(
             @AuthenticationPrincipal Long memberId
     );
 }
