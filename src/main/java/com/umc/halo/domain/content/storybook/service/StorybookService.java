@@ -1,13 +1,16 @@
 package com.umc.halo.domain.content.storybook.service;
 
 import com.umc.halo.domain.content.storybook.apiPayload.StorybookErrorCode;
+import com.umc.halo.domain.content.storybook.dto.response.HomeResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookRecommendResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookStartResponse;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
 import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
+import com.umc.halo.domain.content.storybook.enums.BookshelfStatus;
 import com.umc.halo.domain.content.storybook.enums.ChapterViewStatus;
+import com.umc.halo.domain.content.storybook.enums.HomeStatus;
 import com.umc.halo.domain.content.storybook.enums.StorybookStatus;
 import com.umc.halo.domain.content.storybook.repository.StorybookChapterRepository;
 import com.umc.halo.domain.content.storybook.repository.StorybookRepository;
@@ -184,7 +187,6 @@ public class StorybookService {
                 ? List.of()
                 : storybookTagRepository.findByTagIn(desiredTags);
 
-        // 스토리북 하나당 가장 우선순위 높은(PRIMARY 우선) 매칭 하나만 남기기
         Map<Long, StorybookTag> bestMatchByStorybook = new LinkedHashMap<>();
         for (StorybookTag st : matchedStorybookTags) {
             Long storybookId = st.getStorybook().getId();
@@ -207,7 +209,6 @@ public class StorybookService {
                 ))
                 .collect(Collectors.toCollection(ArrayList::new));
 
-        // 매칭이 2개 미만이면 테마 순서대로 기본 스토리북으로 채움
         if (recommendations.size() < 2) {
             Set<Long> alreadyIncluded = recommendations.stream()
                     .map(StorybookRecommendResponse.RecommendedStorybook::storybookId)
@@ -231,6 +232,129 @@ public class StorybookService {
         }
 
         return new StorybookRecommendResponse.GetRecommendedStorybooks(recommendations);
+    }
+
+    public HomeResponse.GetHome getHome(Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+
+        List<Storybook> storybooks = storybookRepository.findAll().stream()
+                .sorted(Comparator.comparing(Storybook::getThemeOrder))
+                .toList();
+
+        Map<Long, MemberStorybook> memberStorybookMap = memberStorybookRepository.findByMember(member).stream()
+                .collect(Collectors.toMap(ms -> ms.getStorybook().getId(), Function.identity()));
+
+        // 스토리북마다 상태 계산 (목록 조회와 동일한 로직)
+        Map<Storybook, StorybookStatus> statusMap = new LinkedHashMap<>();
+        for (Storybook sb : storybooks) {
+            MemberStorybook ms = memberStorybookMap.get(sb.getId());
+            if (ms == null) {
+                statusMap.put(sb, StorybookStatus.NOT_STARTED);
+                continue;
+            }
+
+            List<MemberChapter> memberChapters =
+                    memberChapterRepository.findByMemberAndStorybookChapter_Storybook_Id(member, sb.getId());
+
+            boolean completed = isCompleted(sb, memberChapters);
+            boolean completedToday = memberChapters.stream()
+                    .anyMatch(mc -> mc.getStatus() == Status.COMPLETED
+                            && mc.getCompletedDate() != null
+                            && mc.getCompletedDate().isEqual(LocalDate.now()));
+
+            StorybookStatus status = completed ? StorybookStatus.COMPLETED
+                    : completedToday ? StorybookStatus.TODAY_DONE
+                    : StorybookStatus.IN_PROGRESS;
+            statusMap.put(sb, status);
+        }
+
+        // 완료 안 하고 시작은 한 스토리북들(진행중 + 오늘 완료) 추리기
+        List<Storybook> activeStorybooks = statusMap.entrySet().stream()
+                .filter(e -> e.getValue() == StorybookStatus.IN_PROGRESS || e.getValue() == StorybookStatus.TODAY_DONE)
+                .map(Map.Entry::getKey)
+                .sorted(Comparator.comparing(Storybook::getThemeOrder))
+                .toList();
+
+        HomeStatus homeStatus;
+        HomeResponse.RepresentativeStorybook representativeStorybook = null;
+        int otherInProgressCount = 0;
+
+        if (activeStorybooks.isEmpty()) {
+            homeStatus = HomeStatus.NO_STORYBOOK;
+        } else {
+            Storybook representative = activeStorybooks.get(0);
+            StorybookStatus repStatus = statusMap.get(representative);
+            MemberStorybook repMemberStorybook = memberStorybookMap.get(representative.getId());
+
+            Integer chapterOrder = repMemberStorybook.getLastChapterOrder();
+            String chapterTitle = storybookChapterRepository
+                    .findByStorybook_IdAndChapterOrder(representative.getId(), chapterOrder)
+                    .map(sc -> sc.getChapter().getTitle())
+                    .orElse(null);
+
+            representativeStorybook = new HomeResponse.RepresentativeStorybook(
+                    representative.getId(),
+                    representative.getTitle(),
+                    chapterTitle,
+                    chapterOrder,
+                    repStatus == StorybookStatus.IN_PROGRESS
+            );
+
+            otherInProgressCount = activeStorybooks.size() - 1;
+
+            boolean allTodayDone = activeStorybooks.stream()
+                    .allMatch(sb -> statusMap.get(sb) == StorybookStatus.TODAY_DONE);
+
+            if (allTodayDone) {
+                homeStatus = HomeStatus.ALL_COMPLETED_TODAY;
+            } else if (activeStorybooks.size() == 1) {
+                homeStatus = HomeStatus.IN_PROGRESS;
+            } else {
+                homeStatus = HomeStatus.MULTIPLE_IN_PROGRESS;
+            }
+        }
+
+        List<HomeResponse.BookshelfItem> bookshelf = storybooks.stream()
+                .map(sb -> new HomeResponse.BookshelfItem(
+                        sb.getId(),
+                        sb.getTitle(),
+                        sb.getThemeOrder(),
+                        toBookshelfStatus(statusMap.get(sb))
+                ))
+                .toList();
+
+        List<HomeResponse.RecommendedStorybook> recommendedStorybooks = new ArrayList<>();
+        if (activeStorybooks.isEmpty()) {
+            StorybookRecommendResponse.GetRecommendedStorybooks recommended = getRecommendedStorybooks(memberId);
+            recommendedStorybooks = recommended.storybooks().stream()
+                    .map(r -> new HomeResponse.RecommendedStorybook(
+                            r.storybookId(),
+                            r.title(),
+                            r.shortDescription(),
+                            r.imageUrl(),
+                            member.getName() + "님을 위한 추천 스토리북"
+                    ))
+                    .toList();
+        }
+
+        return new HomeResponse.GetHome(
+                homeStatus,
+                member.getName() + "님",
+                representativeStorybook,
+                otherInProgressCount,
+                bookshelf,
+                recommendedStorybooks
+        );
+    }
+
+    private BookshelfStatus toBookshelfStatus(StorybookStatus status) {
+        return switch (status) {
+            case COMPLETED -> BookshelfStatus.COMPLETED;
+            case NOT_STARTED -> BookshelfStatus.NOT_STARTED;
+            case IN_PROGRESS, TODAY_DONE -> BookshelfStatus.IN_PROGRESS;
+        };
     }
 
     private StorybookListResponse.StorybookSummary buildStorybookSummary(
