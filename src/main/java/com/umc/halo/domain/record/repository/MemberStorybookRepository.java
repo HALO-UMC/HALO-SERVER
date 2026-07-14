@@ -6,4 +6,5 @@ import org.springframework.stereotype.*;
 
 @Repository
 public interface MemberStorybookRepository extends JpaRepository<MemberStorybook, Long> {
+    void deleteByMemberId(Long memberId);
 }
