@@ -41,15 +41,17 @@ public class OnboardingService {
         if (nickname == null || !NICKNAME_PATTERN.matcher(nickname).matches()) {
             throw new OnboardingException(OnboardingErrorCode.INVALID_NICKNAME);
         }
-
         // 중복 조회
         boolean available = !memberRepository.existsByName(nickname);
-
         return OnboardingResDTO.NicknameCheck.builder()
                 .isAvailable(available)
                 .build();
     }
-
+    private void validateNicknameFormat(String nickname) {
+        if (nickname == null || !NICKNAME_PATTERN.matcher(nickname).matches()) {
+            throw new OnboardingException(OnboardingErrorCode.INVALID_NICKNAME);
+        }
+    }
     // 온보딩 정보 저장 이어서 하는 작업용
     @Transactional
     public OnboardingResDTO.Save saveOnboarding(Long memberId, OnboardingReqDTO.Save request) {
@@ -67,6 +69,9 @@ public class OnboardingService {
                 if (request.name() == null) {
                     throw new OnboardingException(OnboardingErrorCode.MISSING_REQUIRED_FIELD);
                 }
+
+
+                validateNicknameFormat(request.name());
                 member.updateName(request.name());
             }
             case 2 -> {
