@@ -94,13 +94,13 @@ public class OnboardingService {
                 if (tagIds.size() > PARENT_TAG_MAX) {
                     throw new OnboardingException(OnboardingErrorCode.PARENT_TAG_LIMIT_EXCEEDED);
                 }
-                saveTags(member, tagIds);
+                saveTags(member, tagIds, Category.PARENT_TENDENCY);
             }
             case 4 -> {
                 if (request.currentRelationStateTagId() == null) {
                     throw new OnboardingException(OnboardingErrorCode.MISSING_REQUIRED_FIELD);
                 }
-                saveTags(member, List.of(request.currentRelationStateTagId()));
+                saveTags(member, List.of(request.currentRelationStateTagId()), Category.CURRENT_RELATIONSHIP);
             }
             case 5 -> {
                 List<Long> tagIds = request.goalRelationshipTagIds();
@@ -110,7 +110,7 @@ public class OnboardingService {
                 if (tagIds.size() > GOAL_TAG_MAX) {
                     throw new OnboardingException(OnboardingErrorCode.GOAL_TAG_LIMIT_EXCEEDED);
                 }
-                saveTags(member, tagIds);
+                saveTags(member, tagIds, Category.DESIRED_DIRECTION);
             }
         }
 
@@ -126,10 +126,13 @@ public class OnboardingService {
                 .build();
     }
 
-    private void saveTags(Member member, List<Long> tagIds) {
+    private void saveTags(Member member, List<Long> tagIds, Category expectedCategory) {
         for (Long tagId : tagIds) {
             Tag tag = tagRepository.findById(tagId)
                     .orElseThrow(() -> new OnboardingException(OnboardingErrorCode.TAG_NOT_FOUND));
+            if (tag.getCategory() != expectedCategory) {
+                throw new OnboardingException(OnboardingErrorCode.INVALID_TAG_CATEGORY);
+            }
             MemberTag memberTag = MemberTag.builder()
                     .member(member)
                     .tag(tag)

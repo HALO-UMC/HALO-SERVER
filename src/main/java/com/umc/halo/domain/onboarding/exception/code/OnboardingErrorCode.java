@@ -25,6 +25,9 @@ public enum OnboardingErrorCode implements BaseErrorCode {
     INVALID_BIRTH_DATE(HttpStatus.BAD_REQUEST,
             "ONBOARDING400_5",
             "생년월일 형식이 올바르지 않습니다."),
+    INVALID_TAG_CATEGORY(HttpStatus.BAD_REQUEST,
+            "ONBOARDING400_6",
+            "해당 단계에 맞지 않는 태그입니다."),
 
     // 404
     TAG_NOT_FOUND(HttpStatus.NOT_FOUND,
