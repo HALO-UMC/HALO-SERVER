@@ -61,17 +61,17 @@ public interface StorybookControllerDocs {
 
     @Operation(
             summary = "스토리북 시작하기 By 한혜담",
-            description = "선택한 스토리북을 시작합니다. 이미 시작한 스토리북이면 409 에러를 반환합니다."
+            description = "선택한 스토리북을 시작합니다. 이미 진행중이면 409(STORYBOOK409_1), 이미 완료했으면 409(STORYBOOK409_2)를 반환합니다."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "201",
+                    responseCode = "200",
                     description = "성공 예시",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ApiResponse.class),
                             examples = @ExampleObject(value = """
-                                    { ... STORYBOOK201_1 example ... }
+                                    { ... STORYBOOK200_3 example ... }
                                     """)
                     )
             )
