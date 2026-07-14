@@ -28,6 +28,7 @@ public class HomeResponse {
             Long storybookId,
             String title,
             int themeOrder,
+            String spineColor,
             BookshelfStatus status
     ) {}
 

@@ -321,6 +321,7 @@ public class StorybookService {
                         sb.getId(),
                         sb.getTitle(),
                         sb.getThemeOrder(),
+                        sb.getSpineColor(),
                         toBookshelfStatus(statusMap.get(sb))
                 ))
                 .toList();
