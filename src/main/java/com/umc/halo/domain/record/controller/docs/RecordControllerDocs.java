@@ -247,6 +247,104 @@ public interface RecordControllerDocs {
             @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody RecordReqDTO.WriteChapterRecord recordReqDTO
     );
+
+
+    // 완료된 장 다시보기
+    @Operation(
+            summary = "완료된 장 다시보기 API",
+            description = """
+                    # 완료된 장 다시보기
+                    
+                    ## 요청 형식
+                    - 헤더: Authorization: Bearer {JWT 토큰}
+                    - memberChapterId: 사용자 장 ID (path variable)
+                    """,
+            responses = {
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "200",
+                            description = "성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResponse.class),
+                                    examples = @ExampleObject(
+                                            name = "완료된 장 다시보기 성공",
+                                            value = """
+                                                    {
+                                                      "isSuccess": true,
+                                                      "code": "CHAPTER200_3",
+                                                      "message": "완료된 장을 성공적으로 조회했습니다.",
+                                                      "result": {
+                                                        "memberChapterId": 10,
+                                                        "title": "다시 쓰는 당신의 프로필",
+                                                        "emotion": "HAPPY",
+                                                        "coverType": "SCENE_CARD",
+                                                        "imageUrl": null,
+                                                        "sceneCardImageUrl": "https://example.com/scene1.png",
+                                                        "answers": [
+                                                          { "question": "다시 쓰는 당신의 프로필에 대한 질문1", "answer": "답변1" },
+                                                          { "question": "다시 쓰는 당신의 프로필에 대한 질문2", "answer": "답변2" },
+                                                          { "question": "다시 쓰는 당신의 프로필에 대한 질문3", "answer": "답변3" }
+                                                        ]
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            )
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "403",
+                            description = "조회하려는 장 기록이 아직 완료(COMPLETED) 상태가 아닌 경우",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResponse.class),
+                                    examples = @ExampleObject("""
+                                            {
+                                                "isSuccess": false,
+                                                "code": "CHAPTER403_4",
+                                                "message": "아직 완료되지 않은 장 기록입니다.",
+                                                "result": null
+                                            }
+                                            """)
+                            )
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "404",
+                            description = "존재하지 않는 회원이거나, 존재하지 않는 장 기록(본인 소유가 아닌 기록 포함)인 경우",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResponse.class),
+                                    examples = {
+                                            @ExampleObject(
+                                                    name = "존재하지 않는 회원인 경우",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "MEMBER404_1",
+                                                                "message": "존재하지 않는 회원입니다.",
+                                                                "result": null
+                                                            }
+                                                            """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "존재하지 않는 장 기록(memberChapterId)이거나 본인 소유의 장 기록이 아닌 경우",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "CHAPTER404_4",
+                                                                "message": "존재하지 않는 장 기록입니다.",
+                                                                "result": null
+                                                            }
+                                                            """
+                                            )
+                                    }
+                            )
+                    )
+            }
+    )
+    ApiResponse<RecordResDTO.ReadChapterRecord> readChapterRecord(
+            @AuthenticationPrincipal Long memberId,
+            @Parameter(description = "다시 볼 장 기록 ID", example = "10")
+            @PathVariable Long memberChapterId);
 }
 
 

@@ -1,6 +1,11 @@
 package com.umc.halo.domain.record.dto;
 
+import com.umc.halo.domain.record.enums.*;
+import com.umc.halo.global.enums.*;
 import lombok.*;
+
+import java.time.*;
+import java.util.*;
 
 public class RecordResDTO {
 
@@ -12,5 +17,24 @@ public class RecordResDTO {
     ) {
     }
 
+    // 완료된 장 다시보기
+    @Builder
+    public record ReadChapterRecord(
+            Long memberChapterId,
+            String title,
+            Emotion emotion,
+            CoverType coverType,
+            String imageUrl,
+            String sceneCardImageUrl,
+            List<Answer> answers,
+            LocalDate completedDate
+    ) {
+        @Builder
+        public record Answer(
+                String question,
+                String answer
+        ) {
+        }
+    }
 
 }

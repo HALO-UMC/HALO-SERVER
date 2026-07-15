@@ -13,6 +13,10 @@ public enum RecordErrorCode implements BaseErrorCode {
     MISSING_COVER_TYPE(HttpStatus.BAD_REQUEST, "CHAPTER400_5", "커버 타입 선택이 필요합니다."),
     MISSING_EMOTION(HttpStatus.BAD_REQUEST, "CHAPTER400_6", "감정 선택이 필요합니다."),
 
+    NOT_COMPLETED_MEMBER_CHAPTER(HttpStatus.FORBIDDEN, "CHAPTER403_4", "아직 완료되지 않은 장 기록입니다."),
+
+    NOT_FOUND_MEMBER_CHAPTER(HttpStatus.NOT_FOUND, "CHAPTER404_4", "존재하지 않는 장 기록입니다."),
+
     ALREADY_COMPLETED_TODAY(HttpStatus.CONFLICT, "CHAPTER409_1", "오늘 이미 이 스토리북의 장을 완료했습니다.");
 
     private final HttpStatus status;

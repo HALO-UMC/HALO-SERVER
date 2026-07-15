@@ -27,4 +27,15 @@ public class RecordController implements RecordControllerDocs {
         return ApiResponse.onSuccess(RecordSuccessCode.WRITE_CHAPTER_RECORD, result);
     }
 
+    @Override
+    @GetMapping("/v1/member-chapters/{memberChapterId}")
+    public ApiResponse<RecordResDTO.ReadChapterRecord> readChapterRecord(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable Long memberChapterId
+    ) {
+        RecordResDTO.ReadChapterRecord result = recordService.readChapterRecord(memberId, memberChapterId);
+        return ApiResponse.onSuccess(RecordSuccessCode.READ_CHAPTER_RECORD, result);
+    }
+
+
 }

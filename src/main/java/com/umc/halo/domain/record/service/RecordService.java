@@ -197,4 +197,34 @@ public class RecordService {
 
         return RecordConverter.toWriteChapterRecord(memberChapter.getId(), isStorybookCompleted);
     }
+
+    @Transactional(readOnly = true)
+    public RecordResDTO.ReadChapterRecord readChapterRecord(Long memberId, Long memberChapterId) {
+
+        // member 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
+        // memberChapter 조회
+        MemberChapter memberChapter = memberChapterRepository.findById(memberChapterId)
+                .orElseThrow(() -> new RecordException(RecordErrorCode.NOT_FOUND_MEMBER_CHAPTER));
+
+        // member의 memberChapter인지 검증
+        if (!memberChapter.getMember().getId().equals(member.getId())) {
+            throw new RecordException(RecordErrorCode.NOT_FOUND_MEMBER_CHAPTER);
+        }
+
+        // memberChapter COMPLETED인지 검증
+        if (memberChapter.getStatus() != Status.COMPLETED) {
+            throw new RecordException(RecordErrorCode.NOT_COMPLETED_MEMBER_CHAPTER);
+        }
+
+        // memberChapterAnswer 조회
+        List<RecordResDTO.ReadChapterRecord.Answer> answerList = memberChapterAnswerRepository.findAllByMemberChapterOrderByQuestionOrder(memberChapter)
+                .stream()
+                .map(RecordConverter::toAnswer)
+                .toList();
+
+        return RecordConverter.toReadChapterRecord(memberChapter, answerList);
+    }
 }
