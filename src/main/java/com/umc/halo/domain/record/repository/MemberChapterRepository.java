@@ -10,4 +10,5 @@ import org.springframework.stereotype.*;
 public interface MemberChapterRepository extends JpaRepository<MemberChapter, Long> {
 
     MemberChapter findByMemberAndStorybookChapter(Member member, StorybookChapter storybookChapter);
+    void deleteByMemberId(Long memberId);
 }

@@ -18,13 +18,16 @@ public class JwtUtil {
 
     private final SecretKey secretKey;
     private final Duration accessExpiration;
+    private final Duration refreshExpiration;
 
     public JwtUtil(
             @Value("${jwt.token.secretKey}") String secret,
-            @Value("${jwt.token.expiration.access}") Long accessExpiration
+            @Value("${jwt.token.expiration.access}") Long accessExpiration,
+            @Value("${jwt.token.expiration.refresh}") Long refreshExpiration
     ) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessExpiration = Duration.ofMillis(accessExpiration);
+        this.refreshExpiration = Duration.ofMillis(refreshExpiration);
     }
 
     // accessToken 생성: subject(sub)에 memberId를 담음
@@ -32,8 +35,21 @@ public class JwtUtil {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(String.valueOf(memberId))
+                .claim("type", "access")
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(accessExpiration)))
+                .signWith(secretKey)
+                .compact();
+    }
+
+    // refreshToken 생성: subject(sub)에 memberId를 담음
+    public String createRefreshToken(Long memberId) {
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .subject(String.valueOf(memberId))
+                .claim("type", "refresh")
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plus(refreshExpiration)))
                 .signWith(secretKey)
                 .compact();
     }
@@ -51,6 +67,11 @@ public class JwtUtil {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    // refreshToken인지 검증
+    public boolean isRefreshToken(String token) {
+        return "refresh".equals(getClaims(token).get("type", String.class));
     }
 
     private Claims getClaims(String token) {

@@ -11,4 +11,5 @@ public interface MemberChapterAnswerRepository extends JpaRepository<MemberChapt
     List<MemberChapterAnswer> findByMemberChapter(MemberChapter memberChapter);
 
     void deleteAllByMemberChapter(MemberChapter memberChapter);
+    void deleteByMemberChapterMemberId(Long memberId);
 }
