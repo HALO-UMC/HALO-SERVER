@@ -19,7 +19,7 @@ public interface OnboardingControllerDocs {
                     # 닉네임 중복 확인
                     
                     ## 요청 형식
-                    - 헤더: Authorize: Bearer {JWT 토큰}
+                    - 헤더: Authorization: Bearer {JWT 토큰}
                     - 쿼리 파라미터: nickname
                     
                     닉네임은 2~10자, 특수문자를 사용할 수 없습니다.
@@ -55,6 +55,21 @@ public interface OnboardingControllerDocs {
                                     }
                                     """)
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패 - 헤더에 JWT 토큰 미삽입/만료",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
             )
     })
     ApiResponse<OnboardingResDTO.NicknameCheck> checkNickname(
@@ -67,7 +82,7 @@ public interface OnboardingControllerDocs {
                     # 온보딩 정보 저장 (step 1~5 부분 저장)
                     
                     ## 요청 형식
-                    - 헤더: Authorize: Bearer {JWT 토큰}
+                   - 헤더: Authorization: Bearer {JWT 토큰}
                     - Body: step + 해당 단계 필드
                     
                     ## 단계별 필드
@@ -122,6 +137,22 @@ public interface OnboardingControllerDocs {
                                       "result": null
                                     }
                                     """)
+
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패 - 헤더에 JWT 토큰 미삽입/만료",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
+                                      "result": null
+                                    }
+                                    """)
                     )
             )
     })
@@ -136,7 +167,7 @@ public interface OnboardingControllerDocs {
                     # 온보딩 진행 상태 조회
                     
                     ## 요청 형식
-                    - 헤더: Authorize: Bearer {JWT 토큰}
+                  - 헤더: Authorization: Bearer {JWT 토큰}
                     
                     완료 여부 + 이어할 단계(currentStep) + 지금까지 저장된 값(savedData)을 반환합니다.
                     시작 전이면 currentStep, savedData는 null 입니다.
@@ -165,6 +196,21 @@ public interface OnboardingControllerDocs {
                                           "goalRelationshipTagIds": []
                                         }
                                       }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패 - 헤더에 JWT 토큰 미삽입/만료",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
+                                      "result": null
                                     }
                                     """)
                     )
