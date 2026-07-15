@@ -40,9 +40,7 @@ public class OnboardingService {
     @Transactional(readOnly = true)
     public OnboardingResDTO.NicknameCheck checkNickname(String nickname) {
 
-        if (nickname == null || !NICKNAME_PATTERN.matcher(nickname).matches()) {
-            throw new OnboardingException(OnboardingErrorCode.INVALID_NICKNAME);
-        }
+        validateNicknameFormat(nickname);
         // 중복 조회
         boolean available = !memberRepository.existsByName(nickname);
         return OnboardingResDTO.NicknameCheck.builder()
