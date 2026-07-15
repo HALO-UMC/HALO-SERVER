@@ -34,7 +34,7 @@ public interface OnboardingControllerDocs {
                             examples = @ExampleObject(value = """
                                     {
                                       "isSuccess": true,
-                                      "code": "ONBOARDING200",
+                                      "code": "ONBOARDING200_3",
                                       "message": "사용 가능한 닉네임입니다.",
                                       "result": { "isAvailable": true }
                                     }
@@ -87,7 +87,7 @@ public interface OnboardingControllerDocs {
                             examples = @ExampleObject(value = """
                                     {
                                       "isSuccess": true,
-                                      "code": "ONBOARDING200",
+                                      "code": "ONBOARDING200_1",
                                       "message": "온보딩 정보가 저장되었습니다.",
                                       "result": { "onboardingStep": 1, "onboardingCompleted": false }
                                     }
@@ -151,7 +151,7 @@ public interface OnboardingControllerDocs {
                             examples = @ExampleObject(value = """
                                     {
                                       "isSuccess": true,
-                                      "code": "ONBOARDING200",
+                                      "code": "ONBOARDING200_2",
                                       "message": "온보딩 상태 조회 성공",
                                       "result": {
                                         "onboardingCompleted": false,
