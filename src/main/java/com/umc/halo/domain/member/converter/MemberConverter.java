@@ -29,6 +29,18 @@ public class MemberConverter {
                 .build();
     }
 
+    public static MemberResDTO.MyInfo toMyInfo(Member member) {
+        return MemberResDTO.MyInfo.builder()
+                .memberId(member.getId())
+                .name(member.getName())
+                .gender(member.getGender())
+                .birthDate(member.getBirthDate())
+                .provider(member.getProvider())
+                .onboardingCompleted(member.getOnboardingCompleted())
+                .createdAt(member.getCreatedAt())
+                .build();
+    }
+
     public static MemberResDTO.TokenReissue toTokenReissueResponse(
             String accessToken,
             String refreshToken
