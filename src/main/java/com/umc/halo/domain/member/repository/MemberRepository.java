@@ -12,6 +12,11 @@ import java.util.Optional;
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
+    Optional<Member> findByProviderAndProviderId(Provider provider, String providerId);
+
+    boolean existsByName(String name);
+
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
         select m
@@ -28,4 +33,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
         where m.id = :id
        """)
     Optional<Member> findByIdForUpdate(@Param("id") Long id);
+
 }
