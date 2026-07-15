@@ -13,5 +13,9 @@ public interface MemberTagRepository extends JpaRepository<MemberTag, Long> {
 
     List<MemberTag> findByMemberAndTag_Category(Member member, Category category);
 
+    List<MemberTag> findAllByMember(Member member);
+
     void deleteByMemberId(Long memberId);
+
+    void deleteByMemberAndTag_Category(Member member, Category category);
 }

@@ -57,6 +57,22 @@ public class Member extends BaseEntity {
         this.refreshTokenHash = refreshTokenHash;
     }
 
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateGenderAndBirthDate(Gender gender, LocalDate birthDate) {
+        this.gender = gender;
+        this.birthDate = birthDate;
+    }
+
+    public void updateOnboardingStep(Integer step) {
+        this.onboardingStep = step;
+    }
+
+    public void completeOnboarding() {
+        this.onboardingCompleted = true;
+    }
     public void deleteRefreshToken() {
         this.refreshTokenHash = null;
     }
