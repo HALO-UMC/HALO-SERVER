@@ -8,6 +8,8 @@ import com.umc.halo.domain.content.chapter.service.*;
 import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.content.storybook.repository.*;
 import com.umc.halo.domain.member.entity.*;
+import com.umc.halo.domain.member.exception.*;
+import com.umc.halo.domain.member.exception.code.*;
 import com.umc.halo.domain.member.repository.*;
 import com.umc.halo.domain.record.converter.*;
 import com.umc.halo.domain.record.dto.*;
@@ -16,8 +18,6 @@ import com.umc.halo.domain.record.enums.*;
 import com.umc.halo.domain.record.excption.*;
 import com.umc.halo.domain.record.excption.code.*;
 import com.umc.halo.domain.record.repository.*;
-import com.umc.halo.global.apiPayload.code.*;
-import com.umc.halo.global.apiPayload.exception.*;
 import lombok.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
@@ -44,7 +44,7 @@ public class RecordService {
 
         // member 조회
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ProjectException(GeneralErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         // storybookChapter 조회
         StorybookChapter storybookChapter = storybookChapterRepository.findById(recordReqDTO.storybookChapterId())

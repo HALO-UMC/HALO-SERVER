@@ -17,7 +17,7 @@ public interface RecordControllerDocs {
             summary = "장 기록 작성 API",
             description = """
                     # 장 기록 작성
-
+                    
                     ## 요청 형식
                     - 헤더: Authorization: Bearer {JWT 토큰}
                     - storybookChapterId: 기록할 스토리북-장 ID
@@ -183,8 +183,8 @@ public interface RecordControllerDocs {
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
-                                                                "code": "COMMON404_1",
-                                                                "message": "요청하신 리소스를 찾을 수 없습니다.",
+                                                                "code": "MEMBER404_1",
+                                                                "message": "존재하지 않는 회원입니다.",
                                                                 "result": null
                                                             }
                                                             """
