@@ -14,7 +14,7 @@ public interface ChapterControllerDocs {
 
     //오늘의 장 조회
     @Operation(
-            summary = "오늘의 장 조회 API by 초코",
+            summary = "오늘의 장 조회 API",
             description = """
                     # 오늘의 장 조회
                     
@@ -32,7 +32,7 @@ public interface ChapterControllerDocs {
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = {
                                             @ExampleObject(
-                                                    name = "임시저장(draft) 있는 경우",
+                                                    name = "임시저장(draft) 있음",
                                                     value = """
                                                             {
                                                               "isSuccess": true,
@@ -115,7 +115,7 @@ public interface ChapterControllerDocs {
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "400",
-                            description = "chapterOrder가 1~10 범위를 벗어난 경우",
+                            description = "chapterOrder가 1~10 범위를 벗어남",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
@@ -130,8 +130,24 @@ public interface ChapterControllerDocs {
                             )
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "401",
+                            description = "accessToken 만료·유효하지 않음",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResponse.class),
+                                    examples = @ExampleObject(value = """
+                                            {
+                                                "isSuccess": false,
+                                                "code": "AUTH401_1",
+                                                "message": "토큰이 만료되었습니다.",
+                                                "result": null
+                                            }
+                                            """)
+                            )
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "403",
-                            description = "장이 아직 열리지 않았거나, 이미 완료한 장인 경우",
+                            description = "아직 열리지 않았거나 이미 완료한 장",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
@@ -148,7 +164,7 @@ public interface ChapterControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "이미 완료한 장을 재조회하려는 경우",
+                                                    name = "이미 완료한 장 재조회 시도",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -159,12 +175,12 @@ public interface ChapterControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "오늘 이미 장을 완료하여 새 장을 받을 수 없는 경우",
+                                                    name = "오늘 이미 이 스토리북의 장을 완료하여 새 장 조회 불가",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
                                                                 "code": "CHAPTER403_3",
-                                                                "message": "오늘 이미 장을 조회하였습니다.",
+                                                                "message": "오늘 이미 이 스토리북의 장을 완료하여 새로운 장을 조회할 수 없습니다.",
                                                                 "result": null
                                                             }
                                                             """
@@ -174,13 +190,13 @@ public interface ChapterControllerDocs {
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "404",
-                            description = "존재하지 않는 회원/스토리북/장인 경우",
+                            description = "존재하지 않는 회원/스토리북/장",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = {
                                             @ExampleObject(
-                                                    name = "존재하지 않는 회원인 경우",
+                                                    name = "존재하지 않는 회원",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -191,7 +207,7 @@ public interface ChapterControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "존재하지 않는 스토리북이거나, 해당 스토리북에 존재하지 않는 chapterOrder인 경우",
+                                                    name = "존재하지 않는 스토리북이거나 해당 스토리북에 없는 chapterOrder",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,

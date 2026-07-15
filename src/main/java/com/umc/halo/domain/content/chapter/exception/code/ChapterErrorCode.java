@@ -13,7 +13,7 @@ public enum ChapterErrorCode implements BaseErrorCode {
 
     UNOPENED_CHAPTER(HttpStatus.FORBIDDEN, "CHAPTER403_1", "아직 열리지 않은 장입니다."),
     COMPLETED_CHAPTER(HttpStatus.FORBIDDEN, "CHAPTER403_2", "이미 완료한 장입니다."),
-    ALREADY_RECEIVED_TODAY(HttpStatus.FORBIDDEN, "CHAPTER403_3", "오늘 이미 장을 조회하였습니다."),
+    ALREADY_RECEIVED_TODAY(HttpStatus.FORBIDDEN, "CHAPTER403_3", "오늘 이미 이 스토리북의 장을 완료하여 새로운 장을 조회할 수 없습니다."),
 
     NOT_FOUND_CHAPTER(HttpStatus.NOT_FOUND, "CHAPTER404_1", "존재하지 않는 장입니다."),
     NOT_FOUND_CHAPTER_QUESTION(HttpStatus.NOT_FOUND, "CHAPTER404_2", "존재하지 않는 장 질문입니다."),

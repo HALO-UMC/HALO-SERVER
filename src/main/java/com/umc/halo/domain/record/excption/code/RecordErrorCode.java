@@ -17,7 +17,7 @@ public enum RecordErrorCode implements BaseErrorCode {
 
     NOT_FOUND_MEMBER_CHAPTER(HttpStatus.NOT_FOUND, "CHAPTER404_4", "존재하지 않는 장 기록입니다."),
 
-    ALREADY_COMPLETED_TODAY(HttpStatus.CONFLICT, "CHAPTER409_1", "오늘 이미 이 스토리북의 장을 완료했습니다.");
+    ALREADY_COMPLETED_TODAY(HttpStatus.CONFLICT, "CHAPTER409_1", "오늘 이미 이 스토리북의 장을 완료하여 장 기록을 작성할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

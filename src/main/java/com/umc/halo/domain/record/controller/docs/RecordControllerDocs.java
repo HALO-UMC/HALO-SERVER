@@ -35,7 +35,6 @@ public interface RecordControllerDocs {
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = @ExampleObject(
-                                            name = "장 기록 저장 성공",
                                             value = """
                                                     {
                                                       "isSuccess": true,
@@ -52,13 +51,13 @@ public interface RecordControllerDocs {
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "400",
-                            description = "요청 값이 올바르지 않은 경우",
+                            description = "요청 값 누락 또는 형식 오류",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = {
                                             @ExampleObject(
-                                                    name = "storybookChapterId 등 필수 요청값이 누락된 경우",
+                                                    name = "storybookChapterId 등 필수 요청값 누락",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -71,7 +70,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "선택한 커버 타입과 입력값이 일치하지 않거나 필요한 정보가 누락된 경우",
+                                                    name = "선택한 커버 타입과 입력값 불일치",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -82,7 +81,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "장면 카드(sceneCardId)가 해당 장의 장면 카드가 아닌 경우",
+                                                    name = "장면 카드(sceneCardId)가 해당 장의 장면 카드 아님",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -93,7 +92,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "질문(answers[].chapterQuestionId)이 해당 장의 질문이 아닌 경우",
+                                                    name = "질문(answers[].chapterQuestionId)이 해당 장의 질문 아님",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -104,7 +103,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "COMPLETED인데 모든 장 질문에 대한 답변이 없는 경우",
+                                                    name = "COMPLETED인데 모든 장 질문에 대한 답변 누락",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -115,7 +114,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "COMPLETED인데 coverType이 없는 경우",
+                                                    name = "COMPLETED인데 coverType 누락",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -126,7 +125,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "COMPLETED인데 emotion이 없는 경우",
+                                                    name = "COMPLETED인데 emotion 누락",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -140,14 +139,30 @@ public interface RecordControllerDocs {
                             )
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "401",
+                            description = "accessToken 만료·유효하지 않음",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResponse.class),
+                                    examples = @ExampleObject(value = """
+                                            {
+                                                "isSuccess": false,
+                                                "code": "AUTH401_1",
+                                                "message": "토큰이 만료되었습니다.",
+                                                "result": null
+                                            }
+                                            """)
+                            )
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "403",
-                            description = "장이 아직 열리지 않았거나, 이미 완료한 장인 경우",
+                            description = "아직 열리지 않았거나 이미 완료한 장",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = {
                                             @ExampleObject(
-                                                    name = "아직 열리지 않은 장인 경우",
+                                                    name = "아직 열리지 않은 장",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -158,7 +173,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "이미 완료한 장인 경우",
+                                                    name = "이미 완료한 장",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -173,13 +188,13 @@ public interface RecordControllerDocs {
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "404",
-                            description = "존재하지 않는 회원 / 장 / 장 질문 / 장면 카드인 경우",
+                            description = "존재하지 않는 회원 / 장 / 장 질문 / 장면 카드",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = {
                                             @ExampleObject(
-                                                    name = "존재하지 않는 회원인 경우",
+                                                    name = "존재하지 않는 회원",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -190,7 +205,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "존재하지 않는 장(storybookChapterId)인 경우",
+                                                    name = "존재하지 않는 장(storybookChapterId)",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -201,7 +216,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "존재하지 않는 장 질문(answers[].chapterQuestionId)인 경우",
+                                                    name = "존재하지 않는 장 질문(answers[].chapterQuestionId)",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -212,7 +227,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "존재하지 않는 장면 카드(sceneCardId)인 경우",
+                                                    name = "존재하지 않는 장면 카드(sceneCardId)",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -227,7 +242,7 @@ public interface RecordControllerDocs {
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "409",
-                            description = "오늘 이미 이 스토리북의 장을 완료한 경우",
+                            description = "오늘 이미 이 스토리북의 장을 완료함",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
@@ -235,7 +250,7 @@ public interface RecordControllerDocs {
                                             {
                                                 "isSuccess": false,
                                                 "code": "CHAPTER409_1",
-                                                "message": "오늘 이미 이 스토리북의 장을 완료했습니다.",
+                                                "message": "오늘 이미 이 스토리북의 장을 완료하여 장 기록을 작성할 수 없습니다.",
                                                 "result": null
                                             }
                                             """)
@@ -267,7 +282,6 @@ public interface RecordControllerDocs {
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = @ExampleObject(
-                                            name = "완료된 장 다시보기 성공",
                                             value = """
                                                     {
                                                       "isSuccess": true,
@@ -292,8 +306,24 @@ public interface RecordControllerDocs {
                             )
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                            responseCode = "401",
+                            description = "accessToken 만료·유효하지 않음",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ApiResponse.class),
+                                    examples = @ExampleObject(value = """
+                                            {
+                                                "isSuccess": false,
+                                                "code": "AUTH401_1",
+                                                "message": "토큰이 만료되었습니다.",
+                                                "result": null
+                                            }
+                                            """)
+                            )
+                    ),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "403",
-                            description = "조회하려는 장 기록이 아직 완료(COMPLETED) 상태가 아닌 경우",
+                            description = "장 기록이 아직 완료(COMPLETED) 상태가 아님",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
@@ -309,13 +339,13 @@ public interface RecordControllerDocs {
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "404",
-                            description = "존재하지 않는 회원이거나, 존재하지 않는 장 기록(본인 소유가 아닌 기록 포함)인 경우",
+                            description = "존재하지 않는 회원 또는 장 기록(본인 소유가 아닌 기록 포함)",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = {
                                             @ExampleObject(
-                                                    name = "존재하지 않는 회원인 경우",
+                                                    name = "존재하지 않는 회원",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -326,7 +356,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "존재하지 않는 장 기록(memberChapterId)이거나 본인 소유의 장 기록이 아닌 경우",
+                                                    name = "존재하지 않거나 본인 소유가 아닌 장 기록(memberChapterId)",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
