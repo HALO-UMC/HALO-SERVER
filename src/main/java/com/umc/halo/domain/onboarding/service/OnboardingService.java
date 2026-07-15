@@ -127,6 +127,9 @@ public class OnboardingService {
     }
 
     private void saveTags(Member member, List<Long> tagIds, Category expectedCategory) {
+        memberTagRepository.deleteByMemberAndTag_Category(member, expectedCategory);
+        memberTagRepository.flush();
+
         for (Long tagId : tagIds) {
             Tag tag = tagRepository.findById(tagId)
                     .orElseThrow(() -> new OnboardingException(OnboardingErrorCode.TAG_NOT_FOUND));
