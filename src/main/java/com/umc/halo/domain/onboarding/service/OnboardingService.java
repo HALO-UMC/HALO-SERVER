@@ -15,6 +15,7 @@ import com.umc.halo.domain.tag.repository.TagRepository;
 import com.umc.halo.domain.onboarding.dto.OnboardingReqDTO;
 import com.umc.halo.domain.member.enums.Gender;
 import com.umc.halo.domain.tag.enums.Category;
+import com.umc.halo.domain.onboarding.converter.OnboardingConverter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -43,9 +44,7 @@ public class OnboardingService {
         validateNicknameFormat(nickname);
         // 중복 조회
         boolean available = !memberRepository.existsByName(nickname);
-        return OnboardingResDTO.NicknameCheck.builder()
-                .isAvailable(available)
-                .build();
+        return OnboardingConverter.toNicknameCheck(available);
     }
     private void validateNicknameFormat(String nickname) {
         if (nickname == null || !NICKNAME_PATTERN.matcher(nickname).matches()) {
@@ -118,10 +117,7 @@ public class OnboardingService {
             member.completeOnboarding();
         }
 
-        return OnboardingResDTO.Save.builder()
-                .onboardingStep(member.getOnboardingStep())
-                .onboardingCompleted(member.getOnboardingCompleted())
-                .build();
+        return OnboardingConverter.toSave(member);
     }
 
     private void saveTags(Member member, List<Long> tagIds, Category expectedCategory) {
@@ -149,13 +145,9 @@ public class OnboardingService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new OnboardingException(OnboardingErrorCode.MISSING_REQUIRED_FIELD));
 
-        // 아직 온보딩 시작 전 → savedData 없음
+        // 아직 온보딩 시작 전
         if (member.getOnboardingStep() == null) {
-            return OnboardingResDTO.Status.builder()
-                    .onboardingCompleted(member.getOnboardingCompleted())
-                    .currentStep(null)
-                    .savedData(null)
-                    .build();
+            return OnboardingConverter.toStatus(member, null);
         }
 
         // 저장된 태그들을 카테고리별로 분류
@@ -175,19 +167,9 @@ public class OnboardingService {
             }
         }
 
-        OnboardingResDTO.SavedData savedData = OnboardingResDTO.SavedData.builder()
-                .name(member.getName())
-                .gender(member.getGender())
-                .birthDate(member.getBirthDate())
-                .parentPersonalityTagIds(parentTagIds)
-                .currentRelationStateTagId(currentRelationTagId)
-                .goalRelationshipTagIds(goalTagIds)
-                .build();
+        OnboardingResDTO.SavedData savedData = OnboardingConverter.toSavedData(
+                member, parentTagIds, currentRelationTagId, goalTagIds);
 
-        return OnboardingResDTO.Status.builder()
-                .onboardingCompleted(member.getOnboardingCompleted())
-                .currentStep(member.getOnboardingStep())
-                .savedData(savedData)
-                .build();
+        return OnboardingConverter.toStatus(member, savedData);
     }
 }
