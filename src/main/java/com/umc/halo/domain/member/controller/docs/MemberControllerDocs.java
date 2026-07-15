@@ -104,7 +104,6 @@ public interface MemberControllerDocs {
                     ## 요청 형식
                     - **Header**
                         - Content-Type: application/json
-                        - Authorization: Bearer {Access Token}
                     - **Body**
                         - refreshToken : 재발급에 사용할 Refresh Token
                     
@@ -314,7 +313,7 @@ public interface MemberControllerDocs {
                                             "birthDate": "2002-02-25",
                                             "provider": "KAKAO",
                                             "onboardingCompleted": true,
-                                            "createdAt": "2026-06-30T14:20:00+09:00"
+                                            "createdAt": "2026-06-30T14:20:00"
                                         }
                                     }
                                     """
