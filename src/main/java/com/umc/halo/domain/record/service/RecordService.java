@@ -20,9 +20,11 @@ import com.umc.halo.global.apiPayload.code.*;
 import com.umc.halo.global.apiPayload.exception.*;
 import lombok.*;
 import org.springframework.stereotype.*;
+import org.springframework.transaction.annotation.*;
 
 import java.time.*;
 import java.util.*;
+import java.util.stream.*;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +39,7 @@ public class RecordService {
     private final ChapterQuestionRepository chapterQuestionRepository;
     private final ChapterService chapterService;
 
+    @Transactional
     public RecordResDTO.WriteChapterRecord writeChapterRecord(Long memberId, RecordReqDTO.WriteChapterRecord recordReqDTO) {
 
         // member 조회
@@ -72,91 +75,126 @@ public class RecordService {
                 if (recordReqDTO.sceneCardId() != null) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
+                if ((recordReqDTO.imageUrl() == null) || (recordReqDTO.imageKey() == null)) {
+                    throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
+                }
             } else {
                 if ((recordReqDTO.imageKey() != null) || (recordReqDTO.imageUrl() != null)) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
+                if (recordReqDTO.sceneCardId() == null) {
+                    throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
+                }
             }
         }
+
+        // COMPLETED 상태일 경우 필수값 검증
+        if (recordReqDTO.status() == Status.COMPLETED) {
+            if (recordReqDTO.coverType() == null) {
+                throw new RecordException(RecordErrorCode.MISSING_COVER_TYPE);
+            }
+            if (recordReqDTO.emotion() == null) {
+                throw new RecordException(RecordErrorCode.MISSING_EMOTION);
+            }
+
+            // 장 질문 답변이 모두 채워졌는지 검증
+            Set<Long> requiredQuestionIds = chapterQuestionRepository.findByChapter(storybookChapter.getChapter()).stream()
+                    .map(ChapterQuestion::getId)
+                    .collect(Collectors.toSet());
+            Set<Long> answeredQuestionIds = recordReqDTO.answers() == null ? Set.of()
+                    : recordReqDTO.answers().stream()
+                    .map(RecordReqDTO.WriteChapterRecord.Answer::chapterQuestionId)
+                    .collect(Collectors.toSet());
+            if (!answeredQuestionIds.containsAll(requiredQuestionIds)) {
+                throw new RecordException(RecordErrorCode.INCOMPLETE_ANSWERS);
+            }
+        }
+
 
         // sceneCard 조회 (findById의 값이 null이면 안되므로 별도 조회)
         SceneCard sceneCard = null;
 
         if (recordReqDTO.sceneCardId() != null) {
             sceneCard = sceneCardRepository.findById(recordReqDTO.sceneCardId())
-                    .orElseThrow(() -> new RecordException(RecordErrorCode.NOT_FOUND_SCENE_CARD));
+                    .orElseThrow(() -> new ChapterException(ChapterErrorCode.NOT_FOUND_SCENE_CARD));
+            if (!sceneCard.getChapter().getId().equals(storybookChapter.getChapter().getId())) {
+                throw new ChapterException(ChapterErrorCode.UNMATCHED_SCENE_CARD);
+            }
         }
+
+        // MemberChapter 없으면 생성, 있으면 수정
+        if (memberChapter == null) {
+            memberChapter = MemberChapter.builder()
+                    .member(member)
+                    .storybookChapter(storybookChapter)
+                    .sceneCard(sceneCard)
+                    .coverType(recordReqDTO.coverType())
+                    .imageUrl(recordReqDTO.imageUrl())
+                    .imageKey(recordReqDTO.imageKey())
+                    .status(recordReqDTO.status())
+                    .emotion(recordReqDTO.emotion())
+                    .completedDate(recordReqDTO.status() == Status.COMPLETED ? LocalDate.now() : null)
+                    .build();
+            memberChapterRepository.save(memberChapter);
+        } else {
+            memberChapter.updateRecord(storybookChapter, sceneCard, recordReqDTO.emotion(),
+                    recordReqDTO.coverType(), recordReqDTO.imageUrl(), recordReqDTO.imageKey(), recordReqDTO.status());
+        }
+
+        final MemberChapter resolvedMemberChapter = memberChapter;
 
         // answer 저장 (기존 answer 삭제 후 재저장)
         memberChapterAnswerRepository.deleteAllByMemberChapter(memberChapter);
 
-        // memberChapter null일 경우 생성
 
         if (recordReqDTO.answers() != null) {
+            List<Long> chapterQuestionIds = recordReqDTO.answers().stream()
+                    .map(RecordReqDTO.WriteChapterRecord.Answer::chapterQuestionId)
+                    .toList();
+
+            Map<Long, ChapterQuestion> chapterQuestionById = chapterQuestionRepository.findAllById(chapterQuestionIds)
+                    .stream().collect(Collectors.toMap(ChapterQuestion::getId, cq -> cq));
+
+
             List<MemberChapterAnswer> savedMemberChapterAnswers = recordReqDTO.answers().stream()
                     .map(a -> {
 
                         // chapterQuestion 조회
-                        ChapterQuestion chapterQuestion = chapterQuestionRepository.findById(a.chapterQuestionId())
+                        ChapterQuestion chapterQuestion = Optional.ofNullable(chapterQuestionById.get(a.chapterQuestionId()))
                                 .orElseThrow(() -> new ChapterException(ChapterErrorCode.NOT_FOUND_CHAPTER_QUESTION));
+                        if (!chapterQuestion.getChapter().getId().equals(storybookChapter.getChapter().getId())) {
+                            throw new ChapterException(ChapterErrorCode.UNMATCHED_CHAPTER_QUESTION);
+                        }
 
                         // answer 저장
                         return MemberChapterAnswer
                                 .builder()
-                                .memberChapter(memberChapter)
+                                .memberChapter(resolvedMemberChapter)
                                 .chapterQuestion(chapterQuestion)
                                 .answer(a.answer())
                                 .build();
                     })
                     .toList();
+            memberChapterAnswerRepository.saveAll(savedMemberChapterAnswers);
         }
 
-        boolean isStorybookCompleted = true;
-
+        // status에 따라서 isStorybookCompleted 판별, 10장 완료시 ai로 answer 3개 요약
+        boolean isStorybookCompleted = false;
         if (recordReqDTO.status() == Status.COMPLETED) {
+
+            // memberStorybook 업데이트
+            memberStorybook.updateCompleted(storybookChapter.getChapterOrder());
+
             if (storybookChapter.getChapterOrder().equals(10)) {
                 isStorybookCompleted = true;
 
                 // 추후 수정(10장 완료시 ai로 answer 3개 요약)
             }
 
-            // 이전 memberChapter 존재 여부 확인
-            MemberChapter prevMemberChapter = memberChapter;
-            MemberChapter savedMemberChapter = MemberChapter.builder()
-                    .member(member)
-                    .storybookChapter(storybookChapter)
-                    .sceneCard(sceneCard)
-                    .coverType(recordReqDTO.coverType())
-                    .imageUrl(recordReqDTO.imageUrl())
-                    .imageKey(recordReqDTO.imageKey())
-                    .completedDate(LocalDate.now())
-                    .summary(null) //추후 수정
-                    .status(Status.COMPLETED)
-                    .build();
-            memberChapterRepository.save(savedMemberChapter);
-
-            MemberChapterAnswer savedMemberChapterAnswer = MemberChapterAnswer.builder()
-                    .build();
-            memberChapterAnswerRepository.save(savedMemberChapterAnswer);
         } else {
-            isStorybookCompleted = false;
-
-            MemberChapter savedMemberChapter = MemberChapter.builder()
-                    .member(member)
-                    .storybookChapter(storybookChapter)
-                    .sceneCard(sceneCard)
-                    .coverType(recordReqDTO.coverType())
-                    .imageUrl(recordReqDTO.imageUrl())
-                    .imageKey(recordReqDTO.imageKey())
-                    .status(Status.DRAFT)
-                    .build();
-            memberChapterRepository.save(savedMemberChapter);
-
-            MemberChapterAnswer savedMemberChapterAnswer = MemberChapterAnswer.builder()
-                    .build();
-            memberChapterAnswerRepository.save(savedMemberChapterAnswer);
+            memberStorybook.updateDraft(storybookChapter.getChapterOrder());
         }
 
-        return RecordConverter.toWriteChapterRecord(memberChapter.getId(), false);
+        return RecordConverter.toWriteChapterRecord(memberChapter.getId(), isStorybookCompleted);
     }
 }

@@ -134,7 +134,7 @@ public class ChapterService {
         else if (lastChapterOrder.equals(chapterOrder - 1)) {
 
             // lastChapterOrder의 memberChapter
-            StorybookChapter prevStorybookChapter = storybookChapterRepository.findByStorybookAndChapterOrder(storybook.getId(), chapterOrder - 1)
+            StorybookChapter prevStorybookChapter = storybookChapterRepository.findByStorybookIdAndChapterOrder(storybook.getId(), chapterOrder - 1)
                     .orElseThrow(() -> new ChapterException(ChapterErrorCode.NOT_FOUND_CHAPTER));
             MemberChapter prevMemberChapter = memberChapterRepository.findByMemberAndStorybookChapter(member, prevStorybookChapter);
 

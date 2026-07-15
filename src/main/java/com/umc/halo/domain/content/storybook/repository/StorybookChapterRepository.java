@@ -10,6 +10,4 @@ import java.util.*;
 public interface StorybookChapterRepository extends JpaRepository<StorybookChapter, Long> {
 
     Optional<StorybookChapter> findByStorybookIdAndChapterOrder(Long storybookId, Integer chapterOrder);
-
-    Optional<StorybookChapter> findByStorybookAndChapterOrder(Long storybookId, Integer chapterOrder);
 }

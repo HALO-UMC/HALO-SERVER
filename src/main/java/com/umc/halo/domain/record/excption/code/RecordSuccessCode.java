@@ -1,10 +1,14 @@
 package com.umc.halo.domain.record.excption.code;
 
 import com.umc.halo.global.apiPayload.code.*;
+import lombok.*;
 import org.springframework.http.*;
 
-public enum RecordSuccessCode implements BaseSuccessCode{
+@RequiredArgsConstructor
+@Getter
+public enum RecordSuccessCode implements BaseSuccessCode {
 
+    WRITE_CHAPTER_RECORD(HttpStatus.OK, "CHAPTER200_2", "장을 성공적으로 작성했습니다.");
 
 
     private final HttpStatus status;

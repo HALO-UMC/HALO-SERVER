@@ -58,4 +58,18 @@ public class MemberChapter extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
+
+    public void updateRecord(StorybookChapter storybookChapter, SceneCard sceneCard, Emotion emotion,
+                             CoverType coverType, String imageUrl, String imageKey, Status status) {
+
+        this.storybookChapter = storybookChapter;
+        this.sceneCard = sceneCard;
+        this.emotion = emotion;
+        this.coverType = coverType;
+        this.imageUrl = imageUrl;
+        this.imageKey = imageKey;
+        this.status = status;
+        this.completedDate = (status == Status.COMPLETED) ? LocalDate.now() : null;
+    }
+
 }
