@@ -22,7 +22,6 @@ import lombok.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
 
-import java.time.*;
 import java.util.*;
 import java.util.stream.*;
 
@@ -124,17 +123,7 @@ public class RecordService {
 
         // MemberChapter 없으면 생성, 있으면 수정
         if (memberChapter == null) {
-            memberChapter = MemberChapter.builder()
-                    .member(member)
-                    .storybookChapter(storybookChapter)
-                    .sceneCard(sceneCard)
-                    .coverType(recordReqDTO.coverType())
-                    .imageUrl(recordReqDTO.imageUrl())
-                    .imageKey(recordReqDTO.imageKey())
-                    .status(recordReqDTO.status())
-                    .emotion(recordReqDTO.emotion())
-                    .completedDate(recordReqDTO.status() == Status.COMPLETED ? LocalDate.now() : null)
-                    .build();
+            memberChapter = RecordConverter.toMemberChapter(member, storybookChapter, sceneCard, recordReqDTO);
             memberChapterRepository.save(memberChapter);
         } else {
             memberChapter.updateRecord(storybookChapter, sceneCard, recordReqDTO.emotion(),
@@ -167,12 +156,7 @@ public class RecordService {
                         }
 
                         // answer 저장
-                        return MemberChapterAnswer
-                                .builder()
-                                .memberChapter(resolvedMemberChapter)
-                                .chapterQuestion(chapterQuestion)
-                                .answer(a.answer())
-                                .build();
+                        return RecordConverter.toMemberChapterAnswer(resolvedMemberChapter, chapterQuestion, a);
                     })
                     .toList();
             memberChapterAnswerRepository.saveAll(savedMemberChapterAnswers);

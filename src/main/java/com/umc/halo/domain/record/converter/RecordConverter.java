@@ -1,9 +1,13 @@
 package com.umc.halo.domain.record.converter;
 
+import com.umc.halo.domain.content.chapter.entity.*;
+import com.umc.halo.domain.content.storybook.entity.*;
+import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.record.dto.*;
 import com.umc.halo.domain.record.entity.*;
 import com.umc.halo.domain.record.enums.*;
 
+import java.time.*;
 import java.util.*;
 
 public class RecordConverter {
@@ -34,6 +38,28 @@ public class RecordConverter {
         return RecordResDTO.ReadChapterRecord.Answer.builder()
                 .answer(memberChapterAnswer.getAnswer())
                 .question(memberChapterAnswer.getChapterQuestion().getQuestion())
+                .build();
+    }
+
+    public static MemberChapter toMemberChapter(Member member, StorybookChapter storybookChapter, SceneCard sceneCard, RecordReqDTO.WriteChapterRecord recordReqDTO) {
+        return MemberChapter.builder()
+                .member(member)
+                .storybookChapter(storybookChapter)
+                .sceneCard(sceneCard)
+                .coverType(recordReqDTO.coverType())
+                .imageUrl(recordReqDTO.imageUrl())
+                .imageKey(recordReqDTO.imageKey())
+                .status(recordReqDTO.status())
+                .emotion(recordReqDTO.emotion())
+                .completedDate(recordReqDTO.status() == Status.COMPLETED ? LocalDate.now() : null)
+                .build();
+    }
+
+    public static MemberChapterAnswer toMemberChapterAnswer(MemberChapter resolvedMemberChapter, ChapterQuestion chapterQuestion, RecordReqDTO.WriteChapterRecord.Answer a) {
+        return MemberChapterAnswer.builder()
+                .memberChapter(resolvedMemberChapter)
+                .chapterQuestion(chapterQuestion)
+                .answer(a.answer())
                 .build();
     }
 }
