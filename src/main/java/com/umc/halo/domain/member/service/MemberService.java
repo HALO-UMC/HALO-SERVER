@@ -129,4 +129,13 @@ public class MemberService {
 
         memberRepository.delete(member);
     }
+
+    @Transactional(readOnly = true)
+    public MemberResDTO.MyInfo getMyInfo(Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+
+        return MemberConverter.toMyInfo(member);
+    }
 }

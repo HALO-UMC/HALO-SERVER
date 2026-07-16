@@ -31,7 +31,7 @@ jwt:
       refresh: 1209600000 # 2주
 
 kakao:
-  client-id: ${KAKAO_REST_API_KEY}
+  client-id: ${KAKAO_NATIVE_APP_KEY}
   jwks-uri: https://kauth.kakao.com/.well-known/jwks.json
   issuer: https://kauth.kakao.com
 
