@@ -75,4 +75,7 @@ public class MemberChapter extends BaseEntity {
         this.completedDate = (status == Status.COMPLETED) ? LocalDate.now() : null;
     }
 
+    public void updateSummary(String summary) {
+        this.summary = summary;
+    }
 }

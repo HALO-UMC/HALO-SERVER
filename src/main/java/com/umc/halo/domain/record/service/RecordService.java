@@ -19,6 +19,7 @@ import com.umc.halo.domain.record.excption.*;
 import com.umc.halo.domain.record.excption.code.*;
 import com.umc.halo.domain.record.repository.*;
 import com.umc.halo.global.ai.AiService;
+import com.umc.halo.global.ai.QuestionAnswer;
 import lombok.*;
 import org.springframework.dao.*;
 import org.springframework.stereotype.*;
@@ -142,6 +143,7 @@ public class RecordService {
         // answer 저장 (기존 answer 삭제 후 재저장)
         memberChapterAnswerRepository.deleteAllByMemberChapter(memberChapter);
 
+        List<MemberChapterAnswer> savedMemberChapterAnswers = List.of();
 
         if (recordReqDTO.answers() != null) {
             List<Long> chapterQuestionIds = recordReqDTO.answers().stream()
@@ -152,7 +154,7 @@ public class RecordService {
                     .stream().collect(Collectors.toMap(ChapterQuestion::getId, cq -> cq));
 
 
-            List<MemberChapterAnswer> savedMemberChapterAnswers = recordReqDTO.answers().stream()
+            savedMemberChapterAnswers = recordReqDTO.answers().stream()
                     .map(a -> {
 
                         // chapterQuestion 조회
@@ -173,13 +175,14 @@ public class RecordService {
         boolean isStorybookCompleted = false;
         if (recordReqDTO.status() == Status.COMPLETED) {
 
+            // ai로 answer 3개 요약
+            generateChapterSummary(memberChapter, storybookChapter.getChapter(), savedMemberChapterAnswers);
+
             // memberStorybook 업데이트
             memberStorybook.updateCompleted(storybookChapter.getChapterOrder());
 
             if (storybookChapter.getChapterOrder().equals(10)) {
                 isStorybookCompleted = true;
-
-                // 추후 수정(10장 완료시 ai로 answer 3개 요약)
             }
 
         } else {
@@ -217,5 +220,17 @@ public class RecordService {
                 .toList();
 
         return RecordConverter.toReadChapterRecord(memberChapter, answerList);
+    }
+
+    private void generateChapterSummary(MemberChapter memberChapter, Chapter chapter, List<MemberChapterAnswer> answers) {
+        List<QuestionAnswer> questionAnswers = answers.stream()
+                .map(answer -> new QuestionAnswer(
+                        answer.getChapterQuestion().getQuestion(),
+                        answer.getAnswer()))
+                .toList();
+
+        String summary = aiService.generateChapterSummary(chapter.getTitle(), questionAnswers);
+
+        memberChapter.updateSummary(summary);
     }
 }

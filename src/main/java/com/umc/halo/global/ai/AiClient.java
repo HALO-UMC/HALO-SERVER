@@ -1,5 +1,7 @@
 package com.umc.halo.global.ai;
 
+import com.umc.halo.global.ai.exception.AiException;
+import com.umc.halo.global.ai.exception.code.AiErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +36,7 @@ public class AiClient {
                 .body(AiResponse.class);
 
         if (response == null) {
-            throw new IllegalStateException("Gemini 응답이 없습니다.");
+            throw new AiException(AiErrorCode.AI_RESPONSE_EMPTY);
         }
 
         return response.getText();

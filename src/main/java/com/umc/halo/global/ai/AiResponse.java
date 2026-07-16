@@ -1,5 +1,7 @@
 package com.umc.halo.global.ai;
 
+import com.umc.halo.global.ai.exception.AiException;
+import com.umc.halo.global.ai.exception.code.AiErrorCode;
 import lombok.Getter;
 
 import java.util.List;
@@ -12,7 +14,7 @@ public class AiResponse {
     public String getText() {
 
         if (candidates == null || candidates.isEmpty()) {
-            throw new IllegalStateException("Gemini 응답이 비어 있습니다.");
+            throw new AiException(AiErrorCode.AI_RESPONSE_INVALID);
         }
 
         Candidate candidate = candidates.get(0);
@@ -20,7 +22,7 @@ public class AiResponse {
         if (candidate.getContent() == null
                 || candidate.getContent().getParts() == null
                 || candidate.getContent().getParts().isEmpty()) {
-            throw new IllegalStateException("Gemini 응답 형식이 올바르지 않습니다.");
+            throw new AiException(AiErrorCode.AI_RESPONSE_INVALID);
         }
 
         return candidate.getContent()
