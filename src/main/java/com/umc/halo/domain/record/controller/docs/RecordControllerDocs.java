@@ -298,7 +298,8 @@ public interface RecordControllerDocs {
                                                           { "question": "다시 쓰는 당신의 프로필에 대한 질문1", "answer": "답변1" },
                                                           { "question": "다시 쓰는 당신의 프로필에 대한 질문2", "answer": "답변2" },
                                                           { "question": "다시 쓰는 당신의 프로필에 대한 질문3", "answer": "답변3" }
-                                                        ]
+                                                        ],
+                                                        "completedDate": "2026-07-10"
                                                       }
                                                     }
                                                     """
