@@ -13,4 +13,6 @@ public interface StorybookChapterRepository extends JpaRepository<StorybookChapt
     List<StorybookChapter> findByStorybook_IdOrderByChapterOrderAsc(Long storybookId);
 
     Optional<StorybookChapter> findByStorybook_IdAndChapterOrder(Long storybookId, Integer chapterOrder);
+
+    Optional<StorybookChapter> findByStorybookIdAndChapterOrder(Long storybookId, Integer chapterOrder);
 }

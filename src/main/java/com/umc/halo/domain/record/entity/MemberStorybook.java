@@ -39,4 +39,13 @@ public class MemberStorybook extends BaseEntity {
     @Column
     @Enumerated(EnumType.STRING)
     private Emotion emotion;
+
+    public void updateCompleted(Integer chapterOrder) {
+        this.lastChapterOrder = chapterOrder;
+        this.lastCompletedDate = LocalDate.now();
+    }
+
+    public void updateDraft(Integer chapterOrder) {
+        this.lastChapterOrder = chapterOrder;
+    }
 }
