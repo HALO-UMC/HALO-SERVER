@@ -190,7 +190,7 @@ public interface ChapterControllerDocs {
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "404",
-                            description = "존재하지 않는 회원/스토리북/장",
+                            description = "존재하지 않는 회원/스토리북/장/캐릭터",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
@@ -213,6 +213,17 @@ public interface ChapterControllerDocs {
                                                                 "isSuccess": false,
                                                                 "code": "CHAPTER404_1",
                                                                 "message": "존재하지 않는 장입니다.",
+                                                                "result": null
+                                                            }
+                                                            """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "스토리북에 ORIGINAL/IMAGE_CHOICE 캐릭터가 등록되지 않음",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "STORYBOOK404_2",
+                                                                "message": "존재하지 않는 캐릭터입니다.",
                                                                 "result": null
                                                             }
                                                             """
