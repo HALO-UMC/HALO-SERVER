@@ -24,7 +24,7 @@ public class Chapter extends BaseEntity {
     private String imageUrl;
 
     @Column(length = 255)
-    private String guid;
+    private String guide;
 
     @Column(name = "short_description", length = 255, nullable = false)
     private String shortDescription;
