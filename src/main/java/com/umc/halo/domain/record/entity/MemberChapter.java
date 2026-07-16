@@ -12,7 +12,10 @@ import lombok.*;
 import java.time.*;
 
 @Entity
-@Table(name = "member_chapter")
+@Table(
+        name = "member_chapter",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"member_id", "storybook_chapter_id"})
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder

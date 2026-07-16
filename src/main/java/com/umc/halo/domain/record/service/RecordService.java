@@ -19,6 +19,7 @@ import com.umc.halo.domain.record.excption.*;
 import com.umc.halo.domain.record.excption.code.*;
 import com.umc.halo.domain.record.repository.*;
 import lombok.*;
+import org.springframework.dao.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
 
@@ -123,8 +124,12 @@ public class RecordService {
 
         // MemberChapter 없으면 생성, 있으면 수정
         if (memberChapter == null) {
-            memberChapter = RecordConverter.toMemberChapter(member, storybookChapter, sceneCard, recordReqDTO);
-            memberChapterRepository.save(memberChapter);
+            try {
+                memberChapter = RecordConverter.toMemberChapter(member, storybookChapter, sceneCard, recordReqDTO);
+                memberChapterRepository.save(memberChapter);
+            } catch (DataIntegrityViolationException e) {
+                throw new RecordException(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER);
+            }
         } else {
             memberChapter.updateRecord(storybookChapter, sceneCard, recordReqDTO.emotion(),
                     recordReqDTO.coverType(), recordReqDTO.imageUrl(), recordReqDTO.imageKey(), recordReqDTO.status());

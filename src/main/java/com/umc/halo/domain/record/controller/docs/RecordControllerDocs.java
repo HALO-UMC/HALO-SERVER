@@ -255,18 +255,34 @@ public interface RecordControllerDocs {
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "409",
-                            description = "오늘 이미 이 스토리북의 장을 완료함",
+                            description = "오늘 이미 이 스토리북의 장을 완료했거나, 동시 요청으로 인한 저장 충돌",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
-                                    examples = @ExampleObject("""
-                                            {
-                                                "isSuccess": false,
-                                                "code": "CHAPTER409_1",
-                                                "message": "오늘 이미 이 스토리북의 장을 완료하여 장 기록을 작성할 수 없습니다.",
-                                                "result": null
-                                            }
-                                            """)
+                                    examples = {
+                                            @ExampleObject(
+                                                    name = "오늘 이미 이 스토리북의 장을 완료함",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "CHAPTER409_1",
+                                                                "message": "오늘 이미 이 스토리북의 장을 완료하여 장 기록을 작성할 수 없습니다.",
+                                                                "result": null
+                                                            }
+                                                            """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "동시 요청으로 인한 저장 충돌",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "CHAPTER409_2",
+                                                                "message": "동시에 처리된 요청으로 인한 충돌입니다. 다시 시도해주세요.",
+                                                                "result": null
+                                                            }
+                                                            """
+                                            )
+                                    }
                             )
                     )
             }
