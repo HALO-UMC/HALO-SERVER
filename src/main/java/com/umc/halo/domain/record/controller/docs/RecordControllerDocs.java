@@ -134,6 +134,19 @@ public interface RecordControllerDocs {
                                                                 "result": null
                                                             }
                                                             """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "answers가 최대 개수(3개) 초과",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "COMMON400_1",
+                                                                "message": "잘못된 요청입니다.",
+                                                                "result": {
+                                                                    "answers": "답변은 최대 3개까지 작성할 수 있습니다."
+                                                                }
+                                                            }
+                                                            """
                                             )
                                     }
                             )
