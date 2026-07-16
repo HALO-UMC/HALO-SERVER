@@ -5,6 +5,8 @@ import com.umc.halo.global.ai.exception.code.AiErrorCode;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Getter
 public class AiResponse {
@@ -25,10 +27,16 @@ public class AiResponse {
             throw new AiException(AiErrorCode.AI_RESPONSE_INVALID);
         }
 
-        return candidate.getContent()
-                .getParts()
-                .get(0)
-                .getText();
+        String result = candidate.getContent().getParts().stream()
+                .map(Part::getText)
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining());
+
+        if (result.isBlank()) {
+            throw new AiException(AiErrorCode.AI_RESPONSE_INVALID);
+        }
+
+        return result;
     }
 
 

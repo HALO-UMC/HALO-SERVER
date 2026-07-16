@@ -20,7 +20,9 @@ import com.umc.halo.domain.record.excption.code.*;
 import com.umc.halo.domain.record.repository.*;
 import com.umc.halo.global.ai.AiService;
 import com.umc.halo.global.ai.QuestionAnswer;
+import com.umc.halo.global.ai.exception.AiException;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.*;
 import java.util.*;
 import java.util.stream.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecordService {
@@ -229,8 +232,11 @@ public class RecordService {
                         answer.getAnswer()))
                 .toList();
 
-        String summary = aiService.generateChapterSummary(chapter.getTitle(), questionAnswers);
-
-        memberChapter.updateSummary(summary);
+        try {
+            String summary = aiService.generateChapterSummary(chapter.getTitle(), questionAnswers);
+            memberChapter.updateSummary(summary);
+        } catch (AiException e) {
+            log.warn("Gemini 요약 생성 실패", e);
+        }
     }
 }
