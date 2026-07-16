@@ -51,4 +51,8 @@ public class MemberStorybook extends BaseEntity {
     public void updateDraft(Integer chapterOrder) {
         this.lastChapterOrder = chapterOrder;
     }
+
+    public boolean isCompletedToday() {
+        return lastCompletedDate != null && lastCompletedDate.isEqual(LocalDate.now());
+    }
 }

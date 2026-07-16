@@ -1,7 +1,7 @@
 package com.umc.halo.domain.content.storybook.controller;
 
-import com.umc.halo.domain.content.storybook.apiPayload.HomeSuccessCode;
-import com.umc.halo.domain.content.storybook.apiPayload.StorybookSuccessCode;
+import com.umc.halo.domain.content.storybook.exception.code.HomeSuccessCode;
+import com.umc.halo.domain.content.storybook.exception.code.StorybookSuccessCode;
 import com.umc.halo.domain.content.storybook.dto.response.HomeResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;

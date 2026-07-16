@@ -1,6 +1,7 @@
 package com.umc.halo.domain.content.storybook.service;
 
-import com.umc.halo.domain.content.storybook.apiPayload.StorybookErrorCode;
+import com.umc.halo.domain.content.storybook.exception.code.StorybookErrorCode;
+import com.umc.halo.domain.content.storybook.exception.StorybookException;
 import com.umc.halo.domain.content.storybook.dto.response.HomeResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
 import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
@@ -15,6 +16,7 @@ import com.umc.halo.domain.content.storybook.enums.StorybookStatus;
 import com.umc.halo.domain.content.storybook.repository.StorybookChapterRepository;
 import com.umc.halo.domain.content.storybook.repository.StorybookRepository;
 import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.domain.member.exception.MemberException;
 import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.record.entity.MemberChapter;
@@ -30,11 +32,10 @@ import com.umc.halo.domain.tag.enums.PriorityLevel;
 import com.umc.halo.domain.tag.repository.MemberTagRepository;
 import com.umc.halo.domain.tag.repository.StorybookTagRepository;
 import com.umc.halo.domain.tag.repository.TagRepository;
-import com.umc.halo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -64,10 +65,10 @@ public class StorybookService {
     public StorybookDetailResponse.GetStorybookDetail getStorybookDetail(Long storybookId, Long memberId) {
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         Storybook storybook = storybookRepository.findById(storybookId)
-                .orElseThrow(() -> new ProjectException(StorybookErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new StorybookException(StorybookErrorCode.NOT_FOUND));
 
         List<StorybookChapter> storybookChapters =
                 storybookChapterRepository.findByStorybook_IdOrderByChapterOrderAsc(storybookId);
@@ -75,15 +76,17 @@ public class StorybookService {
         List<MemberChapter> memberChapters =
                 memberChapterRepository.findByMemberAndStorybookChapter_Storybook_Id(member, storybookId);
 
+        Optional<MemberStorybook> memberStorybookOpt =
+                memberStorybookRepository.findByMemberAndStorybook(member, storybook);
+
         Set<Long> completedChapterIds = memberChapters.stream()
                 .filter(mc -> mc.getStatus() == Status.COMPLETED)
                 .map(mc -> mc.getStorybookChapter().getId())
                 .collect(Collectors.toSet());
 
-        boolean completedToday = memberChapters.stream()
-                .anyMatch(mc -> mc.getStatus() == Status.COMPLETED
-                        && mc.getCompletedDate() != null
-                        && mc.getCompletedDate().isEqual(LocalDate.now()));
+        boolean completedToday = memberStorybookOpt
+                .map(MemberStorybook::isCompletedToday)
+                .orElse(false);
 
         boolean foundToday = false;
         List<StorybookDetailResponse.ChapterInfo> chapterInfos = new ArrayList<>();
@@ -122,19 +125,19 @@ public class StorybookService {
     public StorybookStartResponse.StartStorybook startStorybook(Long storybookId, Long memberId) {
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         Storybook storybook = storybookRepository.findById(storybookId)
-                .orElseThrow(() -> new ProjectException(StorybookErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new StorybookException(StorybookErrorCode.NOT_FOUND));
 
         Optional<MemberStorybook> existing =
                 memberStorybookRepository.findByMemberAndStorybook(member, storybook);
 
         if (existing.isPresent()) {
             if (isStorybookCompleted(member, storybook)) {
-                throw new ProjectException(StorybookErrorCode.ALREADY_COMPLETED);
+                throw new StorybookException(StorybookErrorCode.ALREADY_COMPLETED);
             } else {
-                throw new ProjectException(StorybookErrorCode.ALREADY_IN_PROGRESS);
+                throw new StorybookException(StorybookErrorCode.ALREADY_IN_PROGRESS);
             }
         }
 
@@ -147,7 +150,7 @@ public class StorybookService {
         try {
             memberStorybookRepository.save(memberStorybook);
         } catch (DataIntegrityViolationException e) {
-            throw new ProjectException(StorybookErrorCode.ALREADY_IN_PROGRESS);
+            throw new StorybookException(StorybookErrorCode.ALREADY_IN_PROGRESS);
         }
 
         return new StorybookStartResponse.StartStorybook(
@@ -160,7 +163,7 @@ public class StorybookService {
     public StorybookListResponse.GetStorybookList getStorybookList(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         List<Storybook> storybooks = storybookRepository.findAll().stream()
                 .sorted(Comparator.comparing(Storybook::getThemeOrder))
@@ -182,7 +185,7 @@ public class StorybookService {
     public StorybookRecommendResponse.GetRecommendedStorybooks getRecommendedStorybooks(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         List<Tag> desiredTags = memberTagRepository.findByMemberAndTag_Category(member, Category.DESIRED_DIRECTION).stream()
                 .map(MemberTag::getTag)
@@ -242,7 +245,7 @@ public class StorybookService {
     public HomeResponse.GetHome getHome(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         List<Storybook> storybooks = storybookRepository.findAll().stream()
                 .sorted(Comparator.comparing(Storybook::getThemeOrder))
@@ -264,10 +267,7 @@ public class StorybookService {
                     memberChapterRepository.findByMemberAndStorybookChapter_Storybook_Id(member, sb.getId());
 
             boolean completed = isCompleted(sb, memberChapters);
-            boolean completedToday = memberChapters.stream()
-                    .anyMatch(mc -> mc.getStatus() == Status.COMPLETED
-                            && mc.getCompletedDate() != null
-                            && mc.getCompletedDate().isEqual(LocalDate.now()));
+            boolean completedToday = ms.isCompletedToday();
 
             StorybookStatus status = completed ? StorybookStatus.COMPLETED
                     : completedToday ? StorybookStatus.TODAY_DONE
@@ -386,10 +386,7 @@ public class StorybookService {
 
         boolean completed = isCompleted(storybook, memberChapters);
 
-        boolean completedToday = memberChapters.stream()
-                .anyMatch(mc -> mc.getStatus() == Status.COMPLETED
-                        && mc.getCompletedDate() != null
-                        && mc.getCompletedDate().isEqual(LocalDate.now()));
+        boolean completedToday = memberStorybook.isCompletedToday();
 
         StorybookStatus status;
         if (completed) {
@@ -433,19 +430,24 @@ public class StorybookService {
 
         List<Tag> desiredDirectionTags = tagRepository.findByCategory(Category.DESIRED_DIRECTION);
 
+        // 태그마다 따로 조회하지 않고 한 번에 배치 조회 후 그룹핑 (N+1 방지)
+        List<StorybookTag> primaryStorybookTags =
+                storybookTagRepository.findByTagInAndPriorityLevel(desiredDirectionTags, PriorityLevel.PRIMARY);
+
+        Map<Tag, List<StorybookTag>> storybookTagsByTag = primaryStorybookTags.stream()
+                .collect(Collectors.groupingBy(StorybookTag::getTag));
+
         return desiredDirectionTags.stream()
                 .map(tag -> {
-                    List<StorybookTag> primaryStorybookTags =
-                            storybookTagRepository.findByTagAndPriorityLevel(tag, PriorityLevel.PRIMARY);
-
-                    List<StorybookListResponse.RecommendedStorybook> recommendedStorybooks = primaryStorybookTags.stream()
-                            .map(st -> new StorybookListResponse.RecommendedStorybook(
-                                    st.getStorybook().getId(),
-                                    st.getStorybook().getTitle(),
-                                    st.getStorybook().getImageUrl(),
-                                    st.getPhrase()
-                            ))
-                            .toList();
+                    List<StorybookListResponse.RecommendedStorybook> recommendedStorybooks =
+                            storybookTagsByTag.getOrDefault(tag, List.of()).stream()
+                                    .map(st -> new StorybookListResponse.RecommendedStorybook(
+                                            st.getStorybook().getId(),
+                                            st.getStorybook().getTitle(),
+                                            st.getStorybook().getImageUrl(),
+                                            st.getPhrase()
+                                    ))
+                                    .toList();
 
                     return new StorybookListResponse.SituationalRecommendation(tag.getTitle(), recommendedStorybooks);
                 })

@@ -13,4 +13,6 @@ public interface StorybookTagRepository extends JpaRepository<StorybookTag, Long
     List<StorybookTag> findByTagAndPriorityLevel(Tag tag, PriorityLevel priorityLevel);
 
     List<StorybookTag> findByTagIn(List<Tag> tags);
+
+    List<StorybookTag> findByTagInAndPriorityLevel(List<Tag> tags, PriorityLevel priorityLevel);
 }
