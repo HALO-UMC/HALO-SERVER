@@ -18,6 +18,7 @@ import com.umc.halo.domain.record.enums.*;
 import com.umc.halo.domain.record.excption.*;
 import com.umc.halo.domain.record.excption.code.*;
 import com.umc.halo.domain.record.repository.*;
+import com.umc.halo.global.ai.AiService;
 import lombok.*;
 import org.springframework.dao.*;
 import org.springframework.stereotype.*;
@@ -38,6 +39,7 @@ public class RecordService {
     private final MemberChapterAnswerRepository memberChapterAnswerRepository;
     private final ChapterQuestionRepository chapterQuestionRepository;
     private final ChapterService chapterService;
+    private final AiService aiService;
 
     @Transactional
     public RecordResDTO.WriteChapterRecord writeChapterRecord(Long memberId, RecordReqDTO.WriteChapterRecord recordReqDTO) {

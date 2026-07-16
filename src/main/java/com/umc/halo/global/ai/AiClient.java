@@ -1,6 +1,8 @@
 package com.umc.halo.global.ai;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -8,12 +10,33 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class AiClient {
 
-    private final RestClient restClient;
+    private final @Qualifier("aiRestClient") RestClient restClient;
+
+    @Value("${gemini.api-key}")
+    private String apiKey;
+
+    @Value("${gemini.model}")
+    private String model;
 
     public String generate(String prompt) {
 
-        // gemini api 요청 코드
+        AiRequest request = AiRequest.from(prompt);
 
-        return "생성 결과";
+        AiResponse response = restClient.post()
+                .uri(uriBuilder ->
+                        uriBuilder
+                                .path("/v1beta/models/{model}:generateContent")
+                                .queryParam("key", apiKey)
+                                .build(model)
+                )
+                .body(request)
+                .retrieve()
+                .body(AiResponse.class);
+
+        if (response == null) {
+            throw new IllegalStateException("Gemini 응답이 없습니다.");
+        }
+
+        return response.getText();
     }
 }

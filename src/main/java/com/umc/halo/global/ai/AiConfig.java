@@ -10,9 +10,7 @@ public class AiConfig {
     @Bean
     public RestClient aiRestClient() {
         return RestClient.builder()
-                .baseUrl(
-                        "https://generativelanguage.googleapis.com"
-                )
+                .baseUrl("https://generativelanguage.googleapis.com")
                 .build();
     }
 }

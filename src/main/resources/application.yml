@@ -39,3 +39,7 @@ google:
   client-id: ${GOOGLE_CLIENT_ID}
   jwks-uri: https://www.googleapis.com/oauth2/v3/certs
   issuer: https://accounts.google.com
+
+gemini:
+  api-key: ${GEMINI_API_KEY}
+  model: gemini-2.5-flash-lite
