@@ -29,4 +29,8 @@ public class MemberTerm extends BaseEntity {
     @Column(name = "is_agreed", nullable = false)
     @Builder.Default
     private Boolean isAgreed = false;
+
+    public void updateIsAgreed(Boolean isAgreed) {
+        this.isAgreed = isAgreed;
+    }
 }
