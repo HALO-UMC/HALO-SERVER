@@ -9,4 +9,6 @@ import java.util.*;
 @Repository
 public interface ChapterQuestionRepository extends JpaRepository<ChapterQuestion, Long> {
     List<ChapterQuestion> findByChapter(Chapter chapter);
+
+    List<ChapterQuestion> findByChapterOrderByQuestionOrderAsc(Chapter chapter);
 }

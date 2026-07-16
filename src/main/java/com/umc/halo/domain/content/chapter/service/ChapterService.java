@@ -76,7 +76,8 @@ public class ChapterService {
                 .orElseThrow(() -> new StorybookException(StorybookErrorCode.NOT_FOUND_CHARACTER));
 
         // question 조회
-        List<ChapterQuestion> questions = chapterQuestionRepository.findByChapter(chapter);
+        List<ChapterQuestion> questions
+                = chapterQuestionRepository.findByChapterOrderByQuestionOrderAsc(chapter);
 
         // sceneCard 조회
         List<SceneCard> sceneCards = sceneCardRepository.findByChapter(chapter);
