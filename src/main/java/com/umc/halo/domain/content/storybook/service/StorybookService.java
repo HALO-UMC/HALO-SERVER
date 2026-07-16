@@ -34,6 +34,7 @@ import com.umc.halo.global.apiPayload.exception.ProjectException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -143,7 +144,11 @@ public class StorybookService {
                 .lastChapterOrder(1)
                 .build();
 
-        memberStorybookRepository.save(memberStorybook);
+        try {
+            memberStorybookRepository.save(memberStorybook);
+        } catch (DataIntegrityViolationException e) {
+            throw new ProjectException(StorybookErrorCode.ALREADY_IN_PROGRESS);
+        }
 
         return new StorybookStartResponse.StartStorybook(
                 memberStorybook.getId(),
@@ -274,7 +279,9 @@ public class StorybookService {
         List<Storybook> activeStorybooks = statusMap.entrySet().stream()
                 .filter(e -> e.getValue() == StorybookStatus.IN_PROGRESS || e.getValue() == StorybookStatus.TODAY_DONE)
                 .map(Map.Entry::getKey)
-                .sorted(Comparator.comparing(Storybook::getThemeOrder))
+                .sorted(Comparator
+                        .comparing((Storybook sb) -> statusMap.get(sb) != StorybookStatus.IN_PROGRESS)
+                        .thenComparing(Storybook::getThemeOrder))
                 .toList();
 
         HomeStatus homeStatus;

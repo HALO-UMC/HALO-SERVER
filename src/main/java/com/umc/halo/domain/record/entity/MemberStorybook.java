@@ -10,7 +10,10 @@ import lombok.*;
 import java.time.*;
 
 @Entity
-@Table(name = "member_storybook")
+@Table(
+        name = "member_storybook",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"member_id", "storybook_id"})
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
