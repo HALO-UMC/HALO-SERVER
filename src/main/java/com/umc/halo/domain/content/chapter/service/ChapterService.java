@@ -8,6 +8,8 @@ import com.umc.halo.domain.content.chapter.exception.code.*;
 import com.umc.halo.domain.content.chapter.repository.*;
 import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.content.storybook.enums.*;
+import com.umc.halo.domain.content.storybook.exception.*;
+import com.umc.halo.domain.content.storybook.exception.code.*;
 import com.umc.halo.domain.content.storybook.repository.*;
 import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.member.exception.*;
@@ -68,8 +70,10 @@ public class ChapterService {
         validateChapterStatus(member, storybook, chapterOrder, memberChapter, memberStorybookOpt.orElse(null));
 
         // character 조회
-        StorybookCharacter originalCharacter = storybookCharacterRepository.findByStorybookAndVariant(storybook, Variant.ORIGINAL);
-        StorybookCharacter imageChoiceCharacter = storybookCharacterRepository.findByStorybookAndVariant(storybook, Variant.IMAGE_CHOICE);
+        StorybookCharacter originalCharacter = storybookCharacterRepository.findByStorybookAndVariant(storybook, Variant.ORIGINAL)
+                .orElseThrow(() -> new StorybookException(StorybookErrorCode.NOT_FOUND_CHARACTER));
+        StorybookCharacter imageChoiceCharacter = storybookCharacterRepository.findByStorybookAndVariant(storybook, Variant.IMAGE_CHOICE)
+                .orElseThrow(() -> new StorybookException(StorybookErrorCode.NOT_FOUND_CHARACTER));
 
         // question 조회
         List<ChapterQuestion> questions = chapterQuestionRepository.findByChapter(chapter);
@@ -106,12 +110,9 @@ public class ChapterService {
             Member member, Storybook storybook,
             Integer chapterOrder, MemberChapter memberChapter, MemberStorybook memberStorybook) {
 
-        // memberStorybook이 없으며 chapterOrder가 1이 아닐 경우
+        // memberStorybook이 없는 경우
         if (memberStorybook == null) {
-            if (chapterOrder != 1) {
-                throw new ChapterException(ChapterErrorCode.UNOPENED_CHAPTER);
-            }
-            return;
+            throw new ChapterException(ChapterErrorCode.UNOPENED_CHAPTER);
         }
 
         Integer lastChapterOrder = memberStorybook.getLastChapterOrder();
