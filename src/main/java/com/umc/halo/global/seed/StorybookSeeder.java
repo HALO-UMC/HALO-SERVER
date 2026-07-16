@@ -5,7 +5,6 @@ import com.umc.halo.domain.content.chapter.repository.*;
 import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.content.storybook.enums.*;
 import com.umc.halo.domain.content.storybook.repository.*;
-import com.umc.halo.global.enums.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.stereotype.*;
@@ -131,17 +130,6 @@ public class StorybookSeeder {
                         .variant(Variant.IMAGE_CHOICE)
                         .imageUrl("https://example.com/character-image-choice.png")
                         .build()
-        );
-        storybookCharacters.addAll(
-                Arrays.stream(Emotion.values())
-                        .map(emotion -> StorybookCharacter.builder()
-                                .storybook(storybook)
-                                .name(characterName)
-                                .variant(Variant.EMOTION)
-                                .emotion(emotion)
-                                .imageUrl("https://example.com/character-emotion-" + emotion.name().toLowerCase() + ".png")
-                                .build())
-                        .toList()
         );
 
         List<StorybookCharacter> savedStorybookCharacters = storybookCharacterRepository.saveAll(storybookCharacters);
