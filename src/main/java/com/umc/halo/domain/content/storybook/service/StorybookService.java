@@ -373,6 +373,7 @@ public class StorybookService {
                 .map(tag -> {
                     List<StorybookResDTO.SituationalStorybook> situationalStorybooks =
                             storybookTagsByTag.getOrDefault(tag, List.of()).stream()
+                                    .limit(2)
                                     .map(StorybookConverter::toSituationalStorybook)
                                     .toList();
 
