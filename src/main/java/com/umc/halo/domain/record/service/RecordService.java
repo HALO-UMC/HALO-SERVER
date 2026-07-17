@@ -174,7 +174,7 @@ public class RecordService {
             memberChapterAnswerRepository.saveAll(savedMemberChapterAnswers);
         }
 
-        // status에 따라서 isStorybookCompleted 판별, 10장 완료시 ai로 answer 3개 요약
+        // 장 완료시 ai로 answer 3개 요약
         boolean isStorybookCompleted = false;
         if (recordReqDTO.status() == Status.COMPLETED) {
 
