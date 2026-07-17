@@ -66,7 +66,7 @@ public interface MemberControllerDocs {
                             mediaType = "application/json",
                             examples = {
                                     @ExampleObject(
-                                            name = "provider/providerToken 누락",
+                                            name = "provider 누락",
                                             value = """
                                                     {
                                                         "isSuccess": false,
@@ -74,6 +74,19 @@ public interface MemberControllerDocs {
                                                         "message": "잘못된 요청입니다.",
                                                         "result": {
                                                             "provider": "provider는 필수입니다."
+                                                        }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "providerToken 누락",
+                                            value = """
+                                                    {
+                                                        "isSuccess": false,
+                                                        "code": "COMMON400_1",
+                                                        "message": "잘못된 요청입니다.",
+                                                        "result": {
+                                                            "providerToken": "providerToken은 필수입니다."
                                                         }
                                                     }
                                                     """

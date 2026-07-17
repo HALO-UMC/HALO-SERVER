@@ -57,7 +57,7 @@ public interface RecordControllerDocs {
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = {
                                             @ExampleObject(
-                                                    name = "storybookChapterId 등 필수 요청값 누락",
+                                                    name = "storybookChapterId 누락",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
