@@ -18,7 +18,9 @@ import com.umc.halo.domain.record.enums.*;
 import com.umc.halo.domain.record.excption.*;
 import com.umc.halo.domain.record.excption.code.*;
 import com.umc.halo.domain.record.repository.*;
+import com.umc.halo.global.ai.event.ChapterCompletedEvent;
 import lombok.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
@@ -38,6 +40,7 @@ public class RecordService {
     private final MemberChapterAnswerRepository memberChapterAnswerRepository;
     private final ChapterQuestionRepository chapterQuestionRepository;
     private final ChapterService chapterService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public RecordResDTO.WriteChapterRecord writeChapterRecord(Long memberId, RecordReqDTO.WriteChapterRecord recordReqDTO) {
@@ -167,17 +170,23 @@ public class RecordService {
             memberChapterAnswerRepository.saveAll(savedMemberChapterAnswers);
         }
 
-        // status에 따라서 isStorybookCompleted 판별, 10장 완료시 ai로 answer 3개 요약
+        // 장 완료시 ai로 answer 3개 요약
         boolean isStorybookCompleted = false;
         if (recordReqDTO.status() == Status.COMPLETED) {
-
             // memberStorybook 업데이트
             memberStorybook.updateCompleted(storybookChapter.getChapterOrder());
 
+            // ai로 answer 3개 요약
+            applicationEventPublisher.publishEvent(new ChapterCompletedEvent(
+                    memberChapter.getId(),
+                    storybookChapter.getStorybook().getTitle(),
+                    storybookChapter.getChapter().getTitle(),
+                    storybookChapter.getChapter().getDescription(),
+                    memberChapter.getEmotion().getDescription()
+            ));
+
             if (storybookChapter.getChapterOrder().equals(10)) {
                 isStorybookCompleted = true;
-
-                // 추후 수정(10장 완료시 ai로 answer 3개 요약)
             }
 
         } else {
