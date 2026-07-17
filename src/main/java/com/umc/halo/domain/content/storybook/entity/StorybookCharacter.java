@@ -2,7 +2,6 @@ package com.umc.halo.domain.content.storybook.entity;
 
 import com.umc.halo.domain.content.storybook.enums.*;
 import com.umc.halo.global.entity.*;
-import com.umc.halo.global.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,10 +28,6 @@ public class StorybookCharacter extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Variant variant;
-
-    @Column
-    @Enumerated(EnumType.STRING)
-    private Emotion emotion;
 
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
