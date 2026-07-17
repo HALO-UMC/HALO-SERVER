@@ -11,9 +11,9 @@ public class AiService {
 
     private final AiClient aiClient;
 
-    public String generateChapterSummary(String chapterTitle, List<QuestionAnswer> questionAnswers) {
+    public String generateChapterSummary(String themeName, String chapterTitle, String pageIntro, List<QuestionAnswer> questionAnswers, String emotionTag) {
 
-        String prompt = PromptFactory.chapterSummary(chapterTitle, questionAnswers);
+        String prompt = PromptFactory.chapterSummary(themeName, chapterTitle, pageIntro, questionAnswers, emotionTag);
 
         return aiClient.generate(prompt);
     }

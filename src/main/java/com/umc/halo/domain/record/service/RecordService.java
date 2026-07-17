@@ -179,7 +179,7 @@ public class RecordService {
         if (recordReqDTO.status() == Status.COMPLETED) {
 
             // ai로 answer 3개 요약
-            generateChapterSummary(memberChapter, storybookChapter.getChapter(), savedMemberChapterAnswers);
+            generateChapterSummary(memberChapter, storybookChapter, savedMemberChapterAnswers);
 
             // memberStorybook 업데이트
             memberStorybook.updateCompleted(storybookChapter.getChapterOrder());
@@ -225,7 +225,7 @@ public class RecordService {
         return RecordConverter.toReadChapterRecord(memberChapter, answerList);
     }
 
-    private void generateChapterSummary(MemberChapter memberChapter, Chapter chapter, List<MemberChapterAnswer> answers) {
+    private void generateChapterSummary(MemberChapter memberChapter, StorybookChapter storybookChapter, List<MemberChapterAnswer> answers) {
         List<QuestionAnswer> questionAnswers = answers.stream()
                 .map(answer -> new QuestionAnswer(
                         answer.getChapterQuestion().getQuestion(),
@@ -233,7 +233,13 @@ public class RecordService {
                 .toList();
 
         try {
-            String summary = aiService.generateChapterSummary(chapter.getTitle(), questionAnswers);
+            String summary = aiService.generateChapterSummary(
+                    storybookChapter.getStorybook().getTitle(),
+                    storybookChapter.getChapter().getTitle(),
+                    storybookChapter.getChapter().getDescription(),
+                    questionAnswers,
+                    memberChapter.getEmotion().name()
+            );
             memberChapter.updateSummary(summary);
         } catch (AiException e) {
             log.warn("Gemini 요약 생성 실패", e);
