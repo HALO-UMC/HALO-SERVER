@@ -98,6 +98,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(errorCode.getStatus())
+                .headers(headers)
                 .body(ApiResponse.onFailure(errorCode, errors));
     }
 
@@ -109,6 +110,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(errorCode.getStatus())
+                .headers(headers)
                 .body(ApiResponse.onFailure(errorCode, "요청 Body 형식이 잘못되었습니다."));
     }
 
@@ -120,6 +122,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(errorCode.getStatus())
+                .headers(headers)
                 .body(ApiResponse.onFailure(errorCode, null));
     }
 
@@ -131,6 +134,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseErrorCode errorCode = GeneralErrorCode.UNSUPPORTED_MEDIA_TYPE;
         return ResponseEntity.status(errorCode.getStatus())
+                .headers(headers)
                 .body(ApiResponse.onFailure(errorCode, null));
     }
 
@@ -142,6 +146,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseErrorCode errorCode = GeneralErrorCode.METHOD_NOT_ALLOWED;
         return ResponseEntity.status(errorCode.getStatus())
+                .headers(headers)
                 .body(ApiResponse.onFailure(errorCode, null));
     }
 
@@ -157,6 +162,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(errorCode.getStatus())
+                .headers(headers)
                 .body(ApiResponse.onFailure(errorCode, null));
     }
 
@@ -168,6 +174,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseErrorCode errorCode = GeneralErrorCode.NOT_FOUND;
         return ResponseEntity.status(errorCode.getStatus())
+                .headers(headers)
                 .body(ApiResponse.onFailure(errorCode, null));
     }
 
@@ -186,6 +193,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(errorCode.getStatus())
+                .headers(headers)
                 .body(ApiResponse.onFailure(errorCode, errors));
     }
 
