@@ -10,7 +10,10 @@ import lombok.*;
 import java.time.*;
 
 @Entity
-@Table(name = "member_storybook")
+@Table(
+        name = "member_storybook",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"member_id", "storybook_id"})
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
@@ -39,4 +42,17 @@ public class MemberStorybook extends BaseEntity {
     @Column
     @Enumerated(EnumType.STRING)
     private Emotion emotion;
+
+    public void updateCompleted(Integer chapterOrder) {
+        this.lastChapterOrder = chapterOrder;
+        this.lastCompletedDate = LocalDate.now();
+    }
+
+    public void updateDraft(Integer chapterOrder) {
+        this.lastChapterOrder = chapterOrder;
+    }
+
+    public boolean isCompletedToday() {
+        return lastCompletedDate != null && lastCompletedDate.isEqual(LocalDate.now());
+    }
 }
