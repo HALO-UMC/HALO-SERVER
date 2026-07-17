@@ -23,6 +23,15 @@ public enum GeneralErrorCode implements BaseErrorCode {
 	// 403 Forbidden (권한 없음)
 	FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403_1", "접근 권한이 없습니다."),
 
+	// 405 Method Not Allowed (지원하지 않는 HTTP 메소드)
+	METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON405_1", "지원하지 않는 HTTP 메소드입니다."),
+
+	// 409 Conflict (중복/충돌)
+	CONFLICT(HttpStatus.CONFLICT, "COMMON409_1", "이미 존재하는 데이터이거나 요청이 충돌합니다."),
+
+	// 415 Unsupported Media Type (지원하지 않는 Content-Type)
+	UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "COMMON415_1", "지원하지 않는 Content-Type입니다."),
+
 	// 500 Internal Server Error (서버 내부 에러)
 	INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON500_1", "서버 내부 오류가 발생했습니다.");
 
