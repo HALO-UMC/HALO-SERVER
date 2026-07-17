@@ -171,7 +171,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
                 .body(ApiResponse.onFailure(errorCode, null));
     }
 
-    // Validation 실패
+    // 컨트롤러 파라미터 검증 (클래스 레벨 @Validated 없을 때 스프링 기본 메소드 검증)
     @Override
     protected @Nullable ResponseEntity<Object> handleHandlerMethodValidationException(
             HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
