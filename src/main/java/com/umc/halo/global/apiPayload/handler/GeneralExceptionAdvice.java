@@ -29,6 +29,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ProjectException.class)
     public ResponseEntity<ApiResponse<Void>> handleProjectException(ProjectException ex) {
         BaseErrorCode errorCode = ex.getErrorCode();
+        log.warn("[{}] {}: {}", ex.getClass().getSimpleName(), errorCode.getCode(), errorCode.getMessage());
         return ResponseEntity.status(errorCode.getStatus())
                 .body(ApiResponse.onFailure(errorCode, null));
     }
@@ -37,14 +38,13 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Object> handleConstraintViolationException(ConstraintViolationException ex) {
         log.warn("[ConstraintViolationException] 경로/쿼리 파라미터 검증 실패: {}", ex.getMessage());
-        String detail = ex.getConstraintViolations().stream()
-                .findFirst()
-                .map(ConstraintViolation::getMessage)
-                .orElse(ex.getMessage());
+        Map<String, String> errors = new HashMap<>();
+        ex.getConstraintViolations().forEach(violation ->
+                errors.put(violation.getPropertyPath().toString(), violation.getMessage()));
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(errorCode.getStatus())
-                .body(ApiResponse.onFailure(errorCode, detail));
+                .body(ApiResponse.onFailure(errorCode, errors));
 
     }
 
@@ -87,7 +87,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        log.warn("@Valid 검증에 실패했습니다.");
+        log.warn("[MethodArgumentNotValidException] @Valid 검증 실패: {}", ex.getMessage());
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error -> {
             errors.put(error.getField(), error.getDefaultMessage());
@@ -102,7 +102,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleHttpMessageNotReadable(
             HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        log.warn("JSON 파싱 실패: {}", ex.getMessage());
+        log.warn("[HttpMessageNotReadableException] JSON 파싱 실패: {}", ex.getMessage());
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(errorCode.getStatus())
@@ -113,7 +113,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleMissingServletRequestParameter(
             MissingServletRequestParameterException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        log.warn("필수 파라미터 누락: {}", ex.getMessage());
+        log.warn("[MissingServletRequestParameterException] 필수 파라미터 누락: {}", ex.getMessage());
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(errorCode.getStatus())
@@ -124,7 +124,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleHttpMediaTypeNotSupported(
             HttpMediaTypeNotSupportedException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        log.warn("지원하지 않는 Content-Type: {}", ex.getMessage());
+        log.warn("[HttpMediaTypeNotSupportedException] 지원하지 않는 Content-Type: {}", ex.getMessage());
 
         BaseErrorCode errorCode = GeneralErrorCode.UNSUPPORTED_MEDIA_TYPE;
         return ResponseEntity.status(errorCode.getStatus())
@@ -135,7 +135,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleHttpRequestMethodNotSupported(
             HttpRequestMethodNotSupportedException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        log.warn("지원하지 않는 HTTP Method: {}", ex.getMessage());
+        log.warn("[HttpRequestMethodNotSupportedException] 지원하지 않는 HTTP Method: {}", ex.getMessage());
 
         BaseErrorCode errorCode = GeneralErrorCode.METHOD_NOT_ALLOWED;
         return ResponseEntity.status(errorCode.getStatus())
@@ -147,9 +147,9 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     protected @Nullable ResponseEntity<Object> handleTypeMismatch(
             TypeMismatchException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         if (ex instanceof MethodArgumentTypeMismatchException matEx) {
-            log.warn("타입 불일치: parameter={}, value={}", matEx.getName(), matEx.getValue());
+            log.warn("[MethodArgumentTypeMismatchException] 타입 불일치: parameter={}, value={}", matEx.getName(), matEx.getValue());
         } else {
-            log.warn("타입 불일치: property={}", ex.getPropertyName());
+            log.warn("[TypeMismatchException] 타입 불일치: property={}", ex.getPropertyName());
         }
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
@@ -161,7 +161,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleNoResourceFoundException(
             NoResourceFoundException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        log.warn("존재하지 않는 엔드포인트: {}", ex.getMessage());
+        log.warn("[NoResourceFoundException] 존재하지 않는 엔드포인트: {}", ex.getMessage());
 
         BaseErrorCode errorCode = GeneralErrorCode.NOT_FOUND;
         return ResponseEntity.status(errorCode.getStatus())
@@ -172,7 +172,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleHandlerMethodValidationException(
             HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        log.warn("[HandlerMethodValidationException] 컨트롤러 파라미터 검증 실패");
+        log.warn("[HandlerMethodValidationException] 컨트롤러 파라미터 검증 실패: {}", ex.getMessage());
         Map<String, String> errors = new HashMap<>();
         ex.getParameterValidationResults().forEach(result -> {
             String parameterName = result.getMethodParameter().getParameterName();
