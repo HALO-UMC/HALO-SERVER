@@ -109,13 +109,77 @@ public class ChapterSeeder {
         return savedChapters;
     }
 
+    // 5. 나란히 걷는 날 기준 질문(챕터 시드 데이터는 전체 스토리북이 공유)
+    private static final List<List<String>> CHAPTER_QUESTIONS = List.of(
+            // 1. 집 앞 한바퀴
+            List.of(
+                    "부모님과 함께 걸어 본 장소는 어디인가요?",
+                    "걸으면서 어떤 이야기를 나눴나요?",
+                    "부모님과 걸으며 느낀 감정은 무엇인가요?"
+            ),
+            // 2. 자주 가던 길
+            List.of(
+                    "함께 간 장소는 어디인가요?",
+                    "부모님이 자주 가는 이유는 무엇인가요?",
+                    "내가 몰랐던 일상은 무엇인가요?"
+            ),
+            // 3. 부모님의 속도
+            List.of(
+                    "부모님의 걸음 속도는 어땠나요?",
+                    "배려가 필요했던 순간들은 언제인가요?",
+                    "걸으며 느낀 점은 무엇인가요?"
+            ),
+            // 4. 함께 장보기
+            List.of(
+                    "함께 산 물건은 무엇인가요?",
+                    "부모님이 고른 이유는 무엇인가요?",
+                    "장을 함께 보며 부모님에게 도움이 된 일은 무엇인가요?"
+            ),
+            // 5. 가까운 외출
+            List.of(
+                    "함께 간 곳은 어디인가요?",
+                    "부모님의 반응은 어땠나요?",
+                    "좋았던 순간은 언제인가요?"
+            ),
+            // 6. 오래된 장소
+            List.of(
+                    "부모님에게 의미 있는 장소는 어디인가요?",
+                    "그곳에 얽힌 기억은 무엇인가요?",
+                    "새롭게 알게 된 이야기는 무엇인가요?"
+            ),
+            // 7. 오늘의 사진 한 장
+            List.of(
+                    "사진을 찍은 장소는 어디인가요?",
+                    "사진 속 부모님의 표정은 어땠나요?",
+                    "내가 좋아한 모습은 무엇인가요?"
+            ),
+            // 8. 조금 먼 곳
+            List.of(
+                    "함께 다녀온 목적지는 어디인가요?",
+                    "준비 과정은 어땠나요?",
+                    "기억에 남은 장면은 무엇인가요?"
+            ),
+            // 9. 돌아오는 길
+            List.of(
+                    "부모님이 남긴 한마디는 무엇인가요?",
+                    "돌아오는 길의 내 기분은 어땠나요?",
+                    "다음 외출은 어디로 할 예정인가요?"
+            ),
+            // 10. 나란히 걷는 우리
+            List.of(
+                    "가장 좋았던 길은 어디인가요?",
+                    "부모님과 걸으며 느낀 점은 무엇인가요?",
+                    "다음에는 어디로 걷고 싶나요?"
+            )
+    );
+
     @Transactional
-    public List<ChapterQuestion> seedChapterQuestion(Chapter chapter) {
-        List<ChapterQuestion> chapterQuestions = IntStream.range(1, 4)
+    public List<ChapterQuestion> seedChapterQuestion(Chapter chapter, List<String> questions) {
+        List<ChapterQuestion> chapterQuestions = IntStream.range(0, questions.size())
                 .mapToObj(i -> ChapterQuestion.builder()
                         .chapter(chapter)
-                        .question(chapter.getTitle() + "에 대한 질문" + i)
-                        .questionOrder(i)
+                        .question(questions.get(i))
+                        .questionOrder(i + 1)
                         .build())
                 .toList();
         List<ChapterQuestion> savedChapterQuestions = chapterQuestionRepository.saveAll(chapterQuestions);
@@ -141,8 +205,9 @@ public class ChapterSeeder {
     @Transactional
     public void seed() {
         List<Chapter> chapters = seedChapter();
-        chapters.forEach(chapter -> {
-            seedChapterQuestion(chapter);
+        IntStream.range(0, chapters.size()).forEach(i -> {
+            Chapter chapter = chapters.get(i);
+            seedChapterQuestion(chapter, CHAPTER_QUESTIONS.get(i));
             seedSceneCard(chapter);
         });
     }
