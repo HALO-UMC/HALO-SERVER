@@ -1,13 +1,17 @@
 package com.umc.halo.domain.content.storybook.exception.code;
 
-import com.umc.halo.global.apiPayload.code.*;
-import lombok.*;
-import org.springframework.http.*;
+import com.umc.halo.global.apiPayload.code.BaseErrorCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
 public enum StorybookErrorCode implements BaseErrorCode {
-    NOT_FOUND_CHARACTER(HttpStatus.NOT_FOUND, "STORYBOOK404_2", "존재하지 않는 캐릭터입니다.");
+    NOT_FOUND(HttpStatus.NOT_FOUND, "STORYBOOK404_1", "존재하지 않는 스토리북입니다."),
+    NOT_FOUND_CHARACTER(HttpStatus.NOT_FOUND, "STORYBOOK404_2", "존재하지 않는 캐릭터입니다."),
+    ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "STORYBOOK409_1", "이미 시작한 스토리북입니다."),
+    ALREADY_COMPLETED(HttpStatus.CONFLICT, "STORYBOOK409_2", "이미 완료한 스토리북은 다시 시작할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

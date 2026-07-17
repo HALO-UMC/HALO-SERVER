@@ -10,7 +10,10 @@ import lombok.*;
 import java.time.*;
 
 @Entity
-@Table(name = "member_storybook")
+@Table(
+        name = "member_storybook",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"member_id", "storybook_id"})
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
@@ -47,5 +50,9 @@ public class MemberStorybook extends BaseEntity {
 
     public void updateDraft(Integer chapterOrder) {
         this.lastChapterOrder = chapterOrder;
+    }
+
+    public boolean isCompletedToday() {
+        return lastCompletedDate != null && lastCompletedDate.isEqual(LocalDate.now());
     }
 }
