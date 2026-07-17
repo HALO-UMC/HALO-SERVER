@@ -1,4 +1,4 @@
-package com.umc.halo.global.ai;
+package com.umc.halo.global.ai.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +17,7 @@ public class AiConfig {
 
         return RestClient.builder()
                 .baseUrl("https://generativelanguage.googleapis.com")
+                .requestFactory(factory)
                 .build();
     }
 }

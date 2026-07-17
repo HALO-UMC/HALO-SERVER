@@ -1,4 +1,4 @@
-package com.umc.halo.global.ai;
+package com.umc.halo.global.ai.filter;
 
 import org.springframework.stereotype.Component;
 

@@ -18,11 +18,9 @@ import com.umc.halo.domain.record.enums.*;
 import com.umc.halo.domain.record.excption.*;
 import com.umc.halo.domain.record.excption.code.*;
 import com.umc.halo.domain.record.repository.*;
-import com.umc.halo.global.ai.AiService;
-import com.umc.halo.global.ai.QuestionAnswer;
-import com.umc.halo.global.ai.exception.AiException;
+import com.umc.halo.global.ai.event.ChapterCompletedEvent;
 import lombok.*;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
@@ -30,7 +28,6 @@ import org.springframework.transaction.annotation.*;
 import java.util.*;
 import java.util.stream.*;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecordService {
@@ -43,7 +40,7 @@ public class RecordService {
     private final MemberChapterAnswerRepository memberChapterAnswerRepository;
     private final ChapterQuestionRepository chapterQuestionRepository;
     private final ChapterService chapterService;
-    private final AiService aiService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public RecordResDTO.WriteChapterRecord writeChapterRecord(Long memberId, RecordReqDTO.WriteChapterRecord recordReqDTO) {
@@ -146,7 +143,6 @@ public class RecordService {
         // answer 저장 (기존 answer 삭제 후 재저장)
         memberChapterAnswerRepository.deleteAllByMemberChapter(memberChapter);
 
-        List<MemberChapterAnswer> savedMemberChapterAnswers = List.of();
 
         if (recordReqDTO.answers() != null) {
             List<Long> chapterQuestionIds = recordReqDTO.answers().stream()
@@ -157,7 +153,7 @@ public class RecordService {
                     .stream().collect(Collectors.toMap(ChapterQuestion::getId, cq -> cq));
 
 
-            savedMemberChapterAnswers = recordReqDTO.answers().stream()
+            List<MemberChapterAnswer> savedMemberChapterAnswers = recordReqDTO.answers().stream()
                     .map(a -> {
 
                         // chapterQuestion 조회
@@ -177,12 +173,17 @@ public class RecordService {
         // 장 완료시 ai로 answer 3개 요약
         boolean isStorybookCompleted = false;
         if (recordReqDTO.status() == Status.COMPLETED) {
-
-            // ai로 answer 3개 요약
-            generateChapterSummary(memberChapter, storybookChapter, savedMemberChapterAnswers);
-
             // memberStorybook 업데이트
             memberStorybook.updateCompleted(storybookChapter.getChapterOrder());
+
+            // ai로 answer 3개 요약
+            applicationEventPublisher.publishEvent(new ChapterCompletedEvent(
+                    memberChapter.getId(),
+                    storybookChapter.getStorybook().getTitle(),
+                    storybookChapter.getChapter().getTitle(),
+                    storybookChapter.getChapter().getDescription(),
+                    memberChapter.getEmotion().getDescription()
+            ));
 
             if (storybookChapter.getChapterOrder().equals(10)) {
                 isStorybookCompleted = true;
@@ -223,26 +224,5 @@ public class RecordService {
                 .toList();
 
         return RecordConverter.toReadChapterRecord(memberChapter, answerList);
-    }
-
-    private void generateChapterSummary(MemberChapter memberChapter, StorybookChapter storybookChapter, List<MemberChapterAnswer> answers) {
-        List<QuestionAnswer> questionAnswers = answers.stream()
-                .map(answer -> new QuestionAnswer(
-                        answer.getChapterQuestion().getQuestion(),
-                        answer.getAnswer()))
-                .toList();
-
-        try {
-            String summary = aiService.generateChapterSummary(
-                    storybookChapter.getStorybook().getTitle(),
-                    storybookChapter.getChapter().getTitle(),
-                    storybookChapter.getChapter().getDescription(),
-                    questionAnswers,
-                    memberChapter.getEmotion().getDescription()
-            );
-            memberChapter.updateSummary(summary);
-        } catch (AiException e) {
-            log.warn("Gemini 요약 생성 실패", e);
-        }
     }
 }

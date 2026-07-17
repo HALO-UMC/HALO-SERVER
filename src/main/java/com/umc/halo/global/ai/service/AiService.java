@@ -1,5 +1,9 @@
-package com.umc.halo.global.ai;
+package com.umc.halo.global.ai.service;
 
+import com.umc.halo.global.ai.AiClient;
+import com.umc.halo.global.ai.QuestionAnswer;
+import com.umc.halo.global.ai.factory.PromptFactory;
+import com.umc.halo.global.ai.filter.SensitiveDataFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,6 @@
-package com.umc.halo.global.ai;
+package com.umc.halo.global.ai.factory;
+
+import com.umc.halo.global.ai.QuestionAnswer;
 
 import java.util.List;
 
