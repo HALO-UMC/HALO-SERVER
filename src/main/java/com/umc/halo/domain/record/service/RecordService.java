@@ -238,7 +238,7 @@ public class RecordService {
                     storybookChapter.getChapter().getTitle(),
                     storybookChapter.getChapter().getDescription(),
                     questionAnswers,
-                    memberChapter.getEmotion().name()
+                    memberChapter.getEmotion().getDescription()
             );
             memberChapter.updateSummary(summary);
         } catch (AiException e) {
