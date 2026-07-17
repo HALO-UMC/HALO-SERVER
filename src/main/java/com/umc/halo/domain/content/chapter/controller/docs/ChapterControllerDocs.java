@@ -119,14 +119,34 @@ public interface ChapterControllerDocs {
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
-                                    examples = @ExampleObject("""
-                                            {
-                                                "isSuccess": false,
-                                                "code": "COMMON400_1",
-                                                "message": "잘못된 요청입니다.",
-                                                "result": "장 순서는 10 이하여야 합니다."
-                                            }
-                                            """)
+                                    examples = {
+                                            @ExampleObject(
+                                                    name = "chapterOrder가 1 미만",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "COMMON400_1",
+                                                                "message": "잘못된 요청입니다.",
+                                                                "result": {
+                                                                    "chapterOrder": "장 순서는 1 이상이어야 합니다."
+                                                                }
+                                                            }
+                                                            """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "chapterOrder가 10 초과",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "COMMON400_1",
+                                                                "message": "잘못된 요청입니다.",
+                                                                "result": {
+                                                                    "chapterOrder": "장 순서는 10 이하여야 합니다."
+                                                                }
+                                                            }
+                                                            """
+                                            )
+                                    }
                             )
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
