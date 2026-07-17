@@ -11,6 +11,10 @@ import java.util.List;
 
 public class StorybookResDTO {
 
+    private StorybookResDTO() {
+        throw new IllegalStateException("유틸리티 클래스는 인스턴스화할 수 없습니다.");
+    }
+
     @Builder
     public record GetHome(
             HomeStatus homeStatus,
@@ -26,7 +30,7 @@ public class StorybookResDTO {
             Long storybookId,
             String title,
             String currentChapterTitle,
-            int currentChapterOrder,
+            Integer currentChapterOrder,
             boolean todayAvailable
     ) {}
 
