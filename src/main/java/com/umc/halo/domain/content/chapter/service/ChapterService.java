@@ -22,7 +22,6 @@ import lombok.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
 
-import java.time.*;
 import java.util.*;
 
 @Service
@@ -61,7 +60,7 @@ public class ChapterService {
 
         // memberStorybook이 있을 경우, 오늘 이미 완료했는지 검증
         memberStorybookOpt.ifPresent(ms -> {
-            if (isCompletedToday(ms)) {
+            if (ms.isCompletedToday()) {
                 throw new ChapterException(ChapterErrorCode.ALREADY_RECEIVED_TODAY);
             }
         });
@@ -98,12 +97,6 @@ public class ChapterService {
                 memberChapter,
                 answers
         );
-    }
-
-    // 오늘 이미 완료했는지 여부 (RecordService에서도 재사용)
-    public boolean isCompletedToday(MemberStorybook memberStorybook) {
-        LocalDate lastCompletedDate = memberStorybook.getLastCompletedDate();
-        return (lastCompletedDate != null) && lastCompletedDate.isEqual(LocalDate.now());
     }
 
     // 아직 열리지 않은 장(CHAPTER403_1) / 이미 완료한 장(CHAPTER403_2)인지 검증 (RecordService에서도 재사용)

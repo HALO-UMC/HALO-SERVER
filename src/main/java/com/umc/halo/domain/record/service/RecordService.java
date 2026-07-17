@@ -18,9 +18,9 @@ import com.umc.halo.domain.record.enums.*;
 import com.umc.halo.domain.record.excption.*;
 import com.umc.halo.domain.record.excption.code.*;
 import com.umc.halo.domain.record.repository.*;
-import com.umc.halo.global.ai.event.ChapterCompletedEvent;
+import com.umc.halo.global.ai.event.*;
 import lombok.*;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.*;
 import org.springframework.dao.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
@@ -63,7 +63,7 @@ public class RecordService {
         MemberChapter memberChapter = memberChapterRepository.findByMemberAndStorybookChapter(member, storybookChapter);
 
         // 오늘 이미 장을 완료했는지 검증
-        if (chapterService.isCompletedToday(memberStorybook)) {
+        if (memberStorybook.isCompletedToday()) {
             throw new RecordException(RecordErrorCode.ALREADY_COMPLETED_TODAY);
         }
 
