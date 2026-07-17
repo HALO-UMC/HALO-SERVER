@@ -1,7 +1,9 @@
 package com.umc.halo.domain.term.converter;
 
 import com.umc.halo.domain.term.dto.TermResDTO;
+import com.umc.halo.domain.term.entity.MemberTerm;
 import com.umc.halo.domain.term.entity.Term;
+import com.umc.halo.domain.member.entity.Member;
 
 public class TermConverter {
 
@@ -17,6 +19,14 @@ public class TermConverter {
     public static TermResDTO.AgreementStatus toAgreementStatus(boolean termsAgreed) {
         return TermResDTO.AgreementStatus.builder()
                 .termsAgreed(termsAgreed)
+                .build();
+    }
+
+    public static MemberTerm toMemberTerm(Member member, Term term, Boolean isAgreed) {
+        return MemberTerm.builder()
+                .member(member)
+                .term(term)
+                .isAgreed(isAgreed)
                 .build();
     }
 }

@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -129,7 +131,7 @@ public interface TermControllerDocs {
     })
     ApiResponse<Void> agree(
             @Parameter(hidden = true) Long memberId,
-            TermReqDTO.Agree request
+            @Valid @RequestBody TermReqDTO.Agree request
     );
 
     @Operation(
@@ -195,4 +197,5 @@ public interface TermControllerDocs {
     ApiResponse<TermResDTO.AgreementStatus> getAgreementStatus(
             @Parameter(hidden = true) Long memberId
     );
+
 }

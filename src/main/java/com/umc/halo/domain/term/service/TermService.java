@@ -97,11 +97,8 @@ public class TermService {
             if (memberTerm != null) {
                 memberTerm.updateIsAgreed(entry.getValue());
             } else {
-                memberTermRepository.save(MemberTerm.builder()
-                        .member(member)
-                        .term(termMap.get(entry.getKey()))
-                        .isAgreed(entry.getValue())
-                        .build());
+                memberTermRepository.save(TermConverter.toMemberTerm(
+                        member, termMap.get(entry.getKey()), entry.getValue()));
             }
         }
     }
