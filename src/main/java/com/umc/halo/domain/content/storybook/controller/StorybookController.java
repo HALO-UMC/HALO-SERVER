@@ -1,5 +1,6 @@
 package com.umc.halo.domain.content.storybook.controller;
 
+import com.umc.halo.domain.content.storybook.controller.docs.StorybookControllerDocs;
 import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
 import com.umc.halo.domain.content.storybook.exception.code.HomeSuccessCode;
 import com.umc.halo.domain.content.storybook.exception.code.StorybookSuccessCode;

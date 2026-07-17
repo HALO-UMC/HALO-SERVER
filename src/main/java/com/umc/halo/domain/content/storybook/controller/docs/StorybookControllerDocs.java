@@ -1,4 +1,4 @@
-package com.umc.halo.domain.content.storybook.controller;
+package com.umc.halo.domain.content.storybook.controller.docs;
 
 import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
 import com.umc.halo.global.apiPayload.ApiResponse;
