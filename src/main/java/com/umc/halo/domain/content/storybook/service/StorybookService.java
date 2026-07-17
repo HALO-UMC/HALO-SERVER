@@ -1,12 +1,9 @@
 package com.umc.halo.domain.content.storybook.service;
 
+import com.umc.halo.domain.content.storybook.converter.StorybookConverter;
+import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
 import com.umc.halo.domain.content.storybook.exception.code.StorybookErrorCode;
 import com.umc.halo.domain.content.storybook.exception.StorybookException;
-import com.umc.halo.domain.content.storybook.dto.response.HomeResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookRecommendResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookStartResponse;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
 import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
 import com.umc.halo.domain.content.storybook.enums.BookshelfStatus;
@@ -37,7 +34,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -62,7 +58,7 @@ public class StorybookService {
     private final StorybookTagRepository storybookTagRepository;
     private final MemberTagRepository memberTagRepository;
 
-    public StorybookDetailResponse.GetStorybookDetail getStorybookDetail(Long storybookId, Long memberId) {
+    public StorybookResDTO.GetStorybookDetail getStorybookDetail(Long storybookId, Long memberId) {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
@@ -89,7 +85,7 @@ public class StorybookService {
                 .orElse(false);
 
         boolean foundToday = false;
-        List<StorybookDetailResponse.ChapterInfo> chapterInfos = new ArrayList<>();
+        List<StorybookResDTO.ChapterInfo> chapterInfos = new ArrayList<>();
 
         for (StorybookChapter sc : storybookChapters) {
             ChapterViewStatus status;
@@ -102,27 +98,14 @@ public class StorybookService {
                 status = ChapterViewStatus.LOCKED;
             }
 
-            chapterInfos.add(new StorybookDetailResponse.ChapterInfo(
-                    sc.getChapterOrder(),
-                    sc.getChapter().getTitle(),
-                    sc.getChapter().getImageUrl(),
-                    sc.getChapter().getShortDescription(),
-                    sc.getChapter().getDescription(),
-                    status
-            ));
+            chapterInfos.add(StorybookConverter.toChapterInfo(sc, status));
         }
 
-        return new StorybookDetailResponse.GetStorybookDetail(
-                storybook.getId(),
-                storybook.getTitle(),
-                storybook.getDescription(),
-                storybook.getImageUrl(),
-                chapterInfos
-        );
+        return StorybookConverter.toStorybookDetail(storybook, chapterInfos);
     }
 
     @Transactional
-    public StorybookStartResponse.StartStorybook startStorybook(Long storybookId, Long memberId) {
+    public StorybookResDTO.StartStorybook startStorybook(Long storybookId, Long memberId) {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
@@ -153,14 +136,10 @@ public class StorybookService {
             throw new StorybookException(StorybookErrorCode.ALREADY_IN_PROGRESS);
         }
 
-        return new StorybookStartResponse.StartStorybook(
-                memberStorybook.getId(),
-                storybook.getId(),
-                StorybookStatus.IN_PROGRESS
-        );
+        return StorybookConverter.toStartStorybook(memberStorybook, storybook);
     }
 
-    public StorybookListResponse.GetStorybookList getStorybookList(Long memberId) {
+    public StorybookResDTO.GetStorybookList getStorybookList(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
@@ -172,17 +151,17 @@ public class StorybookService {
         Map<Long, MemberStorybook> memberStorybookMap = memberStorybookRepository.findByMember(member).stream()
                 .collect(Collectors.toMap(ms -> ms.getStorybook().getId(), Function.identity()));
 
-        List<StorybookListResponse.StorybookSummary> storybookSummaries = storybooks.stream()
+        List<StorybookResDTO.StorybookSummary> storybookSummaries = storybooks.stream()
                 .map(storybook -> buildStorybookSummary(member, storybook, memberStorybookMap.get(storybook.getId())))
                 .toList();
 
-        List<StorybookListResponse.SituationalRecommendation> situationalRecommendations =
+        List<StorybookResDTO.SituationalRecommendation> situationalRecommendations =
                 buildSituationalRecommendations();
 
-        return new StorybookListResponse.GetStorybookList(storybookSummaries, situationalRecommendations);
+        return StorybookConverter.toStorybookList(storybookSummaries, situationalRecommendations);
     }
 
-    public StorybookRecommendResponse.GetRecommendedStorybooks getRecommendedStorybooks(Long memberId) {
+    public StorybookResDTO.GetRecommendedStorybooks getRecommendedStorybooks(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
@@ -205,21 +184,15 @@ public class StorybookService {
             }
         }
 
-        List<StorybookRecommendResponse.RecommendedStorybook> recommendations = bestMatchByStorybook.values().stream()
+        List<StorybookResDTO.RecommendedStorybook> recommendations = bestMatchByStorybook.values().stream()
                 .sorted(Comparator.comparing(StorybookTag::getPriorityLevel))
                 .limit(2)
-                .map(st -> new StorybookRecommendResponse.RecommendedStorybook(
-                        st.getStorybook().getId(),
-                        st.getStorybook().getTitle(),
-                        st.getStorybook().getShortDescription(),
-                        st.getStorybook().getImageUrl(),
-                        st.getPhrase()
-                ))
+                .map(StorybookConverter::toRecommendedStorybook)
                 .collect(Collectors.toCollection(ArrayList::new));
 
         if (recommendations.size() < 2) {
             Set<Long> alreadyIncluded = recommendations.stream()
-                    .map(StorybookRecommendResponse.RecommendedStorybook::storybookId)
+                    .map(StorybookResDTO.RecommendedStorybook::storybookId)
                     .collect(Collectors.toSet());
 
             List<Storybook> fallbackStorybooks = storybookRepository.findAll().stream()
@@ -229,20 +202,14 @@ public class StorybookService {
 
             for (Storybook sb : fallbackStorybooks) {
                 if (recommendations.size() >= 2) break;
-                recommendations.add(new StorybookRecommendResponse.RecommendedStorybook(
-                        sb.getId(),
-                        sb.getTitle(),
-                        sb.getShortDescription(),
-                        sb.getImageUrl(),
-                        sb.getShortDescription()
-                ));
+                recommendations.add(StorybookConverter.toRecommendedStorybook(sb, sb.getShortDescription()));
             }
         }
 
-        return new StorybookRecommendResponse.GetRecommendedStorybooks(recommendations);
+        return StorybookConverter.toRecommendedStorybooksResult(recommendations);
     }
 
-    public HomeResponse.GetHome getHome(Long memberId) {
+    public StorybookResDTO.GetHome getHome(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
@@ -285,7 +252,7 @@ public class StorybookService {
                 .toList();
 
         HomeStatus homeStatus;
-        HomeResponse.RepresentativeStorybook representativeStorybook = null;
+        StorybookResDTO.RepresentativeStorybook representativeStorybook = null;
         int otherInProgressCount = 0;
 
         if (activeStorybooks.isEmpty()) {
@@ -301,13 +268,8 @@ public class StorybookService {
                     .map(sc -> sc.getChapter().getTitle())
                     .orElse(null);
 
-            representativeStorybook = new HomeResponse.RepresentativeStorybook(
-                    representative.getId(),
-                    representative.getTitle(),
-                    chapterTitle,
-                    chapterOrder,
-                    repStatus == StorybookStatus.IN_PROGRESS
-            );
+            representativeStorybook = StorybookConverter.toRepresentativeStorybook(
+                    representative, chapterTitle, chapterOrder, repStatus == StorybookStatus.IN_PROGRESS);
 
             otherInProgressCount = activeStorybooks.size() - 1;
 
@@ -323,31 +285,19 @@ public class StorybookService {
             }
         }
 
-        List<HomeResponse.BookshelfItem> bookshelf = storybooks.stream()
-                .map(sb -> new HomeResponse.BookshelfItem(
-                        sb.getId(),
-                        sb.getTitle(),
-                        sb.getThemeOrder(),
-                        sb.getSpineColor(),
-                        toBookshelfStatus(statusMap.get(sb))
-                ))
+        List<StorybookResDTO.BookshelfItem> bookshelf = storybooks.stream()
+                .map(sb -> StorybookConverter.toBookshelfItem(sb, toBookshelfStatus(statusMap.get(sb))))
                 .toList();
 
-        List<HomeResponse.RecommendedStorybook> recommendedStorybooks = new ArrayList<>();
+        List<StorybookResDTO.RecommendedStorybook> recommendedStorybooks = new ArrayList<>();
         if (activeStorybooks.isEmpty()) {
-            StorybookRecommendResponse.GetRecommendedStorybooks recommended = getRecommendedStorybooks(memberId);
+            StorybookResDTO.GetRecommendedStorybooks recommended = getRecommendedStorybooks(memberId);
             recommendedStorybooks = recommended.storybooks().stream()
-                    .map(r -> new HomeResponse.RecommendedStorybook(
-                            r.storybookId(),
-                            r.title(),
-                            r.shortDescription(),
-                            r.imageUrl(),
-                            member.getName() + "님을 위한 추천 스토리북"
-                    ))
+                    .map(r -> StorybookConverter.toRecommendedStorybook(r, member.getName() + "님을 위한 추천 스토리북"))
                     .toList();
         }
 
-        return new HomeResponse.GetHome(
+        return StorybookConverter.toHome(
                 homeStatus,
                 member.getName() + "님",
                 representativeStorybook,
@@ -365,20 +315,11 @@ public class StorybookService {
         };
     }
 
-    private StorybookListResponse.StorybookSummary buildStorybookSummary(
+    private StorybookResDTO.StorybookSummary buildStorybookSummary(
             Member member, Storybook storybook, MemberStorybook memberStorybook) {
 
         if (memberStorybook == null) {
-            return new StorybookListResponse.StorybookSummary(
-                    storybook.getId(),
-                    storybook.getTitle(),
-                    storybook.getThemeOrder(),
-                    storybook.getShortDescription(),
-                    storybook.getImageUrl(),
-                    StorybookStatus.NOT_STARTED,
-                    null,
-                    null
-            );
+            return StorybookConverter.toStorybookSummary(storybook, StorybookStatus.NOT_STARTED, null);
         }
 
         List<MemberChapter> memberChapters =
@@ -397,16 +338,7 @@ public class StorybookService {
             status = StorybookStatus.IN_PROGRESS;
         }
 
-        return new StorybookListResponse.StorybookSummary(
-                storybook.getId(),
-                storybook.getTitle(),
-                storybook.getThemeOrder(),
-                storybook.getShortDescription(),
-                storybook.getImageUrl(),
-                status,
-                memberStorybook.getLastChapterOrder(),
-                memberStorybook.getLastCompletedDate()
-        );
+        return StorybookConverter.toStorybookSummary(storybook, status, memberStorybook);
     }
 
     private boolean isStorybookCompleted(Member member, Storybook storybook) {
@@ -426,7 +358,7 @@ public class StorybookService {
         return completedCount == totalChapters;
     }
 
-    private List<StorybookListResponse.SituationalRecommendation> buildSituationalRecommendations() {
+    private List<StorybookResDTO.SituationalRecommendation> buildSituationalRecommendations() {
 
         List<Tag> desiredDirectionTags = tagRepository.findByCategory(Category.DESIRED_DIRECTION);
 
@@ -439,17 +371,12 @@ public class StorybookService {
 
         return desiredDirectionTags.stream()
                 .map(tag -> {
-                    List<StorybookListResponse.RecommendedStorybook> recommendedStorybooks =
+                    List<StorybookResDTO.SituationalStorybook> situationalStorybooks =
                             storybookTagsByTag.getOrDefault(tag, List.of()).stream()
-                                    .map(st -> new StorybookListResponse.RecommendedStorybook(
-                                            st.getStorybook().getId(),
-                                            st.getStorybook().getTitle(),
-                                            st.getStorybook().getImageUrl(),
-                                            st.getPhrase()
-                                    ))
+                                    .map(StorybookConverter::toSituationalStorybook)
                                     .toList();
 
-                    return new StorybookListResponse.SituationalRecommendation(tag.getTitle(), recommendedStorybooks);
+                    return StorybookConverter.toSituationalRecommendation(tag.getTitle(), situationalStorybooks);
                 })
                 .toList();
     }

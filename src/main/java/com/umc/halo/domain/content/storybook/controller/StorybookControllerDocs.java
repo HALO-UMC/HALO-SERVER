@@ -1,11 +1,6 @@
 package com.umc.halo.domain.content.storybook.controller;
 
-import com.umc.halo.domain.content.storybook.exception.code.HomeSuccessCode;
-import com.umc.halo.domain.content.storybook.dto.response.HomeResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookRecommendResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookStartResponse;
+import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,21 +14,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 @Tag(name = "스토리북 API")
 public interface StorybookControllerDocs {
 
+
     @Operation(
             summary = "홈 화면 조회 API",
-            description = """
-                    ### 홈 화면 조회
-                    사용자의 진행 중인 스토리북 현황, 책장 목록, 추천 스토리북과 홈 화면 상태를 조회합니다.
-
-                    **요청 형식**
-                    - Header: Authorization (Bearer AccessToken)
-
-                    **동작 방식**
-                    1. 회원의 진행 중인 스토리북(IN_PROGRESS, TODAY_DONE)을 확인합니다.
-                    2. 진행 중인 스토리북이 있으면 그중 대표 스토리북 1개를 선정합니다.
-                    3. 진행 중인 스토리북이 없으면 추천 스토리북을 함께 반환합니다.
-                    4. 전체 스토리북의 책장 목록(진행 상태 포함)을 반환합니다.
-                    """
+            description = "사용자의 진행 중인 스토리북 현황, 책장 목록, 추천 스토리북과 홈 화면 상태를 조회합니다."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -81,24 +65,13 @@ public interface StorybookControllerDocs {
                     )
             )
     })
-    ApiResponse<HomeResponse.GetHome> getHome(
+    ApiResponse<StorybookResDTO.GetHome> getHome(
             @AuthenticationPrincipal Long memberId
     );
 
     @Operation(
             summary = "스토리북 목록 조회 API",
-            description = """
-                    ### 스토리북 목록 조회
-                    사용자의 스토리북 목록과 진행 상태, 상황별 추천 5개 카테고리를 조회합니다.
-
-                    **요청 형식**
-                    - Header: Authorization (Bearer AccessToken)
-
-                    **동작 방식**
-                    1. 전체 스토리북을 테마 순서(themeOrder)대로 조회합니다.
-                    2. 회원의 진행 상태(시작 전/진행중/오늘 완료/완료)를 각 스토리북에 매핑합니다.
-                    3. 원하는 관계 방향 태그 5개별로 매칭된 스토리북을 상황별 추천으로 함께 반환합니다.
-                    """
+            description = "사용자의 스토리북 목록과 진행 상태, 상황별 추천 5개 카테고리를 조회합니다."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -154,25 +127,13 @@ public interface StorybookControllerDocs {
                     )
             )
     })
-    ApiResponse<StorybookListResponse.GetStorybookList> getStorybookList(
+    ApiResponse<StorybookResDTO.GetStorybookList> getStorybookList(
             @AuthenticationPrincipal Long memberId
     );
 
     @Operation(
             summary = "스토리북 상세 조회 API",
-            description = """
-                    ### 스토리북 상세 조회
-                    스토리북 상세 정보와 10개 장 목록(진행 상태 포함)을 조회합니다.
-
-                    **요청 형식**
-                    - Header: Authorization (Bearer AccessToken)
-                    - Path: storybookId
-
-                    **동작 방식**
-                    1. storybookId로 스토리북과 10개 장 목록을 조회합니다.
-                    2. 회원이 완료한 장을 확인해 각 장의 상태(COMPLETED/TODAY/TODAY_LOCKED/LOCKED)를 계산합니다.
-                    3. 오늘 이미 다른 장을 완료했다면 다음 장은 TODAY_LOCKED로 표시합니다.
-                    """
+            description = "스토리북 상세 정보와 10개 장 목록(진행 상태 포함)을 조회합니다."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -230,26 +191,14 @@ public interface StorybookControllerDocs {
                     )
             )
     })
-    ApiResponse<StorybookDetailResponse.GetStorybookDetail> getStorybookDetail(
+    ApiResponse<StorybookResDTO.GetStorybookDetail> getStorybookDetail(
             @Parameter(description = "스토리북 ID", required = true) Long storybookId,
             @AuthenticationPrincipal Long memberId
     );
 
     @Operation(
             summary = "스토리북 시작하기 API",
-            description = """
-                    ### 스토리북 시작하기
-                    선택한 스토리북을 시작합니다.
-
-                    **요청 형식**
-                    - Header: Authorization (Bearer AccessToken)
-                    - Path: storybookId
-
-                    **동작 방식**
-                    1. storybookId로 스토리북을 조회합니다.
-                    2. 이미 시작한 스토리북이면 완료 여부에 따라 409(STORYBOOK409_1 진행중 / STORYBOOK409_2 완료)를 반환합니다.
-                    3. 처음 시작하는 경우 진행 포인터(lastChapterOrder)를 1로 설정하여 생성합니다.
-                    """
+            description = "선택한 스토리북을 시작합니다. 이미 진행중이면 409(STORYBOOK409_1), 이미 완료했으면 409(STORYBOOK409_2)를 반환합니다."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -274,12 +223,10 @@ public interface StorybookControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "409",
-                    description = "이미 진행중인 스토리북",
+                    description = "이미 진행중이거나 이미 완료한 스토리북",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    name = "이미 진행중",
-                                    value = """
+                            examples = @ExampleObject(value = """
                                     {
                                       "isSuccess": false,
                                       "code": "STORYBOOK409_1",
@@ -288,44 +235,16 @@ public interface StorybookControllerDocs {
                                     }
                                     """)
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "409",
-                    description = "이미 완료한 스토리북",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    name = "이미 완료",
-                                    value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "STORYBOOK409_2",
-                                      "message": "이미 완료한 스토리북은 다시 시작할 수 없습니다.",
-                                      "result": null
-                                    }
-                                    """)
-                    )
             )
     })
-    ApiResponse<StorybookStartResponse.StartStorybook> startStorybook(
+    ApiResponse<StorybookResDTO.StartStorybook> startStorybook(
             @Parameter(description = "스토리북 ID", required = true) Long storybookId,
             @AuthenticationPrincipal Long memberId
     );
 
     @Operation(
             summary = "추천 스토리북 조회 API",
-            description = """
-                    ### 추천 스토리북 조회
-                    온보딩 시 선택한 목적 태그를 기반으로 추천 스토리북 2개를 조회합니다.
-
-                    **요청 형식**
-                    - Header: Authorization (Bearer AccessToken)
-
-                    **동작 방식**
-                    1. 회원이 온보딩에서 선택한 "원하는 관계 방향" 태그를 조회합니다.
-                    2. 태그와 매칭된 스토리북 중 PRIMARY 우선으로 최대 2개를 선정합니다.
-                    3. 매칭된 스토리북이 2개 미만이면 테마 순서 기준으로 나머지를 채웁니다.
-                    """
+            description = "온보딩 시 선택한 목적 태그를 기반으로 추천 스토리북 2 개를 조회합니다."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -362,7 +281,7 @@ public interface StorybookControllerDocs {
                     )
             )
     })
-    ApiResponse<StorybookRecommendResponse.GetRecommendedStorybooks> getRecommendedStorybooks(
+    ApiResponse<StorybookResDTO.GetRecommendedStorybooks> getRecommendedStorybooks(
             @AuthenticationPrincipal Long memberId
     );
 }

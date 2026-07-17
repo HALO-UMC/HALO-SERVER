@@ -1,12 +1,8 @@
 package com.umc.halo.domain.content.storybook.controller;
 
+import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
 import com.umc.halo.domain.content.storybook.exception.code.HomeSuccessCode;
 import com.umc.halo.domain.content.storybook.exception.code.StorybookSuccessCode;
-import com.umc.halo.domain.content.storybook.dto.response.HomeResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookDetailResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookListResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookRecommendResponse;
-import com.umc.halo.domain.content.storybook.dto.response.StorybookStartResponse;
 import com.umc.halo.domain.content.storybook.service.StorybookService;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +18,7 @@ public class StorybookController implements StorybookControllerDocs {
 
     @GetMapping("/home")
     @Override
-    public ApiResponse<HomeResponse.GetHome> getHome(
+    public ApiResponse<StorybookResDTO.GetHome> getHome(
             @AuthenticationPrincipal Long memberId
     ) {
         return ApiResponse.onSuccess(
@@ -33,7 +29,7 @@ public class StorybookController implements StorybookControllerDocs {
 
     @GetMapping("/storybooks")
     @Override
-    public ApiResponse<StorybookListResponse.GetStorybookList> getStorybookList(
+    public ApiResponse<StorybookResDTO.GetStorybookList> getStorybookList(
             @AuthenticationPrincipal Long memberId
     ) {
         return ApiResponse.onSuccess(
@@ -44,7 +40,7 @@ public class StorybookController implements StorybookControllerDocs {
 
     @GetMapping("/storybooks/recommended")
     @Override
-    public ApiResponse<StorybookRecommendResponse.GetRecommendedStorybooks> getRecommendedStorybooks(
+    public ApiResponse<StorybookResDTO.GetRecommendedStorybooks> getRecommendedStorybooks(
             @AuthenticationPrincipal Long memberId
     ) {
         return ApiResponse.onSuccess(
@@ -55,7 +51,7 @@ public class StorybookController implements StorybookControllerDocs {
 
     @GetMapping("/storybooks/{storybookId}")
     @Override
-    public ApiResponse<StorybookDetailResponse.GetStorybookDetail> getStorybookDetail(
+    public ApiResponse<StorybookResDTO.GetStorybookDetail> getStorybookDetail(
             @PathVariable Long storybookId,
             @AuthenticationPrincipal Long memberId
     ) {
@@ -67,7 +63,7 @@ public class StorybookController implements StorybookControllerDocs {
 
     @PostMapping("/storybooks/{storybookId}/start")
     @Override
-    public ApiResponse<StorybookStartResponse.StartStorybook> startStorybook(
+    public ApiResponse<StorybookResDTO.StartStorybook> startStorybook(
             @PathVariable Long storybookId,
             @AuthenticationPrincipal Long memberId
     ) {
