@@ -114,8 +114,7 @@ public class TermService {
                 .map(memberTerm -> memberTerm.getTerm().getId())
                 .collect(Collectors.toSet());
 
-        boolean termsAgreed = termRepository.findAll().stream()
-                .filter(term -> Boolean.TRUE.equals(term.getIsRequired()))
+        boolean termsAgreed = termRepository.findAllByIsRequiredTrue().stream()
                 .allMatch(term -> agreedTermIds.contains(term.getId()));
 
         return TermConverter.toAgreementStatus(termsAgreed);
