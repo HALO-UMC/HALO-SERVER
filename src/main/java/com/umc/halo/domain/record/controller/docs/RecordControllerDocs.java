@@ -57,7 +57,7 @@ public interface RecordControllerDocs {
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = {
                                             @ExampleObject(
-                                                    name = "storybookChapterId 등 필수 요청값 누락",
+                                                    name = "storybookChapterId 누락",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -144,6 +144,45 @@ public interface RecordControllerDocs {
                                                                 "message": "잘못된 요청입니다.",
                                                                 "result": {
                                                                     "answers": "답변은 최대 3개까지 작성할 수 있습니다."
+                                                                }
+                                                            }
+                                                            """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "status 누락",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "COMMON400_1",
+                                                                "message": "잘못된 요청입니다.",
+                                                                "result": {
+                                                                    "status": "status는 필수입니다."
+                                                                }
+                                                            }
+                                                            """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "answers[].chapterQuestionId 누락",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "COMMON400_1",
+                                                                "message": "잘못된 요청입니다.",
+                                                                "result": {
+                                                                    "answers[0].chapterQuestionId": "chapterQuestionId는 필수입니다."
+                                                                }
+                                                            }
+                                                            """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "answers[].answer가 빈 값",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "COMMON400_1",
+                                                                "message": "잘못된 요청입니다.",
+                                                                "result": {
+                                                                    "answers[0].answer": "답변 내용은 비어 있을 수 없습니다."
                                                                 }
                                                             }
                                                             """

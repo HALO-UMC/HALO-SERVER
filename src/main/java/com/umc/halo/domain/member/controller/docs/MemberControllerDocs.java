@@ -61,18 +61,48 @@ public interface MemberControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
-                    description = "provider가 KAKAO/GOOGLE 외 값",
+                    description = "요청값 누락 또는 지원하지 않는 provider",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "isSuccess": false,
-                                        "code": "AUTH400_1",
-                                        "message": "지원하지 않는 소셜 로그인 제공자입니다.",
-                                        "result": null
-                                    }
-                                    """
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "provider 누락",
+                                            value = """
+                                                    {
+                                                        "isSuccess": false,
+                                                        "code": "COMMON400_1",
+                                                        "message": "잘못된 요청입니다.",
+                                                        "result": {
+                                                            "provider": "provider는 필수입니다."
+                                                        }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "providerToken 누락",
+                                            value = """
+                                                    {
+                                                        "isSuccess": false,
+                                                        "code": "COMMON400_1",
+                                                        "message": "잘못된 요청입니다.",
+                                                        "result": {
+                                                            "providerToken": "providerToken은 필수입니다."
+                                                        }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "provider가 KAKAO/GOOGLE 외 값",
+                                            value = """
+                                                    {
+                                                        "isSuccess": false,
+                                                        "code": "AUTH400_1",
+                                                        "message": "지원하지 않는 소셜 로그인 제공자입니다.",
+                                                        "result": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -128,6 +158,24 @@ public interface MemberControllerDocs {
                                         "result": {
                                             "accessToken": "eyJ...",
                                             "refreshToken": "eyJ..."
+                                        }
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "refreshToken 누락",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "COMMON400_1",
+                                        "message": "잘못된 요청입니다.",
+                                        "result": {
+                                            "refreshToken": "refreshToken은 필수입니다."
                                         }
                                     }
                                     """

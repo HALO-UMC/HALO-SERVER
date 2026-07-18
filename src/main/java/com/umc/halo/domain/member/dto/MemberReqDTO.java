@@ -7,15 +7,15 @@ public class MemberReqDTO {
 
     // 로그인
     public record Login(
-            @NotNull
+            @NotNull(message = "provider는 필수입니다.")
             String provider,
-            @NotBlank
+            @NotBlank(message = "providerToken은 필수입니다.")
             String providerToken
     ) {}
 
     // 토큰 재발급
     public record TokenReissue(
-            @NotBlank
+            @NotBlank(message = "refreshToken은 필수입니다.")
             String refreshToken
     ) {}
 }
