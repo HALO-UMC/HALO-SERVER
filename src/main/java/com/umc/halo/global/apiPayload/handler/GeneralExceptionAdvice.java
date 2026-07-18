@@ -210,8 +210,6 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
                 null
         );
 
-        return ResponseEntity.status(statusCode)
-                .headers(headers)
-                .body(response);
+        return super.handleExceptionInternal(ex, response, headers, statusCode, request);
     }
 }
