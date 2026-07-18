@@ -197,4 +197,21 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
                 .body(ApiResponse.onFailure(errorCode, errors));
     }
 
+    // 오버라이드 되지 않은 나머지 ResponseEntityExceptionHandler 예외
+    @Override
+    protected @Nullable ResponseEntity<Object> handleExceptionInternal(
+            Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
+        log.warn("[{}] {} - {}", ex.getClass().getSimpleName(), statusCode, ex.getMessage());
+
+        ApiResponse<Object> response = new ApiResponse<>(
+                false,
+                "UNHANDLED_" + ex.getClass().getSimpleName(),
+                "요청을 처리할 수 없습니다.",
+                null
+        );
+
+        return ResponseEntity.status(statusCode)
+                .headers(headers)
+                .body(response);
+    }
 }
