@@ -1,12 +1,13 @@
 package com.umc.halo.domain.setting.exception.code;
 
+import com.umc.halo.global.apiPayload.code.BaseErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum SettingErrorCode {
+public enum SettingErrorCode implements BaseErrorCode {
 
     INVALID_REGULAR_NOTIFICATION_TIME(HttpStatus.BAD_REQUEST,
             "NOTIFICATION400_1",

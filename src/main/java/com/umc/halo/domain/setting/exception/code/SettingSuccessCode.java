@@ -1,12 +1,13 @@
 package com.umc.halo.domain.setting.exception.code;
 
+import com.umc.halo.global.apiPayload.code.BaseSuccessCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum SettingSuccessCode {
+public enum SettingSuccessCode implements BaseSuccessCode {
 
     NOTIFICATION_SETTING_GET_SUCCESS(HttpStatus.OK,
             "NOTIFICATION200_1",
