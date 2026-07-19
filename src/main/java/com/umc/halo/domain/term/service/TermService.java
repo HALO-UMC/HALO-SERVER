@@ -16,7 +16,7 @@ import com.umc.halo.domain.term.repository.TermRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.dao.DataIntegrityViolationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,8 +97,14 @@ public class TermService {
             if (memberTerm != null) {
                 memberTerm.updateIsAgreed(entry.getValue());
             } else {
-                memberTermRepository.save(TermConverter.toMemberTerm(
-                        member, termMap.get(entry.getKey()), entry.getValue()));
+                Term term = termMap.get(entry.getKey());
+                try {
+                    memberTermRepository.save(TermConverter.toMemberTerm(
+                            member, term, entry.getValue()));
+                } catch (DataIntegrityViolationException e) {
+                    memberTermRepository.findByMemberAndTerm(member, term)
+                            .ifPresent(saved -> saved.updateIsAgreed(entry.getValue()));
+                }
             }
         }
     }
