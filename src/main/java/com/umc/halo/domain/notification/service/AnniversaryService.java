@@ -1,6 +1,9 @@
 package com.umc.halo.domain.notification.service;
 
 import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.domain.member.exception.MemberException;
+import com.umc.halo.domain.member.exception.code.MemberErrorCode;
+import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.notification.converter.AnniversaryConverter;
 import com.umc.halo.domain.notification.dto.AnniversaryReqDTO;
 import com.umc.halo.domain.notification.dto.AnniversaryResDTO;
@@ -15,11 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +27,13 @@ public class AnniversaryService {
 
     private final AnniversaryRepository anniversaryRepository;
     private final CommonAnniversaryRepository commonAnniversaryRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional(readOnly = true)
-    public AnniversaryResDTO.GetAnniversaries getAnniversaries(Member member) {
+    public AnniversaryResDTO.GetAnniversaries getAnniversaries(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
         LocalDate today = LocalDate.now();
 
         List<Anniversary> myAnniversaryEntities = anniversaryRepository.findAllByMemberOrderByAnniversaryDateAsc(member);
@@ -62,7 +66,7 @@ public class AnniversaryService {
                     }
                     return AnniversaryConverter.toUpcoming(anniversary, nextOccurrence, today);
                 })
-                .filter(Objects::nonNull)
+                .filter(java.util.Objects::nonNull)
                 .toList();
 
         // 음력 기념일(추석, 설날 등)은 연도별 환산 로직이 없어 이번 PR에서는 다가오는 기념일 D-day 계산 대상에서 제외
@@ -75,12 +79,12 @@ public class AnniversaryService {
                             .anniversaryId(null)
                             .title(commonAnniversary.getTitle())
                             .anniversaryDate(nextOccurrence)
-                            .dDay((int) ChronoUnit.DAYS.between(today, nextOccurrence))
+                            .dDay((int) java.time.temporal.ChronoUnit.DAYS.between(today, nextOccurrence))
                             .build();
                 })
                 .toList();
 
-        return Stream.concat(upcomingFromMyAnniversaries.stream(), upcomingFromCommonAnniversaries.stream())
+        return java.util.stream.Stream.concat(upcomingFromMyAnniversaries.stream(), upcomingFromCommonAnniversaries.stream())
                 .sorted(Comparator.comparing(AnniversaryResDTO.Upcoming::dDay))
                 .toList();
     }
@@ -100,15 +104,21 @@ public class AnniversaryService {
     }
 
     @Transactional
-    public AnniversaryResDTO.CreateAnniversary createAnniversary(Member member, AnniversaryReqDTO.Create request) {
+    public AnniversaryResDTO.CreateAnniversary createAnniversary(Long memberId, AnniversaryReqDTO.Create request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
         Anniversary anniversary = AnniversaryConverter.toAnniversary(member, request);
         Anniversary savedAnniversary = anniversaryRepository.save(anniversary);
         return AnniversaryConverter.toCreateAnniversary(savedAnniversary);
     }
 
     @Transactional
-    public AnniversaryResDTO.UpdateAnniversary updateAnniversary(Member member, Long anniversaryId, AnniversaryReqDTO.Update request) {
-        Anniversary anniversary = getOwnedAnniversary(member, anniversaryId);
+    public AnniversaryResDTO.UpdateAnniversary updateAnniversary(Long memberId, Long anniversaryId, AnniversaryReqDTO.Update request) {
+        memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
+        Anniversary anniversary = getOwnedAnniversary(memberId, anniversaryId);
         anniversary.update(
                 request.title(),
                 request.anniversaryDate(),
@@ -120,7 +130,10 @@ public class AnniversaryService {
     }
 
     @Transactional
-    public void deleteAnniversaries(Member member, List<Long> anniversaryIds) {
+    public void deleteAnniversaries(Long memberId, List<Long> anniversaryIds) {
+        memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
         List<Anniversary> anniversaries = anniversaryRepository.findAllById(anniversaryIds);
 
         if (anniversaries.size() != anniversaryIds.size()) {
@@ -128,7 +141,7 @@ public class AnniversaryService {
         }
 
         boolean hasUnauthorized = anniversaries.stream()
-                .anyMatch(anniversary -> !anniversary.getMember().getId().equals(member.getId()));
+                .anyMatch(anniversary -> !anniversary.getMember().getId().equals(memberId));
         if (hasUnauthorized) {
             throw new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_ACCESS_DENIED);
         }
@@ -136,10 +149,10 @@ public class AnniversaryService {
         anniversaryRepository.deleteAll(anniversaries);
     }
 
-    private Anniversary getOwnedAnniversary(Member member, Long anniversaryId) {
+    private Anniversary getOwnedAnniversary(Long memberId, Long anniversaryId) {
         Anniversary anniversary = anniversaryRepository.findById(anniversaryId)
                 .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
-        if (!anniversary.getMember().getId().equals(member.getId())) {
+        if (!anniversary.getMember().getId().equals(memberId)) {
             throw new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_ACCESS_DENIED);
         }
         return anniversary;
