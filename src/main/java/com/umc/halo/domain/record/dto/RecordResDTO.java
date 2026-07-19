@@ -21,7 +21,11 @@ public class RecordResDTO {
     @Builder
     public record ReadChapterRecord(
             Long memberChapterId,
-            String title,
+            String storybookTitle,
+            String chapterTitle,
+            Integer chapterOrder,
+            String description,
+            String chapterImageUrl,
             Emotion emotion,
             CoverType coverType,
             String imageUrl,
