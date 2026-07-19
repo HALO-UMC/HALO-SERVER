@@ -37,7 +37,7 @@ public interface AnniversaryControllerDocs {
                     사용자가 새로운 기념일을 등록합니다.
 
                     **요청 형식**
-```json
+                    ```json
                     {
                       "title": "엄마랑 여행 가는 날",
                       "anniversaryDate": "2026-06-27",
@@ -45,7 +45,7 @@ public interface AnniversaryControllerDocs {
                       "dayAlarmEnabled": true,
                       "memo": "어머니랑 여행을 가기로 한 날, 처음으로 여행을 가기로 해서 너무 떨린다."
                     }
-```
+                    ```
 
                     **동작 방식**
                     1. 기념일명, 날짜, 알림 설정을 필수로 입력받습니다.
@@ -64,7 +64,7 @@ public interface AnniversaryControllerDocs {
 
                     **요청 형식**
                     - Path Variable: `anniversaryId` (수정할 기념일 ID)
-```json
+                    ```json
                     {
                       "title": "엄마랑 여행 가는 날",
                       "anniversaryDate": "2026-06-27",
@@ -72,7 +72,7 @@ public interface AnniversaryControllerDocs {
                       "dayAlarmEnabled": true,
                       "memo": "어머니랑 여행을 가기로 한 날, 처음으로 여행을 가기로 해서 너무 떨린다."
                     }
-```
+                    ```
 
                     **동작 방식**
                     1. 요청한 기념일이 존재하는지 확인하고, 존재하지 않으면 404 예외를 반환합니다.
@@ -91,11 +91,11 @@ public interface AnniversaryControllerDocs {
                     사용자가 등록한 기념일을 하나 이상 선택하여 한 번에 삭제합니다.
 
                     **요청 형식**
-```json
+                    ```json
                     {
                       "anniversaryIds": [1, 2, 5]
                     }
-```
+                    ```
 
                     **동작 방식**
                     1. 요청한 ID 목록이 모두 존재하는지 확인하고, 하나라도 존재하지 않으면 404 예외를 반환합니다.
