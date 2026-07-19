@@ -1,13 +1,12 @@
 package com.umc.halo.domain.notification.controller.docs;
 
-import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.notification.dto.AnniversaryReqDTO;
 import com.umc.halo.domain.notification.dto.AnniversaryResDTO;
 import com.umc.halo.global.apiPayload.ApiResponse;
-import com.umc.halo.global.security.CurrentMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -29,7 +28,7 @@ public interface AnniversaryControllerDocs {
                     4. 다가오는 기념일(upcomingAnniversaries), 내가 추가한 기념일(myAnniversaries), 기본 기념일(commonAnniversaries) 세 목록을 함께 반환합니다.
                     """)
     ApiResponse<AnniversaryResDTO.GetAnniversaries> getAnniversaries(
-            @CurrentMember Member member
+            @AuthenticationPrincipal Long memberId
     );
 
     @Operation(summary = "기념일 추가 API",
@@ -54,7 +53,7 @@ public interface AnniversaryControllerDocs {
                     3. 요청 값을 기반으로 기념일을 저장하고, 생성된 기념일의 ID를 반환합니다.
                     """)
     ApiResponse<AnniversaryResDTO.CreateAnniversary> createAnniversary(
-            @CurrentMember Member member,
+            @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody AnniversaryReqDTO.Create request
     );
 
@@ -81,7 +80,7 @@ public interface AnniversaryControllerDocs {
                     3. 검증을 통과하면 요청 값으로 기념일 정보를 갱신합니다.
                     """)
     ApiResponse<AnniversaryResDTO.UpdateAnniversary> updateAnniversary(
-            @CurrentMember Member member,
+            @AuthenticationPrincipal Long memberId,
             @PathVariable Long anniversaryId,
             @Valid @RequestBody AnniversaryReqDTO.Update request
     );
@@ -104,7 +103,7 @@ public interface AnniversaryControllerDocs {
                     3. 검증을 통과하면 요청한 기념일을 모두 삭제합니다. (부분 삭제는 지원하지 않으며, 검증 실패 시 전체가 실패합니다.)
                     """)
     ApiResponse<Void> deleteAnniversaries(
-            @CurrentMember Member member,
+            @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody AnniversaryReqDTO.Delete request
     );
 }
