@@ -1,7 +1,6 @@
 package com.umc.halo.domain.notification.entity;
 
 import com.umc.halo.domain.member.entity.*;
-import com.umc.halo.domain.notification.enums.*;
 import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,10 +30,6 @@ public class Anniversary extends BaseEntity {
     @Column(name = "anniversary_date", nullable = false)
     private LocalDate anniversaryDate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Target target;
-
     @Column(name = "is_repeated", nullable = false)
     @Builder.Default
     private Boolean isRepeated = true;
@@ -49,4 +44,13 @@ public class Anniversary extends BaseEntity {
 
     @Column(length = 255)
     private String memo;
+
+    public void update(String title, LocalDate anniversaryDate, Boolean sevenDaysAlarmEnabled,
+                        Boolean dayAlarmEnabled, String memo) {
+        this.title = title;
+        this.anniversaryDate = anniversaryDate;
+        this.sevenDaysAlarmEnabled = sevenDaysAlarmEnabled;
+        this.dayAlarmEnabled = dayAlarmEnabled;
+        this.memo = memo;
+    }
 }
