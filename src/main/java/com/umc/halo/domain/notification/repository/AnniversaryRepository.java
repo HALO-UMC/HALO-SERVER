@@ -9,4 +9,6 @@ import java.util.List;
 public interface AnniversaryRepository extends JpaRepository<Anniversary, Long> {
 
     List<Anniversary> findAllByMemberOrderByAnniversaryDateAsc(Member member);
+
+    void deleteByMemberId(Long memberId);
 }
