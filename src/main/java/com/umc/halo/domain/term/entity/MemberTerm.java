@@ -6,7 +6,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "member_term")
+@Table(name = "member_term",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_member_term", columnNames = {"member_id", "term_id"})
+        })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
@@ -29,4 +32,8 @@ public class MemberTerm extends BaseEntity {
     @Column(name = "is_agreed", nullable = false)
     @Builder.Default
     private Boolean isAgreed = false;
+
+    public void updateIsAgreed(Boolean isAgreed) {
+        this.isAgreed = isAgreed;
+    }
 }
