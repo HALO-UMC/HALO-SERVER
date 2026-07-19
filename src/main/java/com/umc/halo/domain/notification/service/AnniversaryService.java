@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.MonthDay;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -98,15 +99,16 @@ public class AnniversaryService {
             return date.isBefore(today) ? null : date;
         }
         LocalDate thisYear = anniversary.getAnniversaryDate().withYear(today.getYear());
-        return thisYear.isBefore(today) ? thisYear.plusYears(1) : thisYear;
+        return thisYear.isBefore(today) ? anniversary.getAnniversaryDate().withYear(today.getYear() + 1) : thisYear;
     }
 
     private LocalDate resolveNextOccurrence(CommonAnniversary commonAnniversary, LocalDate today) {
         if (Boolean.TRUE.equals(commonAnniversary.getIsLunar())) {
             return resolveNextLunarOccurrence(commonAnniversary, today);
         }
-        LocalDate thisYear = LocalDate.of(today.getYear(), commonAnniversary.getMonth(), commonAnniversary.getDay());
-        return thisYear.isBefore(today) ? thisYear.plusYears(1) : thisYear;
+        MonthDay monthDay = MonthDay.of(commonAnniversary.getMonth(), commonAnniversary.getDay());
+        LocalDate thisYear = monthDay.atYear(today.getYear());
+        return thisYear.isBefore(today) ? monthDay.atYear(today.getYear() + 1) : thisYear;
     }
 
     private LocalDate resolveNextLunarOccurrence(CommonAnniversary commonAnniversary, LocalDate today) {
@@ -158,9 +160,10 @@ public class AnniversaryService {
         memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
-        List<Anniversary> anniversaries = anniversaryRepository.findAllById(anniversaryIds);
+        List<Long> distinctIds = anniversaryIds.stream().distinct().toList();
+        List<Anniversary> anniversaries = anniversaryRepository.findAllById(distinctIds);
 
-        if (anniversaries.size() != anniversaryIds.size()) {
+        if (anniversaries.size() != distinctIds.size()) {
             throw new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND);
         }
 
