@@ -23,7 +23,7 @@ public class SettingService {
     @Transactional(readOnly = true)
     public SettingResDTO.NotificationSettings getNotificationSettings(Long memberId) {
         MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new MemberException(SettingErrorCode.SETTING_NOT_FOUND));
 
         return SettingConverter.toNotificationSettings(memberSetting);
     }
