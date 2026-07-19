@@ -16,6 +16,7 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -45,6 +46,9 @@ dependencies {
 
     // OIDC ID Token
     implementation 'com.nimbusds:nimbus-jose-jwt:9.37.4'
+
+    // Korean Lunar Calendar
+    implementation 'com.github.usingsky:KoreanLunarCalendar:0.4.0'
 }
 
 tasks.named('test') {

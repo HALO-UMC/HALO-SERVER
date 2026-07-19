@@ -1,5 +1,6 @@
 package com.umc.halo.domain.notification.service;
 
+import com.github.usingsky.calendar.KoreanLunarCalendar;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.exception.MemberException;
 import com.umc.halo.domain.member.exception.code.MemberErrorCode;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -66,15 +68,15 @@ public class AnniversaryService {
                     }
                     return AnniversaryConverter.toUpcoming(anniversary, nextOccurrence, today);
                 })
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .toList();
 
-        // 음력 기념일(추석, 설날 등)은 연도별 환산 로직이 없어 이번 PR에서는 다가오는 기념일 D-day 계산 대상에서 제외
-        // (기본 기념일 목록에는 그대로 노출됨)
         List<AnniversaryResDTO.Upcoming> upcomingFromCommonAnniversaries = commonAnniversaryEntities.stream()
-                .filter(commonAnniversary -> !Boolean.TRUE.equals(commonAnniversary.getIsLunar()))
                 .map(commonAnniversary -> {
                     LocalDate nextOccurrence = resolveNextOccurrence(commonAnniversary, today);
+                    if (nextOccurrence == null) {
+                        return null;
+                    }
                     return AnniversaryResDTO.Upcoming.builder()
                             .anniversaryId(null)
                             .title(commonAnniversary.getTitle())
@@ -82,6 +84,7 @@ public class AnniversaryService {
                             .dDay((int) java.time.temporal.ChronoUnit.DAYS.between(today, nextOccurrence))
                             .build();
                 })
+                .filter(Objects::nonNull)
                 .toList();
 
         return java.util.stream.Stream.concat(upcomingFromMyAnniversaries.stream(), upcomingFromCommonAnniversaries.stream())
@@ -99,8 +102,29 @@ public class AnniversaryService {
     }
 
     private LocalDate resolveNextOccurrence(CommonAnniversary commonAnniversary, LocalDate today) {
+        if (Boolean.TRUE.equals(commonAnniversary.getIsLunar())) {
+            return resolveNextLunarOccurrence(commonAnniversary, today);
+        }
         LocalDate thisYear = LocalDate.of(today.getYear(), commonAnniversary.getMonth(), commonAnniversary.getDay());
         return thisYear.isBefore(today) ? thisYear.plusYears(1) : thisYear;
+    }
+
+    private LocalDate resolveNextLunarOccurrence(CommonAnniversary commonAnniversary, LocalDate today) {
+        LocalDate thisYearSolar = convertLunarToSolar(today.getYear(), commonAnniversary.getMonth(), commonAnniversary.getDay());
+        if (thisYearSolar != null && !thisYearSolar.isBefore(today)) {
+            return thisYearSolar;
+        }
+        return convertLunarToSolar(today.getYear() + 1, commonAnniversary.getMonth(), commonAnniversary.getDay());
+    }
+
+    // 음력 날짜(윤달 아님)를 해당 연도의 양력 날짜로 변환. 지원 범위를 벗어나거나 변환 실패 시 null 반환
+    private LocalDate convertLunarToSolar(int lunarYear, int lunarMonth, int lunarDay) {
+        KoreanLunarCalendar calendar = KoreanLunarCalendar.getInstance();
+        boolean success = calendar.setLunarDate(lunarYear, lunarMonth, lunarDay, false);
+        if (!success) {
+            return null;
+        }
+        return LocalDate.of(calendar.getSolarYear(), calendar.getSolarMonth(), calendar.getSolarDay());
     }
 
     @Transactional
