@@ -30,12 +30,15 @@ public class StorybookConverter {
     }
 
     public static StorybookResDTO.GetStorybookDetail toStorybookDetail(
-            Storybook storybook, List<StorybookResDTO.ChapterInfo> chapterInfos) {
+            Storybook storybook, List<StorybookResDTO.ChapterInfo> chapterInfos,
+            int completedChapterCount, int progressPercentage) {
         return StorybookResDTO.GetStorybookDetail.builder()
                 .storybookId(storybook.getId())
                 .title(storybook.getTitle())
                 .description(storybook.getDescription())
                 .imageUrl(storybook.getImageUrl())
+                .completedChapterCount(completedChapterCount)
+                .progressPercentage(progressPercentage)
                 .chapters(chapterInfos)
                 .build();
     }

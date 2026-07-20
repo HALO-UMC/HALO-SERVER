@@ -80,6 +80,8 @@ public class StorybookResDTO {
             String title,
             String description,
             String imageUrl,
+            int completedChapterCount,
+            int progressPercentage,
             List<ChapterInfo> chapters
     ) {}
 

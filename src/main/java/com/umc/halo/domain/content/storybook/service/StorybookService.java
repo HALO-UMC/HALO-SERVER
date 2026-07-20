@@ -101,7 +101,10 @@ public class StorybookService {
             chapterInfos.add(StorybookConverter.toChapterInfo(sc, status));
         }
 
-        return StorybookConverter.toStorybookDetail(storybook, chapterInfos);
+        int completedChapterCount = completedChapterIds.size();
+        int progressPercentage = completedChapterCount * 10;
+
+        return StorybookConverter.toStorybookDetail(storybook, chapterInfos, completedChapterCount, progressPercentage);
     }
 
     @Transactional
