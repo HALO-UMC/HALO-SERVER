@@ -19,18 +19,17 @@ public class StorybookResDTO {
     public record GetHome(
             HomeStatus homeStatus,
             String memberName,
-            RepresentativeStorybook representativeStorybook,
-            int otherInProgressCount,
+            List<InProgressStorybook> inProgressStorybooks,
             List<BookshelfItem> bookshelf,
             List<RecommendedStorybook> recommendedStorybooks
     ) {}
 
     @Builder
-    public record RepresentativeStorybook(
+    public record InProgressStorybook(
             Long storybookId,
             String title,
-            String currentChapterTitle,
             Integer currentChapterOrder,
+            int totalChapterCount,
             boolean todayAvailable
     ) {}
 
