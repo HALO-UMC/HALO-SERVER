@@ -1,5 +1,6 @@
 package com.umc.halo.domain.setting.controller;
 
+import com.umc.halo.domain.setting.controller.docs.SettingControllerDocs;
 import com.umc.halo.domain.setting.dto.SettingResDTO;
 import com.umc.halo.domain.setting.exception.code.SettingSuccessCode;
 import com.umc.halo.domain.setting.service.SettingService;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
-public class SettingController {
+public class SettingController implements SettingControllerDocs {
 
     private final SettingService settingService;
 
