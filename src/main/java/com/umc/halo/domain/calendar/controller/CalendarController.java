@@ -28,7 +28,7 @@ public class CalendarController implements CalendarControllerDocs {
     // 월간
     @GetMapping
     public ApiResponse<CalendarMonthlyResDTO.MonthlyInfo> getMonthly(
-            @AuthenticationPrincipal Long memberId, @RequestParam int year, @RequestParam @Min(1) @Max(12) int month
+            @AuthenticationPrincipal Long memberId, @RequestParam int year, @RequestParam int month
     ) {
         BaseSuccessCode code = CalendarSuccessCode.MAIN_SUCCESS;
         return ApiResponse.onSuccess(code, calendarService.getMonthly(memberId, year, month));

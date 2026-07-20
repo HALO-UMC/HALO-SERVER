@@ -38,7 +38,6 @@ public class CalendarService {
     //월간
     @Transactional(readOnly = true)
     public CalendarMonthlyResDTO.MonthlyInfo getMonthly(Long memberId, int year, int month) {
-
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 

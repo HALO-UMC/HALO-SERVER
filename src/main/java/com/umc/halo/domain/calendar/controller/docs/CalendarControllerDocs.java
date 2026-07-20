@@ -9,6 +9,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 
@@ -65,8 +68,8 @@ public interface CalendarControllerDocs {
     })
     ApiResponse<CalendarMonthlyResDTO.MonthlyInfo> getMonthly(
             @Parameter(hidden = true) Long memberId,
-            @Parameter(description = "조회 연도", example = "2025") int year,
-            @Parameter(description = "조회 월 (1~12)", example = "5") int month
+            @Parameter(description = "조회 연도", example = "2025") @RequestParam int year,
+            @Parameter(description = "조회 월 (1~12)", example = "5") @RequestParam @Min(1) @Max(12) int month
     );
 
     @Operation(
