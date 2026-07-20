@@ -357,7 +357,11 @@ public interface RecordControllerDocs {
                                                       "message": "완료된 장을 성공적으로 조회했습니다.",
                                                       "result": {
                                                         "memberChapterId": 10,
-                                                        "title": "다시 쓰는 당신의 프로필",
+                                                        "storybookTitle": "오래 전 당신",
+                                                        "chapterTitle": "나와 같은 나이였던 시절",
+                                                        "chapterOrder": 1,
+                                                        "description": "부모님을 한 사람으로 바라보는 첫 장입니다. 지금의 내 나이였을 때 부모님은 어떤 하루를 살고 있었는지 돌아봅니다.",
+                                                        "chapterImageUrl": "https://example.com/chapter1.png",
                                                         "emotion": "HAPPY",
                                                         "coverType": "SCENE_CARD",
                                                         "imageUrl": null,
