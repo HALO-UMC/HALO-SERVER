@@ -28,7 +28,7 @@ public interface StorybookControllerDocs {
 
                     **동작 방식**
                     1. 인증된 회원의 진행 중인 스토리북들을 조회합니다.
-                    2. 대표 스토리북(가장 최근에 진행 중인 것)의 진행 정보를 계산합니다.
+                    2. 진행 중인 스토리북 전체의 제목/진행 상황을 리스트로 계산합니다.
                     3. 전체 스토리북의 책장 상태(NOT_STARTED/IN_PROGRESS/COMPLETED)를 계산합니다.
                     4. 진행 중인 스토리북이 하나도 없으면 추천 스토리북을 함께 조회합니다.
                     5. 계산된 홈 화면 상태(homeStatus)와 함께 결과를 반환합니다.
@@ -49,14 +49,22 @@ public interface StorybookControllerDocs {
                                       "result": {
                                         "homeStatus": "MULTIPLE_IN_PROGRESS",
                                         "memberName": "김하로님",
-                                        "representativeStorybook": {
-                                          "storybookId": 3,
-                                          "title": "가족의 온도",
-                                          "currentChapterTitle": "나와 같은 나이였던 시절",
-                                          "currentChapterOrder": 1,
-                                          "todayAvailable": true
-                                        },
-                                        "otherInProgressCount": 1,
+                                        "inProgressStorybooks": [
+                                          {
+                                            "storybookId": 3,
+                                            "title": "가족의 온도",
+                                            "currentChapterOrder": 1,
+                                            "totalChapterCount": 10,
+                                            "todayAvailable": true
+                                          },
+                                          {
+                                            "storybookId": 4,
+                                            "title": "취향이 닿는 날",
+                                            "currentChapterOrder": 3,
+                                            "totalChapterCount": 10,
+                                            "todayAvailable": true
+                                          }
+                                        ],
                                         "bookshelf": [
                                           {
                                             "storybookId": 1,
@@ -178,6 +186,7 @@ public interface StorybookControllerDocs {
                     2. 회원의 장별 완료 여부를 조회합니다.
                     3. member_storybook의 lastCompletedDate로 오늘 완료 여부를 확인합니다.
                     4. 각 장의 상태(COMPLETED/TODAY/TODAY_LOCKED/LOCKED)를 계산하여 반환합니다.
+                    5. 완료한 장 수를 기준으로 전체 진행률(%)을 계산하여 함께 반환합니다.
                     """
     )
     @ApiResponses(value = {
@@ -197,6 +206,8 @@ public interface StorybookControllerDocs {
                                         "title": "취향이 닿는 날",
                                         "description": "좋아하는 것과 싫어하는 것을 하나씩 나누며, 서로의 취향이 닿는 순간들을 발견하는 이야기입니다.",
                                         "imageUrl": "https://example.com/storybook4.png",
+                                        "completedChapterCount": 1,
+                                        "progressPercentage": 10,
                                         "chapters": [
                                           {
                                             "chapterOrder": 1,
