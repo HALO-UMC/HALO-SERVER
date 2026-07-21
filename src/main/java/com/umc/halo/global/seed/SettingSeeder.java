@@ -26,13 +26,13 @@ public class SettingSeeder {
         List<Bgm> bgms = List.of(
                 Bgm.builder()
                         .title("산들 바람")
-                        .audioUrl("https://example.com/bgm1.mp3")
-                        .imageUrl("https://example.com/bgm1.png")
+                        .fileName("https://example.com/bgm1.mp3")
+                        .imageName("https://example.com/bgm1.png")
                         .build(),
                 Bgm.builder()
                         .title("따뜻한 오후")
-                        .audioUrl("https://example.com/bgm2.mp3")
-                        .imageUrl("https://example.com/bgm2.png")
+                        .fileName("https://example.com/bgm2.mp3")
+                        .imageName("https://example.com/bgm2.png")
                         .build()
         );
 
