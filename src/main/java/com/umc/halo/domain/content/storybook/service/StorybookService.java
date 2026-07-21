@@ -101,7 +101,10 @@ public class StorybookService {
             chapterInfos.add(StorybookConverter.toChapterInfo(sc, status));
         }
 
-        return StorybookConverter.toStorybookDetail(storybook, chapterInfos);
+        int completedChapterCount = completedChapterIds.size();
+        int progressPercentage = completedChapterCount * 10;
+
+        return StorybookConverter.toStorybookDetail(storybook, chapterInfos, completedChapterCount, progressPercentage);
     }
 
     @Transactional
@@ -252,36 +255,23 @@ public class StorybookService {
                 .toList();
 
         HomeStatus homeStatus;
-        StorybookResDTO.RepresentativeStorybook representativeStorybook = null;
-        int otherInProgressCount = 0;
+        List<StorybookResDTO.InProgressStorybook> inProgressStorybooks = new ArrayList<>();
 
         if (activeStorybooks.isEmpty()) {
             homeStatus = HomeStatus.NO_STORYBOOK;
         } else {
-            Storybook representative = activeStorybooks.get(0);
-            StorybookStatus repStatus = statusMap.get(representative);
-            MemberStorybook repMemberStorybook = memberStorybookMap.get(representative.getId());
-
-            Integer chapterOrder = repMemberStorybook.getLastChapterOrder();
-            String chapterTitle = storybookChapterRepository
-                    .findByStorybook_IdAndChapterOrder(representative.getId(), chapterOrder)
-                    .map(sc -> sc.getChapter().getTitle())
-                    .orElse(null);
-
-            representativeStorybook = StorybookConverter.toRepresentativeStorybook(
-                    representative, chapterTitle, chapterOrder, repStatus == StorybookStatus.IN_PROGRESS);
-
-            otherInProgressCount = activeStorybooks.size() - 1;
-
             boolean allTodayDone = activeStorybooks.stream()
                     .allMatch(sb -> statusMap.get(sb) == StorybookStatus.TODAY_DONE);
 
-            if (allTodayDone) {
-                homeStatus = HomeStatus.ALL_COMPLETED_TODAY;
-            } else if (activeStorybooks.size() == 1) {
-                homeStatus = HomeStatus.IN_PROGRESS;
-            } else {
-                homeStatus = HomeStatus.MULTIPLE_IN_PROGRESS;
+            homeStatus = allTodayDone ? HomeStatus.ALL_COMPLETED_TODAY
+                    : activeStorybooks.size() == 1 ? HomeStatus.IN_PROGRESS
+                    : HomeStatus.MULTIPLE_IN_PROGRESS;
+
+            for (Storybook sb : activeStorybooks) {
+                MemberStorybook memberStorybook = memberStorybookMap.get(sb.getId());
+                Integer chapterOrder = memberStorybook.getLastChapterOrder();
+                boolean todayAvailable = statusMap.get(sb) == StorybookStatus.IN_PROGRESS;
+                inProgressStorybooks.add(StorybookConverter.toInProgressStorybook(sb, chapterOrder, todayAvailable));
             }
         }
 
@@ -300,8 +290,7 @@ public class StorybookService {
         return StorybookConverter.toHome(
                 homeStatus,
                 member.getName() + "님",
-                representativeStorybook,
-                otherInProgressCount,
+                inProgressStorybooks,
                 bookshelf,
                 recommendedStorybooks
         );

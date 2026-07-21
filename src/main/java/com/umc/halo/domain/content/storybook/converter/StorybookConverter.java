@@ -30,12 +30,15 @@ public class StorybookConverter {
     }
 
     public static StorybookResDTO.GetStorybookDetail toStorybookDetail(
-            Storybook storybook, List<StorybookResDTO.ChapterInfo> chapterInfos) {
+            Storybook storybook, List<StorybookResDTO.ChapterInfo> chapterInfos,
+            int completedChapterCount, int progressPercentage) {
         return StorybookResDTO.GetStorybookDetail.builder()
                 .storybookId(storybook.getId())
                 .title(storybook.getTitle())
                 .description(storybook.getDescription())
                 .imageUrl(storybook.getImageUrl())
+                .completedChapterCount(completedChapterCount)
+                .progressPercentage(progressPercentage)
                 .chapters(chapterInfos)
                 .build();
     }
@@ -126,13 +129,13 @@ public class StorybookConverter {
                 .build();
     }
 
-    public static StorybookResDTO.RepresentativeStorybook toRepresentativeStorybook(
-            Storybook representative, String chapterTitle, Integer chapterOrder, boolean todayAvailable) {
-        return StorybookResDTO.RepresentativeStorybook.builder()
-                .storybookId(representative.getId())
-                .title(representative.getTitle())
-                .currentChapterTitle(chapterTitle)
-                .currentChapterOrder(chapterOrder)
+    public static StorybookResDTO.InProgressStorybook toInProgressStorybook(
+            Storybook storybook, Integer currentChapterOrder, boolean todayAvailable) {
+        return StorybookResDTO.InProgressStorybook.builder()
+                .storybookId(storybook.getId())
+                .title(storybook.getTitle())
+                .currentChapterOrder(currentChapterOrder)
+                .totalChapterCount(10)
                 .todayAvailable(todayAvailable)
                 .build();
     }
@@ -150,15 +153,13 @@ public class StorybookConverter {
     public static StorybookResDTO.GetHome toHome(
             HomeStatus homeStatus,
             String memberName,
-            StorybookResDTO.RepresentativeStorybook representativeStorybook,
-            int otherInProgressCount,
+            List<StorybookResDTO.InProgressStorybook> inProgressStorybooks,
             List<StorybookResDTO.BookshelfItem> bookshelf,
             List<StorybookResDTO.RecommendedStorybook> recommendedStorybooks) {
         return StorybookResDTO.GetHome.builder()
                 .homeStatus(homeStatus)
                 .memberName(memberName)
-                .representativeStorybook(representativeStorybook)
-                .otherInProgressCount(otherInProgressCount)
+                .inProgressStorybooks(inProgressStorybooks)
                 .bookshelf(bookshelf)
                 .recommendedStorybooks(recommendedStorybooks)
                 .build();
