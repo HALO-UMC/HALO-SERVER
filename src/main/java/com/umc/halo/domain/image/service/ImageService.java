@@ -65,8 +65,20 @@ public class ImageService {
     // DB에 저장시 
     public FinalizedImage finalizeImage(Long memberId, String imageKey) {
 
-        // pending/images 가 아닐 경우에도 통과
-        if (imageKey == null || !imageKey.startsWith(PENDING_PREFIX)) {
+        if (imageKey == null) {
+            return new FinalizedImage(null, null);
+        }
+
+        // 이미 finalize된 imageKey인 경우 소유권 및 실재 여부 확인
+        if (!imageKey.startsWith(PENDING_PREFIX)) {
+            if (!imageKey.startsWith("images/" + memberId + "/")) {
+                throw new ImageException(ImageErrorCode.FORBIDDEN_IMAGE_KEY);
+            }
+            try {
+                s3Client.headObject(ImageConverter.toHeadObjectRequest(bucket, imageKey));
+            } catch (NoSuchKeyException e) {
+                throw new ImageException(ImageErrorCode.NOT_FOUND_IN_S3);
+            }
             return new FinalizedImage(imageKey, buildImageUrl(imageKey));
         }
 
