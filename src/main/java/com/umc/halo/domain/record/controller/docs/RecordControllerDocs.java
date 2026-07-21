@@ -316,7 +316,7 @@ public interface RecordControllerDocs {
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
-                                                                "code": "IMAGE404_3",
+                                                                "code": "IMAGE404_1",
                                                                 "message": "S3에 해당 이미지가 존재하지 않습니다.",
                                                                 "result": null
                                                             }
