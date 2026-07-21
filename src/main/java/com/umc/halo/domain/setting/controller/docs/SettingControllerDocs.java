@@ -109,20 +109,20 @@ public interface SettingControllerDocs {
                                            {
                                              "bgmId": 1,
                                              "title": "산들바람1",
-                                             "audioUrl": "http://www.bgm-example1.com",
-                                             "imageUrl": "http://www.img-example1.com"
+                                             "fileName": "http://www.bgm-example1.com",
+                                             "imageName": "http://www.img-example1.com"
                                            },
                                            {
                                              "bgmId": 2,
                                              "title": "산들바람2",
-                                             "audioUrl": "http://www.bgm-example2.com",
-                                             "imageUrl": "http://www.img-example2.com"
+                                             "fileName": "http://www.bgm-example2.com",
+                                             "imageName": "http://www.img-example2.com"
                                            },
                                            {
                                              "bgmId": 3,
                                              "title": "산들바람3",
-                                             "audioUrl": "http://www.bgm-example3.com",
-                                             "imageUrl": "http://www.img-example3.com"
+                                             "fileName": "http://www.bgm-example3.com",
+                                             "imageName": "http://www.img-example3.com"
                                            },
                                            .
                                            .
