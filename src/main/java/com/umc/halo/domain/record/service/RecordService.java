@@ -129,20 +129,19 @@ public class RecordService {
             }
         }
 
-        String imageUrl = finalizedImage != null ? finalizedImage.imageUrl() : null;
         String imageKey = finalizedImage != null ? finalizedImage.finalKey() : null;
 
         // MemberChapter 없으면 생성, 있으면 수정
         if (memberChapter == null) {
             try {
-                memberChapter = RecordConverter.toMemberChapter(member, storybookChapter, sceneCard, recordReqDTO, imageUrl, imageKey);
+                memberChapter = RecordConverter.toMemberChapter(member, storybookChapter, sceneCard, recordReqDTO, imageKey);
                 memberChapterRepository.save(memberChapter);
             } catch (DataIntegrityViolationException e) {
                 throw new RecordException(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER);
             }
         } else {
             memberChapter.updateRecord(storybookChapter, sceneCard, recordReqDTO.emotion(),
-                    recordReqDTO.coverType(), imageUrl, imageKey, recordReqDTO.status());
+                    recordReqDTO.coverType(), imageKey, recordReqDTO.status());
         }
 
         final MemberChapter resolvedMemberChapter = memberChapter;

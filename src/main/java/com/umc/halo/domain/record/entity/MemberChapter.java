@@ -46,9 +46,6 @@ public class MemberChapter extends BaseEntity {
     @Column(name = "cover_type")
     private CoverType coverType;
 
-    @Column(name = "image_url", length = 255)
-    private String imageUrl;
-
     @Column(name = "image_key", length = 255)
     private String imageKey;
 
@@ -63,13 +60,12 @@ public class MemberChapter extends BaseEntity {
     private Status status;
 
     public void updateRecord(StorybookChapter storybookChapter, SceneCard sceneCard, Emotion emotion,
-                             CoverType coverType, String imageUrl, String imageKey, Status status) {
+                             CoverType coverType, String imageKey, Status status) {
 
         this.storybookChapter = storybookChapter;
         this.sceneCard = sceneCard;
         this.emotion = emotion;
         this.coverType = coverType;
-        this.imageUrl = imageUrl;
         this.imageKey = imageKey;
         this.status = status;
         this.completedDate = (status == Status.COMPLETED) ? LocalDate.now() : null;
