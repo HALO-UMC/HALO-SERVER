@@ -5,7 +5,9 @@ import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.record.entity.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.*;
-
+import com.umc.halo.domain.record.enums.Status;
+import org.springframework.data.repository.query.Param;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -16,4 +18,17 @@ public interface MemberChapterRepository extends JpaRepository<MemberChapter, Lo
     MemberChapter findByMemberAndStorybookChapter(Member member, StorybookChapter storybookChapter);
 
     void deleteByMemberId(Long memberId);
+
+    //월별 입니다!
+    List<MemberChapter> findByMemberAndStatusAndCompletedDateBetween(
+            Member member, Status status, LocalDate startDate, LocalDate endDate);
+    //일별 입니다
+    @Query("select mc from MemberChapter mc " +
+            "join fetch mc.storybookChapter sc " +
+            "join fetch sc.storybook " +
+            "where mc.member = :member and mc.status = :status and mc.completedDate = :date")
+    List<MemberChapter> findDailyWithStorybook(
+            @Param("member") Member member,
+            @Param("status") Status status,
+            @Param("date") LocalDate date);
 }
