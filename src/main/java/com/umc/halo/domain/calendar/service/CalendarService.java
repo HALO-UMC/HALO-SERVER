@@ -71,6 +71,9 @@ public class CalendarService {
 
         int inProgressStorybookCount = (int) memberStorybooks.stream()
                 .filter(ms -> ms.getLastChapterOrder() < TOTAL_CHAPTER_COUNT)
+                .filter(ms -> ms.getLastCompletedDate() != null
+                        && !ms.getLastCompletedDate().isBefore(startDate)
+                        && !ms.getLastCompletedDate().isAfter(endDate))
                 .count();
 
         CalendarMonthlyResDTO.Stats stats = CalendarConverter.toStats(
@@ -88,7 +91,7 @@ public class CalendarService {
 
         List<MemberChapter> dayChapters = memberChapterRepository
                 .findDailyWithStorybook(member, Status.COMPLETED, date).stream()
-                .sorted(Comparator.comparing(MemberChapter::getId).reversed())
+                .sorted(Comparator.comparing(MemberChapter::getUpdatedAt).reversed())
                 .toList();
 
         Map<Long, MemberStorybook> progressByStorybookId = memberStorybookRepository
