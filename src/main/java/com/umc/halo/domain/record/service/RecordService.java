@@ -75,7 +75,7 @@ public class RecordService {
                 storybookChapter.getChapterOrder(), memberChapter, memberStorybook);
 
         // CoverType 확인
-        ImageService.FinalizedImage finalizedImage = null;
+        String imageKey = null;
         if (recordReqDTO.coverType() != null) {
             if (recordReqDTO.coverType() == CoverType.IMAGE) {
                 if (recordReqDTO.sceneCardId() != null) {
@@ -84,7 +84,12 @@ public class RecordService {
                 if ((recordReqDTO.imageUrl() == null) || (recordReqDTO.imageKey() == null)) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
-                finalizedImage = imageService.finalizeImage(memberId, recordReqDTO.imageKey());
+                // 기존 기록의 imageKey와 동일하면 그대로 사용
+                if (memberChapter != null && recordReqDTO.imageKey().equals(memberChapter.getImageKey())) {
+                    imageKey = memberChapter.getImageKey();
+                } else {
+                    imageKey = imageService.finalizeImage(memberId, recordReqDTO.imageKey()).finalKey();
+                }
             } else {
                 if ((recordReqDTO.imageKey() != null) || (recordReqDTO.imageUrl() != null)) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
@@ -128,8 +133,6 @@ public class RecordService {
                 throw new ChapterException(ChapterErrorCode.UNMATCHED_SCENE_CARD);
             }
         }
-
-        String imageKey = finalizedImage != null ? finalizedImage.finalKey() : null;
 
         // MemberChapter 없으면 생성, 있으면 수정
         if (memberChapter == null) {
