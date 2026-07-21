@@ -23,8 +23,8 @@ spring:
       s3:
         bucket: ${S3_BUCKET_NAME}
       credentials:
-        accessKey: ${S3_BUCKET_ACCESS_KEY}
-        secretKey: ${S3_BUCKET_SECRET_KEY}
+        access-key: ${S3_BUCKET_ACCESS_KEY}
+        secret-key: ${S3_BUCKET_SECRET_KEY}
       region:
         static: ap-northeast-2
 
