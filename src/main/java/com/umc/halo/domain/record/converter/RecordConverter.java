@@ -21,10 +21,15 @@ public class RecordConverter {
 
     public static RecordResDTO.ReadChapterRecord toReadChapterRecord(MemberChapter memberChapter, List<RecordResDTO.ReadChapterRecord.Answer> answer) {
         CoverType coverType = memberChapter.getCoverType();
+        Chapter chapter = memberChapter.getStorybookChapter().getChapter();
 
         return RecordResDTO.ReadChapterRecord.builder()
                 .memberChapterId(memberChapter.getId())
-                .title(memberChapter.getStorybookChapter().getChapter().getTitle())
+                .storybookTitle(memberChapter.getStorybookChapter().getStorybook().getTitle())
+                .chapterTitle(chapter.getTitle())
+                .chapterOrder(memberChapter.getStorybookChapter().getChapterOrder())
+                .description(chapter.getDescription())
+                .chapterImageUrl(chapter.getImageUrl())
                 .emotion(memberChapter.getEmotion())
                 .coverType(coverType)
                 .imageUrl(coverType == CoverType.IMAGE ? memberChapter.getImageUrl() : null)
