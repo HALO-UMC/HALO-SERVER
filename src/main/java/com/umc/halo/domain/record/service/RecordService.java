@@ -98,6 +98,10 @@ public class RecordService {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
             }
+        } else {
+            if ((recordReqDTO.sceneCardId() != null) || (recordReqDTO.imageKey() != null) || (recordReqDTO.imageUrl() != null)) {
+                throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
+            }
         }
 
         // COMPLETED 상태일 경우 필수값 검증
