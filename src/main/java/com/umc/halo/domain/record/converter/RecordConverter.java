@@ -46,14 +46,15 @@ public class RecordConverter {
                 .build();
     }
 
-    public static MemberChapter toMemberChapter(Member member, StorybookChapter storybookChapter, SceneCard sceneCard, RecordReqDTO.WriteChapterRecord recordReqDTO) {
+    public static MemberChapter toMemberChapter(Member member, StorybookChapter storybookChapter, SceneCard sceneCard,
+                                                 RecordReqDTO.WriteChapterRecord recordReqDTO, String imageUrl, String imageKey) {
         return MemberChapter.builder()
                 .member(member)
                 .storybookChapter(storybookChapter)
                 .sceneCard(sceneCard)
                 .coverType(recordReqDTO.coverType())
-                .imageUrl(recordReqDTO.imageUrl())
-                .imageKey(recordReqDTO.imageKey())
+                .imageUrl(imageUrl)
+                .imageKey(imageKey)
                 .status(recordReqDTO.status())
                 .emotion(recordReqDTO.emotion())
                 .completedDate(recordReqDTO.status() == Status.COMPLETED ? LocalDate.now() : null)

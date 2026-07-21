@@ -7,6 +7,7 @@ import com.umc.halo.domain.content.chapter.repository.*;
 import com.umc.halo.domain.content.chapter.service.*;
 import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.content.storybook.repository.*;
+import com.umc.halo.domain.image.service.*;
 import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.member.exception.*;
 import com.umc.halo.domain.member.exception.code.*;
@@ -41,6 +42,7 @@ public class RecordService {
     private final ChapterQuestionRepository chapterQuestionRepository;
     private final ChapterService chapterService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ImageService imageService;
 
     @Transactional
     public RecordResDTO.WriteChapterRecord writeChapterRecord(Long memberId, RecordReqDTO.WriteChapterRecord recordReqDTO) {
@@ -73,6 +75,7 @@ public class RecordService {
                 storybookChapter.getChapterOrder(), memberChapter, memberStorybook);
 
         // CoverType 확인
+        ImageService.FinalizedImage finalizedImage = null;
         if (recordReqDTO.coverType() != null) {
             if (recordReqDTO.coverType() == CoverType.IMAGE) {
                 if (recordReqDTO.sceneCardId() != null) {
@@ -81,6 +84,7 @@ public class RecordService {
                 if ((recordReqDTO.imageUrl() == null) || (recordReqDTO.imageKey() == null)) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
+                finalizedImage = imageService.finalizeImage(memberId, recordReqDTO.imageKey());
             } else {
                 if ((recordReqDTO.imageKey() != null) || (recordReqDTO.imageUrl() != null)) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
@@ -125,17 +129,20 @@ public class RecordService {
             }
         }
 
+        String imageUrl = finalizedImage != null ? finalizedImage.imageUrl() : null;
+        String imageKey = finalizedImage != null ? finalizedImage.finalKey() : null;
+
         // MemberChapter 없으면 생성, 있으면 수정
         if (memberChapter == null) {
             try {
-                memberChapter = RecordConverter.toMemberChapter(member, storybookChapter, sceneCard, recordReqDTO);
+                memberChapter = RecordConverter.toMemberChapter(member, storybookChapter, sceneCard, recordReqDTO, imageUrl, imageKey);
                 memberChapterRepository.save(memberChapter);
             } catch (DataIntegrityViolationException e) {
                 throw new RecordException(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER);
             }
         } else {
             memberChapter.updateRecord(storybookChapter, sceneCard, recordReqDTO.emotion(),
-                    recordReqDTO.coverType(), recordReqDTO.imageUrl(), recordReqDTO.imageKey(), recordReqDTO.status());
+                    recordReqDTO.coverType(), imageUrl, imageKey, recordReqDTO.status());
         }
 
         final MemberChapter resolvedMemberChapter = memberChapter;

@@ -81,6 +81,7 @@ public class ChapterConverter {
                 .answers(answers.stream().map(ChapterConverter::toAnswer).toList())
                 .coverType(memberChapter.getCoverType())
                 .imageUrl(memberChapter.getImageUrl())
+                .imageKey(memberChapter.getImageKey())
                 .sceneCardId(sceneCard == null ? null : sceneCard.getId())
                 .emotion(memberChapter.getEmotion())
                 .build();

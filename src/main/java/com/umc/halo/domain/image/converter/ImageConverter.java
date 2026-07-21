@@ -9,11 +9,12 @@ import java.time.*;
 
 public class ImageConverter {
 
-    public static PutObjectRequest toPutObjectRequest(String bucket, String imageKey, ImageContentType contentType) {
+    public static PutObjectRequest toPutObjectRequest(String bucket, String imageKey, ImageContentType contentType, long fileSize) {
         return PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(imageKey)
                 .contentType(contentType.getMimeType())
+                .contentLength(fileSize)
                 .build();
     }
 
@@ -31,6 +32,29 @@ public class ImageConverter {
                 .imageKey(imageKey)
                 .imageUrl(imageUrl)
                 .expires((int) expiration.toSeconds())
+                .build();
+    }
+
+    public static CopyObjectRequest toCopyObjectRequest(String bucket, String imageKey, String finalKey) {
+        return CopyObjectRequest.builder()
+                .sourceBucket(bucket)
+                .sourceKey(imageKey)
+                .destinationBucket(bucket)
+                .destinationKey(finalKey)
+                .build();
+    }
+
+    public static DeleteObjectRequest toDeleteObjectRequest(String bucket, String imageKey) {
+        return DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(imageKey)
+                .build();
+    }
+
+    public static HeadObjectRequest toHeadObjectRequest(String bucket, String imageKey) {
+        return HeadObjectRequest.builder()
+                .bucket(bucket)
+                .key(imageKey)
                 .build();
     }
 }

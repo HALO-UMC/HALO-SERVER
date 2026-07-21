@@ -48,6 +48,7 @@ public class ChapterResDTO {
                 List<Answer> answers,
                 CoverType coverType,
                 String imageUrl,
+                String imageKey,
                 Long sceneCardId,
                 Emotion emotion
         ) {
