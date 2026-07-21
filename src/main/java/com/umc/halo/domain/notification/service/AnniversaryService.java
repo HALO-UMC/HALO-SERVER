@@ -78,12 +78,7 @@ public class AnniversaryService {
                     if (nextOccurrence == null) {
                         return null;
                     }
-                    return AnniversaryResDTO.Upcoming.builder()
-                            .anniversaryId(null)
-                            .title(commonAnniversary.getTitle())
-                            .anniversaryDate(nextOccurrence)
-                            .dDay((int) java.time.temporal.ChronoUnit.DAYS.between(today, nextOccurrence))
-                            .build();
+                    return AnniversaryConverter.toUpcomingFromCommon(commonAnniversary, nextOccurrence, today);
                 })
                 .filter(Objects::nonNull)
                 .toList();

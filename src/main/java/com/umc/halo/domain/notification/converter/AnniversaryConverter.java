@@ -37,6 +37,15 @@ public class AnniversaryConverter {
                 .build();
     }
 
+    public static AnniversaryResDTO.Upcoming toUpcomingFromCommon(CommonAnniversary commonAnniversary, LocalDate nextOccurrence, LocalDate today) {
+        return AnniversaryResDTO.Upcoming.builder()
+                .anniversaryId(null)
+                .title(commonAnniversary.getTitle())
+                .anniversaryDate(nextOccurrence)
+                .dDay((int) ChronoUnit.DAYS.between(today, nextOccurrence))
+                .build();
+    }
+
     public static AnniversaryResDTO.MyAnniversary toMyAnniversary(Anniversary anniversary) {
         return AnniversaryResDTO.MyAnniversary.builder()
                 .anniversaryId(anniversary.getId())
