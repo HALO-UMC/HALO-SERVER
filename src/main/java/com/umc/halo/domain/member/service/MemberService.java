@@ -16,6 +16,8 @@ import com.umc.halo.domain.notification.repository.NotificationRepository;
 import com.umc.halo.domain.record.repository.MemberChapterAnswerRepository;
 import com.umc.halo.domain.record.repository.MemberChapterRepository;
 import com.umc.halo.domain.record.repository.MemberStorybookRepository;
+import com.umc.halo.domain.setting.converter.SettingConverter;
+import com.umc.halo.domain.setting.entity.MemberSetting;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.domain.tag.repository.MemberTagRepository;
 import com.umc.halo.domain.term.repository.MemberTermRepository;
@@ -67,6 +69,10 @@ public class MemberService {
             try{
                 member = MemberConverter.toMember(provider, oidcUserInfo);
                 memberRepository.save(member);
+
+                MemberSetting memberSetting = SettingConverter.toMemberSetting(member);
+                memberSettingRepository.save(memberSetting);
+
                 isNewUser = true;
             } catch (DataIntegrityViolationException e) {
                 member = memberRepository.findByProviderAndProviderIdForUpdate(provider, oidcUserInfo.providerId()).orElseThrow(() -> e);
