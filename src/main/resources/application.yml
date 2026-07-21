@@ -18,6 +18,16 @@ spring:
       hibernate:
         format_sql: true
 
+  cloud:
+    aws:
+      s3:
+        bucket: ${S3_BUCKET_NAME}
+      credentials:
+        accessKey: ${S3_BUCKET_ACCESS_KEY}
+        secretKey: ${S3_BUCKET_SECRET_KEY}
+      region:
+        static: ap-northeast-2
+
 logging:
   level:
     root: info
@@ -43,3 +53,4 @@ google:
 gemini:
   api-key: ${GEMINI_API_KEY}
   model: gemini-flash-lite-latest
+

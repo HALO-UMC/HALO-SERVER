@@ -49,6 +49,10 @@ dependencies {
 
     // Korean Lunar Calendar
     implementation 'com.github.usingsky:KoreanLunarCalendar:0.4.0'
+
+    // S3
+    implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:4.0.2")
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 }
 
 tasks.named('test') {

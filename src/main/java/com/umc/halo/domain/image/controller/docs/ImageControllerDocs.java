@@ -1,0 +1,112 @@
+package com.umc.halo.domain.image.controller.docs;
+
+import com.umc.halo.domain.image.dto.*;
+import com.umc.halo.global.apiPayload.ApiResponse;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.media.*;
+import io.swagger.v3.oas.annotations.responses.*;
+import io.swagger.v3.oas.annotations.tags.*;
+import org.springframework.security.core.annotation.*;
+import org.springframework.web.bind.annotation.*;
+
+@Tag(name = "이미지 API")
+public interface ImageControllerDocs {
+
+    // presigned URL 발급
+    @Operation(
+            summary = "presigned URL 발급 API",
+            description = """
+                    # presigned URL 발급
+                    이미지를 S3에 직접 업로드할 수 있는 presigned URL을 발급합니다. 실제 파일 업로드는 서버를 거치지 않고 클라이언트가 이 URL로 S3에 직접 PUT합니다.
+                    
+                    ## 요청 형식
+                    - **Header**
+                        - Content-Type: application/json
+                        - Authorization: Bearer {Access Token}
+                    - **Body**
+                        - contentType : 업로드할 이미지의 MIME 타입 (image/png, image/jpeg, image/jpg, image/webp만 허용)
+                    
+                    ## 동작 방식
+                    1. Access Token으로 현재 회원을 인증합니다.
+                    2. contentType이 허용된 이미지 형식인지 검증합니다.
+                    3. 회원별로 구분되는 imageKey를 생성합니다.
+                    4. 5분간 유효한 presigned URL을 발급합니다.
+                    5. 클라이언트는 이 presignedUrl로 S3에 직접 PUT하여 이미지를 업로드합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": true,
+                                        "code": "IMAGE200_1",
+                                        "message": "presigned URL을 성공적으로 발급했습니다.",
+                                        "result": {
+                                            "presignedUrl": "https://halo-bucket.s3.ap-northeast-2.amazonaws.com/images/1/9f1c2e3a-....png?X-Amz-Algorithm=...",
+                                            "imageUrl": "https://halo-bucket.s3.ap-northeast-2.amazonaws.com/images/1/9f1c2e3a-....png",
+                                            "imageKey": "images/1/9f1c2e3a-....png",
+                                            "expires": 300
+                                        }
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 요청",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "지원하지 않는 파일 형식",
+                                            value = """
+                                                    {
+                                                        "isSuccess": false,
+                                                        "code": "IMAGE400_1",
+                                                        "message": "지원하지 않는 파일 형식입니다.",
+                                                        "result": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "contentType이 비어있음",
+                                            value = """
+                                                    {
+                                                        "isSuccess": false,
+                                                        "code": "COMMON400_1",
+                                                        "message": "잘못된 요청입니다.",
+                                                        "result": {
+                                                            "contentType": "contentType을 입력해주세요."
+                                                        }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "AUTH401_1",
+                                        "message": "토큰이 만료되었습니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            )
+    })
+    ApiResponse<ImageResDTO.CreatePresignedUrl> createPresignedUrl(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
+            @RequestBody ImageReqDTO.CreatePresignedUrl dto);
+}
