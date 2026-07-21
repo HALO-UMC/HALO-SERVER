@@ -62,14 +62,12 @@ public class NotificationSeeder {
                         .member(member.get("김하로"))
                         .title("아버지 생신")
                         .anniversaryDate(LocalDate.of(2026, 9, 12))
-                        .target(Target.FATHER)
                         .memo("아버지 생신! 열심히 준비해야겠다!")
                         .build(),
                 Anniversary.builder()
                         .member(member.get("이온"))
                         .title("어머니 생신")
                         .anniversaryDate(LocalDate.of(2026, 11, 20))
-                        .target(Target.MOTHER)
                         .memo("어머니 생신! 이번에는 더 특별히 준비해야지!")
                         .build()
         );

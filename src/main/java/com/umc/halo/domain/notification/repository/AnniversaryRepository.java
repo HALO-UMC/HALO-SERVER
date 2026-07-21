@@ -1,10 +1,14 @@
 package com.umc.halo.domain.notification.repository;
 
-import com.umc.halo.domain.notification.entity.*;
-import org.springframework.data.jpa.repository.*;
-import org.springframework.stereotype.*;
+import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.domain.notification.entity.Anniversary;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
+import java.util.List;
+
 public interface AnniversaryRepository extends JpaRepository<Anniversary, Long> {
+
+    List<Anniversary> findAllByMemberOrderByAnniversaryDateAsc(Member member);
+
     void deleteByMemberId(Long memberId);
 }

@@ -1,0 +1,10 @@
+package com.umc.halo.domain.notification.exception;
+
+import com.umc.halo.global.apiPayload.exception.ProjectException;
+
+public class AnniversaryException extends ProjectException {
+
+    public AnniversaryException(AnniversaryErrorCode errorCode) {
+        super(errorCode);
+    }
+}
