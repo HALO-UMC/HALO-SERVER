@@ -65,6 +65,7 @@ public interface ChapterControllerDocs {
                                                                   ],
                                                                   "coverType": null,
                                                                   "imageUrl": null,
+                                                                  "imageKey": null,
                                                                   "sceneCardId": null,
                                                                   "emotion": null
                                                                 }
@@ -103,6 +104,7 @@ public interface ChapterControllerDocs {
                                                                   "answers": [],
                                                                   "coverType": null,
                                                                   "imageUrl": null,
+                                                                  "imageKey": null,
                                                                   "sceneCardId": null,
                                                                   "emotion": null
                                                                 }
