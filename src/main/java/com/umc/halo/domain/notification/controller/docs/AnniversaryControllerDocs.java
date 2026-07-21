@@ -4,6 +4,10 @@ import com.umc.halo.domain.notification.dto.AnniversaryReqDTO;
 import com.umc.halo.domain.notification.dto.AnniversaryResDTO;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,21 +41,52 @@ public interface AnniversaryControllerDocs {
                     사용자가 새로운 기념일을 등록합니다.
 
                     **요청 형식**
-                    ```json
-                    {
-                      "title": "엄마랑 여행 가는 날",
-                      "anniversaryDate": "2026-06-27",
-                      "sevenDaysAlarmEnabled": true,
-                      "dayAlarmEnabled": true,
-                      "memo": "어머니랑 여행을 가기로 한 날, 처음으로 여행을 가기로 해서 너무 떨린다."
-                    }
-                    ```
+                    - title: 기념일명 (필수, 20자 이하)
+                    - anniversaryDate: 날짜 (필수)
+                    - sevenDaysAlarmEnabled: D-7 알림 여부 (필수)
+                    - dayAlarmEnabled: 당일 알림 여부 (필수)
+                    - memo: 메모 (선택, 255자 이하)
 
                     **동작 방식**
                     1. 기념일명, 날짜, 알림 설정을 필수로 입력받습니다.
                     2. 메모는 선택 입력이며 255자 이하로 제한됩니다.
                     3. 요청 값을 기반으로 기념일을 저장하고, 생성된 기념일의 ID를 반환합니다.
                     """)
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "201",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": true,
+                                      "code": "ANNIVERSARY201_1",
+                                      "message": "기념일이 성공적으로 생성되었습니다.",
+                                      "result": {
+                                        "anniversaryId": 5
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 회원",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER404_1",
+                                      "message": "존재하지 않는 회원입니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
     ApiResponse<AnniversaryResDTO.CreateAnniversary> createAnniversary(
             @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody AnniversaryReqDTO.Create request
@@ -63,22 +98,68 @@ public interface AnniversaryControllerDocs {
                     사용자가 등록한 기념일 정보를 수정합니다.
 
                     **요청 형식**
-                    - Path Variable: `anniversaryId` (수정할 기념일 ID)
-                    ```json
-                    {
-                      "title": "엄마랑 여행 가는 날",
-                      "anniversaryDate": "2026-06-27",
-                      "sevenDaysAlarmEnabled": true,
-                      "dayAlarmEnabled": true,
-                      "memo": "어머니랑 여행을 가기로 한 날, 처음으로 여행을 가기로 해서 너무 떨린다."
-                    }
-                    ```
+                    - Path Variable: anniversaryId (수정할 기념일 ID)
+                    - title: 기념일명 (필수, 20자 이하)
+                    - anniversaryDate: 날짜 (필수)
+                    - sevenDaysAlarmEnabled: D-7 알림 여부 (필수)
+                    - dayAlarmEnabled: 당일 알림 여부 (필수)
+                    - memo: 메모 (선택, 255자 이하)
 
                     **동작 방식**
                     1. 요청한 기념일이 존재하는지 확인하고, 존재하지 않으면 404 예외를 반환합니다.
                     2. 해당 기념일이 로그인한 회원 소유인지 확인하고, 본인 소유가 아니면 403 예외를 반환합니다.
                     3. 검증을 통과하면 요청 값으로 기념일 정보를 갱신합니다.
                     """)
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": true,
+                                      "code": "ANNIVERSARY200_2",
+                                      "message": "기념일이 성공적으로 수정되었습니다.",
+                                      "result": {
+                                        "anniversaryId": 5
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 기념일",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "ANNIVERSARY404_1",
+                                      "message": "존재하지 않는 일정입니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "본인 소유가 아닌 기념일",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "ANNIVERSARY403_1",
+                                      "message": "해당 기념일에 대한 권한이 없습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
     ApiResponse<AnniversaryResDTO.UpdateAnniversary> updateAnniversary(
             @AuthenticationPrincipal Long memberId,
             @PathVariable Long anniversaryId,
@@ -91,17 +172,61 @@ public interface AnniversaryControllerDocs {
                     사용자가 등록한 기념일을 하나 이상 선택하여 한 번에 삭제합니다.
 
                     **요청 형식**
-                    ```json
-                    {
-                      "anniversaryIds": [1, 2, 5]
-                    }
-                    ```
+                    - anniversaryIds: 삭제할 기념일 ID 목록 (필수, 예: [1, 2, 5])
 
                     **동작 방식**
                     1. 요청한 ID 목록이 모두 존재하는지 확인하고, 하나라도 존재하지 않으면 404 예외를 반환합니다.
                     2. 요청한 ID가 모두 로그인한 회원 소유인지 확인하고, 하나라도 본인 소유가 아니면 403 예외를 반환합니다.
                     3. 검증을 통과하면 요청한 기념일을 모두 삭제합니다. (부분 삭제는 지원하지 않으며, 검증 실패 시 전체가 실패합니다.)
                     """)
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": true,
+                                      "code": "ANNIVERSARY200_3",
+                                      "message": "기념일이 성공적으로 삭제되었습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 기념일 포함",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "ANNIVERSARY404_1",
+                                      "message": "존재하지 않는 일정입니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "본인 소유가 아닌 기념일 포함",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "ANNIVERSARY403_1",
+                                      "message": "해당 기념일에 대한 권한이 없습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
     ApiResponse<Void> deleteAnniversaries(
             @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody AnniversaryReqDTO.Delete request
