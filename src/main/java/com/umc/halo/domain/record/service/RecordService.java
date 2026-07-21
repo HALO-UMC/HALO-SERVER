@@ -214,6 +214,12 @@ public class RecordService {
         MemberChapter memberChapter = memberChapterRepository.findById(memberChapterId)
                 .orElseThrow(() -> new RecordException(RecordErrorCode.NOT_FOUND_MEMBER_CHAPTER));
 
+        // 사용자가 기록한 이미지 조회
+        String imageUrl = null;
+        if (memberChapter.getCoverType() == CoverType.IMAGE) {
+            imageUrl = imageService.getImage(memberChapter.getImageKey());
+        }
+
         // member의 memberChapter인지 검증
         if (!memberChapter.getMember().getId().equals(member.getId())) {
             throw new RecordException(RecordErrorCode.NOT_FOUND_MEMBER_CHAPTER);
@@ -230,6 +236,6 @@ public class RecordService {
                 .map(RecordConverter::toAnswer)
                 .toList();
 
-        return RecordConverter.toReadChapterRecord(memberChapter, answerList);
+        return RecordConverter.toReadChapterRecord(memberChapter, answerList, imageUrl);
     }
 }

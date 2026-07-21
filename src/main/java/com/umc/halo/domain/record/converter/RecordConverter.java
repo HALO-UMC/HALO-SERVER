@@ -19,7 +19,7 @@ public class RecordConverter {
                 .build();
     }
 
-    public static RecordResDTO.ReadChapterRecord toReadChapterRecord(MemberChapter memberChapter, List<RecordResDTO.ReadChapterRecord.Answer> answer) {
+    public static RecordResDTO.ReadChapterRecord toReadChapterRecord(MemberChapter memberChapter, List<RecordResDTO.ReadChapterRecord.Answer> answer, String imageUrl) {
         CoverType coverType = memberChapter.getCoverType();
         Chapter chapter = memberChapter.getStorybookChapter().getChapter();
 
@@ -32,7 +32,7 @@ public class RecordConverter {
                 .chapterImageUrl(chapter.getImageUrl())
                 .emotion(memberChapter.getEmotion())
                 .coverType(coverType)
-                .imageUrl(coverType == CoverType.IMAGE ? memberChapter.getImageUrl() : null)
+                .imageUrl(coverType == CoverType.IMAGE ? imageUrl : null)
                 .sceneCardImageUrl(coverType == CoverType.SCENE_CARD ? memberChapter.getSceneCard().getImageUrl() : null)
                 .answers(answer)
                 .completedDate(memberChapter.getCompletedDate())
@@ -47,7 +47,7 @@ public class RecordConverter {
     }
 
     public static MemberChapter toMemberChapter(Member member, StorybookChapter storybookChapter, SceneCard sceneCard,
-                                                 RecordReqDTO.WriteChapterRecord recordReqDTO, String imageUrl, String imageKey) {
+                                                RecordReqDTO.WriteChapterRecord recordReqDTO, String imageUrl, String imageKey) {
         return MemberChapter.builder()
                 .member(member)
                 .storybookChapter(storybookChapter)

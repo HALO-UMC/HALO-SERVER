@@ -57,4 +57,18 @@ public class ImageConverter {
                 .key(imageKey)
                 .build();
     }
+
+    public static GetObjectRequest toGetObjectRequest(String bucket, String imageKey) {
+        return GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(imageKey)
+                .build();
+    }
+
+    public static GetObjectPresignRequest toGetObjectPresignRequest(Duration expiration, GetObjectRequest getObjectRequest) {
+        return GetObjectPresignRequest.builder()
+                .signatureDuration(expiration)
+                .getObjectRequest(getObjectRequest)
+                .build();
+    }
 }

@@ -102,6 +102,16 @@ public class ImageService {
         return new FinalizedImage(finalKey, buildImageUrl(finalKey));
     }
 
+    // imageKey로 조회용 presigned URL 발급
+    public String getImage(String imageKey) {
+        GetObjectRequest getObjectRequest = ImageConverter.toGetObjectRequest(bucket, imageKey);
+        GetObjectPresignRequest getObjectPresignRequest = ImageConverter.toGetObjectPresignRequest(EXPIRATION, getObjectRequest);
+        PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(getObjectPresignRequest);
+
+        return presignedGetObjectRequest.url().toString();
+
+    }
+
     public record FinalizedImage(String finalKey, String imageUrl) {
     }
 }
