@@ -62,7 +62,7 @@ public class ChapterService {
 
         String imageUrl = null;
         // 사용자가 기록한 이미지 조회
-        if (memberChapter.getImageKey() != null) {
+        if (memberChapter != null && memberChapter.getImageKey() != null) {
             imageUrl = imageService.getImage(memberChapter.getImageKey());
         }
 
