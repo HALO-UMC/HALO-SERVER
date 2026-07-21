@@ -374,6 +374,9 @@ public interface RecordControllerDocs {
                     ## 요청 형식
                     - 헤더: Authorization: Bearer {JWT 토큰}
                     - memberChapterId: 사용자 장 ID (path variable)
+
+                    ## 참고
+                    - 응답의 imageUrl은 매 요청마다 새로 발급되는 presigned GET URL이며, 발급 후 1시간 동안만 유효합니다. 캐싱하지 말고 응답받은 URL을 바로 사용해주세요.
                     """,
             responses = {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(

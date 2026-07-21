@@ -21,6 +21,7 @@ import java.util.*;
 public class ImageService {
 
     private static final Duration EXPIRATION = Duration.ofMinutes(5);
+    private static final Duration READ_EXPIRATION = Duration.ofHours(1);
     private static final String PENDING_PREFIX = "pending/";
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -117,7 +118,7 @@ public class ImageService {
     // imageKey로 조회용 presigned URL 발급
     public String getImage(String imageKey) {
         GetObjectRequest getObjectRequest = ImageConverter.toGetObjectRequest(bucket, imageKey);
-        GetObjectPresignRequest getObjectPresignRequest = ImageConverter.toGetObjectPresignRequest(EXPIRATION, getObjectRequest);
+        GetObjectPresignRequest getObjectPresignRequest = ImageConverter.toGetObjectPresignRequest(READ_EXPIRATION, getObjectRequest);
         PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(getObjectPresignRequest);
 
         return presignedGetObjectRequest.url().toString();
