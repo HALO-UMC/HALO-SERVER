@@ -52,6 +52,18 @@ public interface CalendarControllerDocs {
                             """))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "파라미터 검증 실패 (month가 1~12 범위를 벗어남 등)",
+                    content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
+                            {
+                              "isSuccess": false,
+                              "code": "COMMON400_1",
+                              "message": "잘못된 요청입니다.",
+                              "result": { "month": "12 이하여야 합니다" }
+                            }
+                            """))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "인증 실패 - JWT 토큰 미삽입/만료",
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
@@ -118,15 +130,9 @@ public interface CalendarControllerDocs {
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
                             { "isSuccess": false, "code": "MEMBER404_1", "message": "존재하지 않는 회원입니다.", "result": null }
                             """))
-            ),
+            )
 
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400",
-                    description = "파라미터 검증 실패 (month 범위 초과 등)",
-                    content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            { "isSuccess": false, "code": "COMMON400_1", "message": "잘못된 요청입니다.", "result": null }
-                            """))
-            ),
+
     })
     ApiResponse<CalendarDailyResDTO.DailyInfo> getDaily(
             @Parameter(hidden = true) Long memberId,
