@@ -281,7 +281,7 @@ public interface SettingControllerDocs {
                     )
             )
     })
-    ApiResponse<SettingResDTO.NotificationSettings> updateNotificationSettings(@AuthenticationPrincipal Long memberId, @RequestBody @Valid SettingReqDTO.UpdateNotificationSettings dto);
+    ApiResponse<SettingResDTO.NotificationSettings> updateNotificationSettings(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId, @RequestBody @Valid SettingReqDTO.UpdateNotificationSettings dto);
 
     // BGM 설정 수정
     @Operation(
@@ -330,14 +330,14 @@ public interface SettingControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
-                    description = "bgmEnabeld 필드가 null인 경우",
+                    description = "bgmEnabled 필드가 null인 경우",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
                                     {
                                         "isSuccess": false,
                                         "code": "BGM400_1",
-                                        "message": “BGM 사용 여부는 필수입니다.”,
+                                        "message": "BGM 사용 여부는 필수입니다.",
                                         "result": null
                                     }
                                     """
@@ -409,5 +409,5 @@ public interface SettingControllerDocs {
                     )
             )
     })
-    ApiResponse<SettingResDTO.BgmSettings> updateBgmSettings(@AuthenticationPrincipal Long memberId, @RequestBody @Valid SettingReqDTO.UpdateBgmSettings dto);
+    ApiResponse<SettingResDTO.BgmSettings> updateBgmSettings(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId, @RequestBody @Valid SettingReqDTO.UpdateBgmSettings dto);
 }

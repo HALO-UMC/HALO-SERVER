@@ -30,13 +30,7 @@ public class SettingReqDTO {
     @Builder
     public record UpdateBgmSettings(
             Long bgmId,
-
-            @NotNull
             Boolean bgmEnabled,
-
-            @NotNull
-            @Min(value = 0)
-            @Max(value = 100)
             Integer bgmVolume
     ) {}
 }

@@ -46,6 +46,7 @@ public class SettingController implements SettingControllerDocs {
 
     @PutMapping("/v1/settings/notifications")
     public ApiResponse<SettingResDTO.NotificationSettings> updateNotificationSettings(
+            @Parameter(hidden = true)
             @AuthenticationPrincipal Long memberId,
             @RequestBody @Valid SettingReqDTO.UpdateNotificationSettings dto
     ) {
@@ -55,6 +56,7 @@ public class SettingController implements SettingControllerDocs {
 
     @PutMapping("/v1/settings/bgm")
     public ApiResponse<SettingResDTO.BgmSettings> updateBgmSettings(
+            @Parameter(hidden = true)
             @AuthenticationPrincipal Long memberId,
             @RequestBody @Valid SettingReqDTO.UpdateBgmSettings dto
     ) {
