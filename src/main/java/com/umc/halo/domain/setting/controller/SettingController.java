@@ -1,17 +1,17 @@
 package com.umc.halo.domain.setting.controller;
 
 import com.umc.halo.domain.setting.controller.docs.SettingControllerDocs;
+import com.umc.halo.domain.setting.dto.SettingReqDTO;
 import com.umc.halo.domain.setting.dto.SettingResDTO;
 import com.umc.halo.domain.setting.exception.code.SettingSuccessCode;
 import com.umc.halo.domain.setting.service.SettingService;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import com.umc.halo.global.apiPayload.code.BaseSuccessCode;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,5 +33,14 @@ public class SettingController implements SettingControllerDocs {
     public ApiResponse<SettingResDTO.Bgms> getBgms() {
         BaseSuccessCode code = SettingSuccessCode.BGM_LIST_GET_SUCCESS;
         return ApiResponse.onSuccess(code, settingService.getBgms());
+    }
+
+    @PutMapping("/v1/settings/notifications")
+    public ApiResponse<SettingResDTO.NotificationSettings> updateNotificationSettings(
+            @AuthenticationPrincipal Long memberId,
+            @RequestBody @Valid SettingReqDTO.UpdateNotificationSettings dto
+    ) {
+        BaseSuccessCode code = SettingSuccessCode.NOTIFICATION_SETTING_UPDATE_SUCCESS;
+        return ApiResponse.onSuccess(code, settingService.updateNotificationSettings(memberId, dto));
     }
 }
