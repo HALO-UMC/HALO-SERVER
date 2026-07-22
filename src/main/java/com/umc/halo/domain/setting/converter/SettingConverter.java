@@ -26,6 +26,14 @@ public class SettingConverter {
                 .build();
     }
 
+    public static SettingResDTO.BgmSettings toBgmSettings(MemberSetting memberSetting) {
+        return SettingResDTO.BgmSettings.builder()
+                .bgmId(memberSetting.getBgm() != null ? memberSetting.getBgm().getId() : null)
+                .bgmEnabled(memberSetting.getBgmEnabled())
+                .bgmVolume(memberSetting.getBgmVolume())
+                .build();
+    }
+
     public static MemberSetting toMemberSetting(Member member) {
         return MemberSetting.builder()
                 .member(member)
