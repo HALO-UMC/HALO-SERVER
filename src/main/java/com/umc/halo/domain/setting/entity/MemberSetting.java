@@ -68,4 +68,10 @@ public class MemberSetting extends BaseEntity {
         this.retentionNotificationEnabled = retentionNotificationEnabled;
         this.anniversaryNotificationEnabled = anniversaryNotificationEnabled;
     }
+
+    public void updateBgmSettings(Bgm bgm, Boolean bgmEnabled, Integer bgmVolume){
+        this.bgm = bgm;
+        this.bgmEnabled = bgmEnabled;
+        this.bgmVolume = bgmVolume;
+    }
 }

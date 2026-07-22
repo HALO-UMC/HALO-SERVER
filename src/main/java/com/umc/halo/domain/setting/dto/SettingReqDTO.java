@@ -1,5 +1,7 @@
 package com.umc.halo.domain.setting.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
@@ -23,5 +25,12 @@ public class SettingReqDTO {
 
             @NotNull
             Boolean anniversaryNotificationEnabled
+    ) {}
+
+    @Builder
+    public record UpdateBgmSettings(
+            Long bgmId,
+            Boolean bgmEnabled,
+            Integer bgmVolume
     ) {}
 }
