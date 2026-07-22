@@ -11,7 +11,9 @@ CREATE TABLE anniversary
     day_alarm_enabled        BIT(1)                NOT NULL,
     memo                     VARCHAR(255)          NULL,
     CONSTRAINT pk_anniversary PRIMARY KEY (anniversary_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE bgm
 (
@@ -22,7 +24,9 @@ CREATE TABLE bgm
     audio_url  VARCHAR(255)          NOT NULL,
     image_url  VARCHAR(255)          NULL,
     CONSTRAINT pk_bgm PRIMARY KEY (bgm_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE chapter
 (
@@ -36,7 +40,9 @@ CREATE TABLE chapter
     `description`     TEXT                  NULL,
     image_description VARCHAR(255)          NOT NULL,
     CONSTRAINT pk_chapter PRIMARY KEY (chapter_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE chapter_question
 (
@@ -47,7 +53,9 @@ CREATE TABLE chapter_question
     question_order      INT                   NOT NULL,
     question            VARCHAR(255)          NOT NULL,
     CONSTRAINT pk_chapter_question PRIMARY KEY (chapter_question_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE common_anniversary
 (
@@ -61,7 +69,9 @@ CREATE TABLE common_anniversary
     seven_days_alarm_enabled BIT(1)                NOT NULL,
     day_alarm_enabled        BIT(1)                NOT NULL,
     CONSTRAINT pk_common_anniversary PRIMARY KEY (common_anniversary_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE member
 (
@@ -78,7 +88,9 @@ CREATE TABLE member
     onboarding_completed BIT(1)                NOT NULL,
     onboarding_step      INT                   NULL,
     CONSTRAINT pk_member PRIMARY KEY (member_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE member_chapter
 (
@@ -95,7 +107,9 @@ CREATE TABLE member_chapter
     summary              TEXT                  NULL,
     status               VARCHAR(255)          NOT NULL,
     CONSTRAINT pk_member_chapter PRIMARY KEY (member_chapter_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE member_chapter_answer
 (
@@ -106,7 +120,9 @@ CREATE TABLE member_chapter_answer
     chapter_question_id      BIGINT                NOT NULL,
     answer                   TEXT                  NOT NULL,
     CONSTRAINT pk_member_chapter_answer PRIMARY KEY (member_chapter_answer_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE member_setting
 (
@@ -123,7 +139,9 @@ CREATE TABLE member_setting
     retention_notification_enabled     BIT(1)                NOT NULL,
     anniversary_notification_enabled   BIT(1)                NOT NULL,
     CONSTRAINT pk_member_setting PRIMARY KEY (member_setting_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE member_storybook
 (
@@ -136,7 +154,9 @@ CREATE TABLE member_storybook
     last_completed_date date                  NULL,
     emotion             VARCHAR(255)          NULL,
     CONSTRAINT pk_member_storybook PRIMARY KEY (member_storybook_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE member_tag
 (
@@ -146,7 +166,9 @@ CREATE TABLE member_tag
     tag_id        BIGINT                NOT NULL,
     member_id     BIGINT                NOT NULL,
     CONSTRAINT pk_member_tag PRIMARY KEY (member_tag_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE member_term
 (
@@ -157,7 +179,9 @@ CREATE TABLE member_term
     member_id      BIGINT                NOT NULL,
     is_agreed      BIT(1)                NOT NULL,
     CONSTRAINT pk_member_term PRIMARY KEY (member_term_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE notification
 (
@@ -171,7 +195,9 @@ CREATE TABLE notification
     sent_at           datetime              NULL,
     is_read           BIT(1)                NOT NULL,
     CONSTRAINT pk_notification PRIMARY KEY (notification_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE scene_card
 (
@@ -181,7 +207,9 @@ CREATE TABLE scene_card
     chapter_id    BIGINT                NOT NULL,
     image_url     VARCHAR(255)          NOT NULL,
     CONSTRAINT pk_scene_card PRIMARY KEY (scene_card_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE storybook
 (
@@ -195,7 +223,9 @@ CREATE TABLE storybook
     image_url         VARCHAR(255)          NOT NULL,
     spine_color       VARCHAR(7)            NOT NULL,
     CONSTRAINT pk_storybook PRIMARY KEY (storybook_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE storybook_chapter
 (
@@ -206,7 +236,9 @@ CREATE TABLE storybook_chapter
     chapter_id           BIGINT                NOT NULL,
     chapter_order        INT                   NOT NULL,
     CONSTRAINT pk_storybook_chapter PRIMARY KEY (storybook_chapter_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE storybook_character
 (
@@ -218,7 +250,9 @@ CREATE TABLE storybook_character
     variant                VARCHAR(255)          NOT NULL,
     image_url              VARCHAR(255)          NOT NULL,
     CONSTRAINT pk_storybook_character PRIMARY KEY (storybook_character_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE storybook_tag
 (
@@ -230,7 +264,9 @@ CREATE TABLE storybook_tag
     priority_level   VARCHAR(255)          NOT NULL,
     phrase           VARCHAR(50)           NOT NULL,
     CONSTRAINT pk_storybook_tag PRIMARY KEY (storybook_tag_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE tag
 (
@@ -242,7 +278,9 @@ CREATE TABLE tag
     subtitle      VARCHAR(255)          NULL,
     `description` VARCHAR(255)          NULL,
     CONSTRAINT pk_tag PRIMARY KEY (tag_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE term
 (
@@ -254,7 +292,9 @@ CREATE TABLE term
     `description`     TEXT                  NOT NULL,
     is_required       BIT(1)                NOT NULL,
     CONSTRAINT pk_term PRIMARY KEY (term_id)
-);
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
 ALTER TABLE member_storybook
     ADD CONSTRAINT uc_3d4b46baa4dcc738ed2e78c26 UNIQUE (member_id, storybook_id);
