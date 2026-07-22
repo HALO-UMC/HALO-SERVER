@@ -25,6 +25,7 @@ public interface ImageControllerDocs {
                         - Authorization: Bearer {Access Token}
                     - **Body**
                         - contentType : 업로드할 이미지의 MIME 타입 (image/png, image/jpeg, image/jpg, image/webp만 허용)
+                        - fileSize : 업로드할 이미지의 파일 크기(byte, 0보다 큰 값 필수)
                     
                     ## 동작 방식
                     1. Access Token으로 현재 회원을 인증합니다.
@@ -82,6 +83,32 @@ public interface ImageControllerDocs {
                                                         "message": "잘못된 요청입니다.",
                                                         "result": {
                                                             "contentType": "contentType을 입력해주세요."
+                                                        }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "fileSize 미입력",
+                                            value = """
+                                                    {
+                                                        "isSuccess": false,
+                                                        "code": "COMMON400_1",
+                                                        "message": "잘못된 요청입니다.",
+                                                        "result": {
+                                                            "fileSize": "fileSize를 입력해주세요."
+                                                        }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "fileSize가 0 이하",
+                                            value = """
+                                                    {
+                                                        "isSuccess": false,
+                                                        "code": "COMMON400_1",
+                                                        "message": "잘못된 요청입니다.",
+                                                        "result": {
+                                                            "fileSize": "fileSize는 0보다 커야 합니다."
                                                         }
                                                     }
                                                     """
