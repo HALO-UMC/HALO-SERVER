@@ -18,6 +18,13 @@ public class SettingResDTO {
     ) {}
 
     @Builder
+    public record BgmSettings(
+            Long bgmId,
+            Boolean bgmEnabled,
+            Integer bgmVolume
+    ) {}
+
+    @Builder
     public record BgmInfo(
             Long bgmId,
             String title,

@@ -31,6 +31,14 @@ public class SettingService {
     }
 
     @Transactional(readOnly = true)
+    public SettingResDTO.BgmSettings getBgmSettings(Long memberId) {
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
+
+        return SettingConverter.toBgmSettings(memberSetting);
+    }
+
+    @Transactional(readOnly = true)
     public SettingResDTO.Bgms getBgms() {
         List<SettingResDTO.BgmInfo> bgms = bgmRepository.findAll().stream().map(SettingConverter::toBgmInfo).toList();
         return SettingConverter.toBgms(bgms);
