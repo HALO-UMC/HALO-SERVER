@@ -21,8 +21,8 @@ CREATE TABLE bgm
     created_at datetime              NOT NULL,
     updated_at datetime              NOT NULL,
     title      VARCHAR(50)           NOT NULL,
-    audio_url  VARCHAR(255)          NOT NULL,
-    image_url  VARCHAR(255)          NULL,
+    file_name  VARCHAR(255)          NOT NULL,
+    image_name VARCHAR(255)          NULL,
     CONSTRAINT pk_bgm PRIMARY KEY (bgm_id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
