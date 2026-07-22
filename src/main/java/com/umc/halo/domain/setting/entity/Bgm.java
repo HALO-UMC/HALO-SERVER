@@ -20,9 +20,9 @@ public class Bgm extends BaseEntity {
     @Column(length = 50, nullable = false)
     private String title;
 
-    @Column(name = "audio_url", length = 255, nullable = false)
-    private String audioUrl;
+    @Column(name = "file_name", length = 255, nullable = false)
+    private String fileName;
 
-    @Column(name = "image_url", length = 255)
-    private String imageUrl;
+    @Column(name = "image_name", length = 255)
+    private String imageName;
 }
