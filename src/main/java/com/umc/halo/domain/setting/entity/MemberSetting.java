@@ -54,4 +54,18 @@ public class MemberSetting extends BaseEntity {
     @Column(name = "anniversary_notification_enabled", nullable = false)
     @Builder.Default
     private Boolean anniversaryNotificationEnabled = true;
+
+    public void updateNotificationSettings(
+            Boolean regularNotificationEnabled,
+            LocalTime regularNotificationTime,
+            Boolean todayChapterNotificationEnabled,
+            Boolean retentionNotificationEnabled,
+            Boolean anniversaryNotificationEnabled
+    ){
+        this.regularNotificationEnabled = regularNotificationEnabled;
+        this.regularNotificationTime = regularNotificationTime;
+        this.todayChapterNotificationEnabled = todayChapterNotificationEnabled;
+        this.retentionNotificationEnabled = retentionNotificationEnabled;
+        this.anniversaryNotificationEnabled = anniversaryNotificationEnabled;
+    }
 }
