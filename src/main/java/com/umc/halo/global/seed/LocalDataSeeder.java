@@ -1,5 +1,6 @@
 package com.umc.halo.global.seed;
 
+import com.umc.halo.domain.member.repository.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.boot.*;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.*;
 @Slf4j
 public class LocalDataSeeder implements CommandLineRunner {
 
+    private final MemberRepository memberRepository;
     private final MemberSeeder memberSeeder;
     private final ChapterSeeder chapterSeeder;
     private final StorybookSeeder storybookSeeder;
@@ -23,6 +25,11 @@ public class LocalDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+
+        if (memberRepository.count() > 0) {
+            log.info("이미 시딩된 데이터가 있어 로컬 데이터 초기화를 스킵합니다.");
+            return;
+        }
 
         log.info("로컬 데이터 초기화");
 
