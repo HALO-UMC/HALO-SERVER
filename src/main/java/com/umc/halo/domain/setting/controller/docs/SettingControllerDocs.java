@@ -178,7 +178,7 @@ public interface SettingControllerDocs {
                     1. Access Token으로 현재 회원을 인증합니다.
                     2. 회원의 알림 설정 정보를 조회합니다.
                     3. 요청한 알림 설정 값으로 회원의 설정을 수정합니다.
-                    4. 정기 알림이 활성화된 경우 전달받은 regularNotificationTime으로 시간을 수정합니다.
+                    4. 정기 알림 활성화 여부와 관계없이 항상 regularNotificationTime으로 시간을 수정합니다.
                     5. 수정된 알림 설정 정보를 반환합니다.
                     """
     )
