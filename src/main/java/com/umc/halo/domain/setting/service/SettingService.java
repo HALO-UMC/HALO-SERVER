@@ -41,10 +41,6 @@ public class SettingService {
         MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
-        if (dto.regularNotificationEnabled() && dto.regularNotificationTime() == null) {
-            throw new SettingException(SettingErrorCode.INVALID_REGULAR_NOTIFICATION_TIME);
-        }
-
         memberSetting.updateNotificationSettings(
                 dto.regularNotificationEnabled(),
                 dto.regularNotificationTime(),

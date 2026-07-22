@@ -12,6 +12,7 @@ public class SettingReqDTO {
             @NotNull
             Boolean regularNotificationEnabled,
 
+            @NotNull
             LocalTime regularNotificationTime,
 
             @NotNull

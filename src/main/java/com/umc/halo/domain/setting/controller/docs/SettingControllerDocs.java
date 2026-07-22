@@ -207,22 +207,6 @@ public interface SettingControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400",
-                    description = "regularNotificationTime에 유효하지 않은 날짜 포맷이 들어온 경우",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "isSuccess": false,
-                                        "code": "NOTIFICATION400_1",
-                                        "message": “정기 알림 시간 형식이 올바르지 않습니다.”,
-                                        "result": null
-                                    }
-                                    """
-                            )
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "memberSetting이 생성되지 않음",
                     content = @Content(
