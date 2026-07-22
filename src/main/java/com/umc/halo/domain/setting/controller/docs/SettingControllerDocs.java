@@ -74,4 +74,82 @@ public interface SettingControllerDocs {
             )
     })
     ApiResponse<SettingResDTO.NotificationSettings> getNotificationSettings(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId);
+
+    // BGM 목록 조회
+    @Operation(
+            summary = "BGM 목록 조회 API",
+            description = """
+                    # BGM 목록 조회
+                    내장으로 다운로드받은 BGM 목록을 조회합니다.
+                    
+                    ## 요청 형식
+                    - **Header**
+                        - Content-Type: application/json
+                        - Authorization: Bearer {Access Token}
+                    
+                    ## 동작 방식
+                    1. 서버에 등록된 BGM 메타데이터를 조회합니다.
+                    2. 각 BGM의 제목, 파일명, 이미지 정보를 반환합니다.
+                    3. 클라이언트는 fileName을 이용하여 앱에 내장된 BGM을 재생합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                       "isSuccess": true,
+                                       "code": "BGM200_3",
+                                       "message": "BGM 목록 조회를 성공했습니다.",
+                                       "result": {
+                                         "bgms": [
+                                           {
+                                             "bgmId": 1,
+                                             "title": "산들바람1",
+                                             "fileName": "http://www.bgm-example1.com",
+                                             "imageName": "http://www.img-example1.com"
+                                           },
+                                           {
+                                             "bgmId": 2,
+                                             "title": "산들바람2",
+                                             "fileName": "http://www.bgm-example2.com",
+                                             "imageName": "http://www.img-example2.com"
+                                           },
+                                           {
+                                             "bgmId": 3,
+                                             "title": "산들바람3",
+                                             "fileName": "http://www.bgm-example3.com",
+                                             "imageName": "http://www.img-example3.com"
+                                           },
+                                           .
+                                           .
+                                           .
+                                         ]
+                                       }
+                                     }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "AUTH401_1",
+                                        "message": "토큰이 만료되었습니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            )
+    })
+    ApiResponse<SettingResDTO.Bgms> getBgms();
 }

@@ -28,4 +28,10 @@ public class SettingController implements SettingControllerDocs {
         BaseSuccessCode code = SettingSuccessCode.NOTIFICATION_SETTING_GET_SUCCESS;
         return ApiResponse.onSuccess(code, settingService.getNotificationSettings(memberId));
     }
+
+    @GetMapping("/v1/bgms")
+    public ApiResponse<SettingResDTO.Bgms> getBgms() {
+        BaseSuccessCode code = SettingSuccessCode.BGM_LIST_GET_SUCCESS;
+        return ApiResponse.onSuccess(code, settingService.getBgms());
+    }
 }

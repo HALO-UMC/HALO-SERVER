@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class SettingService {
@@ -24,5 +26,11 @@ public class SettingService {
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
         return SettingConverter.toNotificationSettings(memberSetting);
+    }
+
+    @Transactional(readOnly = true)
+    public SettingResDTO.Bgms getBgms() {
+        List<SettingResDTO.BgmInfo> bgms = bgmRepository.findAll().stream().map(SettingConverter::toBgmInfo).toList();
+        return SettingConverter.toBgms(bgms);
     }
 }
