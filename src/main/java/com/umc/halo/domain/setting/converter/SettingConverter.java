@@ -37,7 +37,7 @@ public class SettingConverter {
                 .bgmId(bgm.getId())
                 .title(bgm.getTitle())
                 .fileName(bgm.getFileName())
-                .imgName(bgm.getImageName())
+                .imageName(bgm.getImageName())
                 .build();
     }
 

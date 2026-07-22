@@ -22,7 +22,7 @@ public class SettingResDTO {
             Long bgmId,
             String title,
             String fileName,
-            String imgName
+            String imageName
     ) {}
 
     @Builder
