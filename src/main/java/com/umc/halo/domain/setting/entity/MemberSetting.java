@@ -41,7 +41,7 @@ public class MemberSetting extends BaseEntity {
 
     @Column(name = "regular_notification_time", nullable = false)
     @Builder.Default
-    private LocalTime regularNotificationTime = LocalTime.of(21,0);
+    private LocalTime regularNotificationTime = LocalTime.of(9,0);
 
     @Column(name = "today_chapter_notification_enabled", nullable = false)
     @Builder.Default
@@ -54,4 +54,18 @@ public class MemberSetting extends BaseEntity {
     @Column(name = "anniversary_notification_enabled", nullable = false)
     @Builder.Default
     private Boolean anniversaryNotificationEnabled = true;
+
+    public void updateNotificationSettings(
+            Boolean regularNotificationEnabled,
+            LocalTime regularNotificationTime,
+            Boolean todayChapterNotificationEnabled,
+            Boolean retentionNotificationEnabled,
+            Boolean anniversaryNotificationEnabled
+    ){
+        this.regularNotificationEnabled = regularNotificationEnabled;
+        this.regularNotificationTime = regularNotificationTime;
+        this.todayChapterNotificationEnabled = todayChapterNotificationEnabled;
+        this.retentionNotificationEnabled = retentionNotificationEnabled;
+        this.anniversaryNotificationEnabled = anniversaryNotificationEnabled;
+    }
 }

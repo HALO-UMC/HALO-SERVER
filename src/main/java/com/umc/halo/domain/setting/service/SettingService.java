@@ -1,12 +1,14 @@
 package com.umc.halo.domain.setting.service;
 
 import com.umc.halo.domain.setting.converter.SettingConverter;
+import com.umc.halo.domain.setting.dto.SettingReqDTO;
 import com.umc.halo.domain.setting.dto.SettingResDTO;
 import com.umc.halo.domain.setting.entity.MemberSetting;
 import com.umc.halo.domain.setting.exception.SettingException;
 import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.BgmRepository;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,5 +34,21 @@ public class SettingService {
     public SettingResDTO.Bgms getBgms() {
         List<SettingResDTO.BgmInfo> bgms = bgmRepository.findAll().stream().map(SettingConverter::toBgmInfo).toList();
         return SettingConverter.toBgms(bgms);
+    }
+
+    @Transactional
+    public SettingResDTO.NotificationSettings updateNotificationSettings(Long memberId, SettingReqDTO.UpdateNotificationSettings dto) {
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
+
+        memberSetting.updateNotificationSettings(
+                dto.regularNotificationEnabled(),
+                dto.regularNotificationTime(),
+                dto.todayChapterNotificationEnabled(),
+                dto.retentionNotificationEnabled(),
+                dto.anniversaryNotificationEnabled()
+        );
+
+        return SettingConverter.toNotificationSettings(memberSetting);
     }
 }

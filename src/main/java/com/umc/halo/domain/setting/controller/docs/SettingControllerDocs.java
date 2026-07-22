@@ -1,5 +1,6 @@
 package com.umc.halo.domain.setting.controller.docs;
 
+import com.umc.halo.domain.setting.dto.SettingReqDTO;
 import com.umc.halo.domain.setting.dto.SettingResDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -8,7 +9,9 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "알림 API")
 public interface SettingControllerDocs {
@@ -152,4 +155,73 @@ public interface SettingControllerDocs {
             )
     })
     ApiResponse<SettingResDTO.Bgms> getBgms();
+
+    // 알림 설정 수정
+    @Operation(
+            summary = "알림 설정 수정 API",
+            description = """
+                    # 알림 설정 수정
+                    알림 설정을 수정합니다. (정기 알림/정기 알림 시간/전체 알림/오늘의 장 알림/리텐션 알림/기념일 알림)
+                    
+                    ## 요청 형식
+                    - **Header**
+                        - Content-Type: application/json
+                        - Authorization: Bearer {Access Token}
+                    - **Body**
+                        - regularNotificationEnabled : 정기 알림 ON/OFF 여부
+                        - regularNotificationTime : 정기 알림 시간
+                        - todayChapterNotificationEnabled : 오늘의 장 알림 ON/OFF 여부
+                        - retentionNotificationEnabled : 리텐션 알림 ON/OFF 여부
+                        - anniversaryNotificationEnabled : 기념일 알림 ON/OFF 여부
+                    
+                    ## 동작 방식
+                    1. Access Token으로 현재 회원을 인증합니다.
+                    2. 회원의 알림 설정 정보를 조회합니다.
+                    3. 요청한 알림 설정 값으로 회원의 설정을 수정합니다.
+                    4. 정기 알림 활성화 여부와 관계없이 항상 regularNotificationTime으로 시간을 수정합니다.
+                    5. 수정된 알림 설정 정보를 반환합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": true,
+                                        "code": "NOTIFICATION200_2",
+                                        "message": "알림 설정을 성공적으로 수정했습니다.",
+                                        "result": {
+                                            "regularNotificationEnabled": true,
+                                            "regularNotificationTime": "10:00",
+                                            "todayChapterNotificationEnabled": true,
+                                            "retentionNotificationEnabled": false,
+                                            "anniversaryNotificationEnabled": true,
+                                            "isAllNotificationEnabled": false
+                                        }
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "memberSetting이 생성되지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "SETTING404_1",
+                                        "message": "설정을 찾을 수 없습니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            )
+    })
+    ApiResponse<SettingResDTO.NotificationSettings> updateNotificationSettings(@AuthenticationPrincipal Long memberId, @RequestBody @Valid SettingReqDTO.UpdateNotificationSettings dto);
 }
