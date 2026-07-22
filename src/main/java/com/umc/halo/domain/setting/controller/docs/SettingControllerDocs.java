@@ -78,6 +78,64 @@ public interface SettingControllerDocs {
     })
     ApiResponse<SettingResDTO.NotificationSettings> getNotificationSettings(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId);
 
+    // BGM 설정 조회
+    @Operation(
+            summary = "BGM 설정 조회 API",
+            description = """
+                    # BGM 설정 조회
+                    현재 BGM 설정을 조회합니다. (선택된 배경음악, 배경음악 ON, OFF 여부/배경음악 볼륨)
+                    
+                    ## 요청 형식
+                    - **Header**
+                        - Content-Type: application/json
+                        - Authorization: Bearer {Access Token}
+                    
+                    ## 동작 방식
+                    1. Access Token으로 현재 회원을 인증합니다.
+                    2. 회원의 알림 설정 정보를 조회합니다.
+                    3. 현재 선택된 BGM ID, BGM 활성화 여부, BGM 볼륨을 반환합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": true,
+                                        "code": "BGM200_1",
+                                        "message": "BGM 설정 조회를 성공했습니다.",
+                                        "result": {
+                                            "bgmId": 1,
+                                            "bgmEnabled": true,
+                                            "bgmVolume": 70
+                                        }
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "memberSetting이 생성되지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "SETTING404_1",
+                                        "message": "설정을 찾을 수 없습니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            )
+    })
+    ApiResponse<SettingResDTO.BgmSettings> getBgmSettings(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId);
+
     // BGM 목록 조회
     @Operation(
             summary = "BGM 목록 조회 API",
