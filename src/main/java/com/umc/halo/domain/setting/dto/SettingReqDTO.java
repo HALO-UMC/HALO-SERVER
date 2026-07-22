@@ -35,8 +35,8 @@ public class SettingReqDTO {
             Boolean bgmEnabled,
 
             @NotNull
-            @Min(value = 0, message = "BGM 볼륨 값이 올바르지 않습니다.")
-            @Max(value = 100, message = "BGM 볼륨 값이 올바르지 않습니다.")
+            @Min(value = 0)
+            @Max(value = 100)
             Integer bgmVolume
     ) {}
 }
