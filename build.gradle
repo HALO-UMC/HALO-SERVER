@@ -53,6 +53,11 @@ dependencies {
     // S3
     implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:4.0.2")
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+
+    // Flyway
+    implementation 'org.springframework.boot:spring-boot-flyway'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
 }
 
 tasks.named('test') {
