@@ -7,6 +7,7 @@ import com.umc.halo.domain.content.chapter.repository.*;
 import com.umc.halo.domain.content.chapter.service.*;
 import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.content.storybook.repository.*;
+import com.umc.halo.domain.image.service.*;
 import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.member.exception.*;
 import com.umc.halo.domain.member.exception.code.*;
@@ -41,6 +42,7 @@ public class RecordService {
     private final ChapterQuestionRepository chapterQuestionRepository;
     private final ChapterService chapterService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ImageService imageService;
 
     @Transactional
     public RecordResDTO.WriteChapterRecord writeChapterRecord(Long memberId, RecordReqDTO.WriteChapterRecord recordReqDTO) {
@@ -73,6 +75,7 @@ public class RecordService {
                 storybookChapter.getChapterOrder(), memberChapter, memberStorybook);
 
         // CoverType 확인
+        String imageKey = null;
         if (recordReqDTO.coverType() != null) {
             if (recordReqDTO.coverType() == CoverType.IMAGE) {
                 if (recordReqDTO.sceneCardId() != null) {
@@ -81,6 +84,12 @@ public class RecordService {
                 if ((recordReqDTO.imageUrl() == null) || (recordReqDTO.imageKey() == null)) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
+                // 기존 기록의 imageKey와 동일하면 그대로 사용
+                if (memberChapter != null && recordReqDTO.imageKey().equals(memberChapter.getImageKey())) {
+                    imageKey = memberChapter.getImageKey();
+                } else {
+                    imageKey = imageService.finalizeImage(memberId, recordReqDTO.imageKey()).finalKey();
+                }
             } else {
                 if ((recordReqDTO.imageKey() != null) || (recordReqDTO.imageUrl() != null)) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
@@ -88,6 +97,10 @@ public class RecordService {
                 if (recordReqDTO.sceneCardId() == null) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
+            }
+        } else {
+            if ((recordReqDTO.sceneCardId() != null) || (recordReqDTO.imageKey() != null) || (recordReqDTO.imageUrl() != null)) {
+                throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
             }
         }
 
@@ -128,14 +141,14 @@ public class RecordService {
         // MemberChapter 없으면 생성, 있으면 수정
         if (memberChapter == null) {
             try {
-                memberChapter = RecordConverter.toMemberChapter(member, storybookChapter, sceneCard, recordReqDTO);
+                memberChapter = RecordConverter.toMemberChapter(member, storybookChapter, sceneCard, recordReqDTO, imageKey);
                 memberChapterRepository.save(memberChapter);
             } catch (DataIntegrityViolationException e) {
                 throw new RecordException(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER);
             }
         } else {
             memberChapter.updateRecord(storybookChapter, sceneCard, recordReqDTO.emotion(),
-                    recordReqDTO.coverType(), recordReqDTO.imageUrl(), recordReqDTO.imageKey(), recordReqDTO.status());
+                    recordReqDTO.coverType(), imageKey, recordReqDTO.status());
         }
 
         final MemberChapter resolvedMemberChapter = memberChapter;
@@ -207,6 +220,12 @@ public class RecordService {
         MemberChapter memberChapter = memberChapterRepository.findById(memberChapterId)
                 .orElseThrow(() -> new RecordException(RecordErrorCode.NOT_FOUND_MEMBER_CHAPTER));
 
+        // 사용자가 기록한 이미지 조회
+        String imageUrl = null;
+        if (memberChapter.getCoverType() == CoverType.IMAGE) {
+            imageUrl = imageService.getImage(memberChapter.getImageKey());
+        }
+
         // member의 memberChapter인지 검증
         if (!memberChapter.getMember().getId().equals(member.getId())) {
             throw new RecordException(RecordErrorCode.NOT_FOUND_MEMBER_CHAPTER);
@@ -223,6 +242,6 @@ public class RecordService {
                 .map(RecordConverter::toAnswer)
                 .toList();
 
-        return RecordConverter.toReadChapterRecord(memberChapter, answerList);
+        return RecordConverter.toReadChapterRecord(memberChapter, answerList, imageUrl);
     }
 }

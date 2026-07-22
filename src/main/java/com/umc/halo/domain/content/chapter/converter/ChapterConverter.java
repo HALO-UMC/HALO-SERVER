@@ -16,7 +16,8 @@ public class ChapterConverter {
             List<ChapterQuestion> questions,
             List<SceneCard> sceneCards,
             MemberChapter memberChapter,
-            List<MemberChapterAnswer> answers) {
+            List<MemberChapterAnswer> answers,
+            String imageUrl) {
 
         Chapter chapter = storybookChapter.getChapter();
 
@@ -41,7 +42,7 @@ public class ChapterConverter {
                 )
 
                 .draft(
-                        toDraft(memberChapter, answers)
+                        toDraft(memberChapter, answers, imageUrl)
                 )
                 .build();
     }
@@ -65,7 +66,8 @@ public class ChapterConverter {
 
     private static ChapterResDTO.TodayChapter.Draft toDraft(
             MemberChapter memberChapter,
-            List<MemberChapterAnswer> answers) {
+            List<MemberChapterAnswer> answers,
+            String imageUrl) {
         if (memberChapter == null) {
             return ChapterResDTO.TodayChapter.Draft.builder()
                     .status(ChapterResDTO.TodayChapter.DraftStatus.NONE)
@@ -80,7 +82,8 @@ public class ChapterConverter {
                 .status(ChapterResDTO.TodayChapter.DraftStatus.DRAFT)
                 .answers(answers.stream().map(ChapterConverter::toAnswer).toList())
                 .coverType(memberChapter.getCoverType())
-                .imageUrl(memberChapter.getImageUrl())
+                .imageUrl(imageUrl)
+                .imageKey(memberChapter.getImageKey())
                 .sceneCardId(sceneCard == null ? null : sceneCard.getId())
                 .emotion(memberChapter.getEmotion())
                 .build();

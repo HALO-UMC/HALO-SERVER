@@ -11,6 +11,7 @@ import com.umc.halo.domain.content.storybook.enums.*;
 import com.umc.halo.domain.content.storybook.exception.*;
 import com.umc.halo.domain.content.storybook.exception.code.*;
 import com.umc.halo.domain.content.storybook.repository.*;
+import com.umc.halo.domain.image.service.*;
 import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.member.exception.*;
 import com.umc.halo.domain.member.exception.code.*;
@@ -37,6 +38,7 @@ public class ChapterService {
     private final StorybookCharacterRepository storybookCharacterRepository;
     private final ChapterQuestionRepository chapterQuestionRepository;
     private final SceneCardRepository sceneCardRepository;
+    private final ImageService imageService;
 
     // 오늘의 장 조회
     public ChapterResDTO.TodayChapter getTodayChapter(Long memberId, Long storybookId, Integer chapterOrder) {
@@ -57,6 +59,12 @@ public class ChapterService {
 
         // memberChapter 조회
         MemberChapter memberChapter = memberChapterRepository.findByMemberAndStorybookChapter(member, storybookChapter);
+
+        String imageUrl = null;
+        // 사용자가 기록한 이미지 조회
+        if (memberChapter != null && memberChapter.getImageKey() != null) {
+            imageUrl = imageService.getImage(memberChapter.getImageKey());
+        }
 
         // memberStorybook이 있을 경우, 오늘 이미 완료했는지 검증
         memberStorybookOpt.ifPresent(ms -> {
@@ -95,7 +103,8 @@ public class ChapterService {
                 questions,
                 sceneCards,
                 memberChapter,
-                answers
+                answers,
+                imageUrl
         );
     }
 

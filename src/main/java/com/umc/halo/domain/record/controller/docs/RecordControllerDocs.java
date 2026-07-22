@@ -186,6 +186,17 @@ public interface RecordControllerDocs {
                                                                 }
                                                             }
                                                             """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "이미지 용량 제한 초과",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "IMAGE400_2",
+                                                                "message": "이미지 용량이 제한을 초과했습니다.(최대 10MB)",
+                                                                "result": null
+                                                            }
+                                                            """
                                             )
                                     }
                             )
@@ -208,7 +219,7 @@ public interface RecordControllerDocs {
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "403",
-                            description = "아직 열리지 않았거나 이미 완료한 장",
+                            description = "아직 열리지 않았거나 이미 완료한 장 / 본인이 업로드한 이미지가 아님",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
@@ -234,13 +245,24 @@ public interface RecordControllerDocs {
                                                                 "result": null
                                                             }
                                                             """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "본인이 업로드한 이미지가 아님(imageKey)",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "IMAGE403_1",
+                                                                "message": "본인이 업로드한 이미지가 아닙니다.",
+                                                                "result": null
+                                                            }
+                                                            """
                                             )
                                     }
                             )
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "404",
-                            description = "존재하지 않는 회원 / 장 / 장 질문 / 장면 카드",
+                            description = "존재하지 않는 회원 / 장 / 장 질문 / 장면 카드 / S3 이미지",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
@@ -285,6 +307,17 @@ public interface RecordControllerDocs {
                                                                 "isSuccess": false,
                                                                 "code": "CHAPTER404_3",
                                                                 "message": "존재하지 않는 장면 카드입니다.",
+                                                                "result": null
+                                                            }
+                                                            """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "S3에 해당 이미지가 존재하지 않음(imageKey)",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "IMAGE404_1",
+                                                                "message": "S3에 해당 이미지가 존재하지 않습니다.",
                                                                 "result": null
                                                             }
                                                             """
@@ -341,6 +374,9 @@ public interface RecordControllerDocs {
                     ## 요청 형식
                     - 헤더: Authorization: Bearer {JWT 토큰}
                     - memberChapterId: 사용자 장 ID (path variable)
+
+                    ## 참고
+                    - 응답의 imageUrl은 매 요청마다 새로 발급되는 presigned GET URL이며, 발급 후 1시간 동안만 유효합니다. 캐싱하지 말고 응답받은 URL을 바로 사용해주세요.
                     """,
             responses = {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
