@@ -92,7 +92,7 @@ public interface SettingControllerDocs {
                     
                     ## 동작 방식
                     1. Access Token으로 현재 회원을 인증합니다.
-                    2. 회원의 알림 설정 정보를 조회합니다.
+                    2. 회원의 BGM 설정 정보를 조회합니다.
                     3. 현재 선택된 BGM ID, BGM 활성화 여부, BGM 볼륨을 반환합니다.
                     """
     )
