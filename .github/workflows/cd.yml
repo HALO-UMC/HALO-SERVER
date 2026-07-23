@@ -2,7 +2,7 @@ name: CD
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 env:
   IMAGE_NAME: ghcr.io/halo-umc/halo-server
@@ -88,5 +88,18 @@ jobs:
             docker compose config >/dev/null
             docker compose pull
             docker compose up -d --remove-orphans --force-recreate
-            docker image prune -f
+
+            for i in $(seq 1 15); do
+              if curl -sf http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
+                echo "헬스체크 통과"
+                docker image prune -f
+                exit 0
+              fi
+              echo "헬스체크 대기 중... ($i/15)"
+              sleep 4
+            done
+
+            echo "헬스체크 실패" >&2
+            docker compose logs --tail=100 app
+            exit 1
           EOF
