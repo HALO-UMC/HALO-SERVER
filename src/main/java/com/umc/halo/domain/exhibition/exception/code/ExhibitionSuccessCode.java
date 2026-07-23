@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ExhibitionSuccessCode implements BaseSuccessCode {
 
-    MAIN_SUCCESS(HttpStatus.OK, "EXHIBITION200_1", "테마 전시관 조회를 성공했습니다."),
+    MAIN_SUCCESS(HttpStatus.OK, "EXHIBITION200_1", "테마함 조회를 성공했습니다."),
     CHAPTERS_SUCCESS(HttpStatus.OK, "EXHIBITION200_2", "스토리북 감상 조회를 성공했습니다.");
 
     private final HttpStatus status;
