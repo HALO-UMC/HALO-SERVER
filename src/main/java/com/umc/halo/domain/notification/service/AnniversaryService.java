@@ -14,6 +14,7 @@ import com.umc.halo.domain.notification.exception.AnniversaryErrorCode;
 import com.umc.halo.domain.notification.exception.AnniversaryException;
 import com.umc.halo.domain.notification.repository.AnniversaryRepository;
 import com.umc.halo.domain.notification.repository.CommonAnniversaryRepository;
+import com.umc.halo.domain.notification.repository.NotificationRepository;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class AnniversaryService {
     private final AnniversaryRepository anniversaryRepository;
     private final CommonAnniversaryRepository commonAnniversaryRepository;
     private final MemberRepository memberRepository;
+    private final NotificationRepository notificationRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional(readOnly = true)
@@ -182,6 +184,7 @@ public class AnniversaryService {
             throw new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_ACCESS_DENIED);
         }
 
+        notificationRepository.deleteAllByAnniversaryIdIn(distinctIds);
         anniversaryRepository.deleteAll(anniversaries);
     }
 

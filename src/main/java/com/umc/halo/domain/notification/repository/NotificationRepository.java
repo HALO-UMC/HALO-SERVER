@@ -13,4 +13,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     void deleteByMemberId(Long memberId);
     Optional<Notification> findByAnniversaryAndNotificationType(Anniversary anniversary, NotificationType notificationType);
     List<Notification> findAllByAnniversaryId(Long anniversaryId);
+    void deleteAllByAnniversaryIdIn(List<Long> distinctIds);
 }
