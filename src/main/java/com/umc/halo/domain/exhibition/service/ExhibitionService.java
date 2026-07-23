@@ -84,7 +84,8 @@ public class ExhibitionService {
             }
         } else if (!inProgress.isEmpty()) {
             for (MemberStorybook ms : inProgress) {
-                inProgressDtos.add(ExhibitionConverter.toInProgressStorybook(ms));
+                inProgressDtos.add(
+                        ExhibitionConverter.toInProgressStorybook(ms, resolveNextChapterOrder(member, ms)));
             }
         } else {
             recommendedDtos = storybookService.getRecommendedStorybooks(memberId).storybooks().stream()
@@ -136,6 +137,25 @@ public class ExhibitionService {
         }
         SceneCard sceneCard = mc.getSceneCard();
         return sceneCard == null ? null : sceneCard.getImageUrl();
+    }
+    private Integer resolveNextChapterOrder(Member member, MemberStorybook ms) {
+        Integer lastChapterOrder = ms.getLastChapterOrder();
+
+        StorybookChapter lastChapter = storybookChapterRepository
+                .findByStorybook_IdAndChapterOrder(ms.getStorybook().getId(), lastChapterOrder)
+                .orElse(null);
+
+        if (lastChapter == null) {
+            return lastChapterOrder;
+        }
+
+        MemberChapter lastMemberChapter =
+                memberChapterRepository.findByMemberAndStorybookChapter(member, lastChapter);
+
+        boolean lastCompleted =
+                lastMemberChapter != null && lastMemberChapter.getStatus() == Status.COMPLETED;
+
+        return lastCompleted ? lastChapterOrder + 1 : lastChapterOrder;
     }
     private boolean isCompleted(Member member, Storybook storybook) {
         int totalChapters = storybookChapterRepository
