@@ -86,6 +86,10 @@ jobs:
 
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose config >/dev/null
+
+            # 롤백 대비, 교체되기 전 현재 실행 중인 이미지 ID 기록 (최초 배포면 빈 값)
+            PREV_IMAGE_ID=$(docker inspect --format='{{.Image}}' halo-app 2>/dev/null || true)
+
             docker compose pull
             docker compose up -d --remove-orphans --force-recreate
 
@@ -100,6 +104,27 @@ jobs:
             done
 
             echo "헬스체크 실패" >&2
+            docker compose logs --tail=100 app
+
+            if [ -z "$PREV_IMAGE_ID" ]; then
+              echo "이전 이미지 정보 없음, 롤백 불가" >&2
+              exit 1
+            fi
+
+            echo "이전 이미지로 롤백 시도" >&2
+            docker tag "$PREV_IMAGE_ID" ${{ env.IMAGE_NAME }}:latest
+            docker compose up -d --force-recreate app
+
+            for i in $(seq 1 15); do
+              if curl -sf http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
+                echo "롤백 완료, 이전 버전으로 정상 기동"
+                exit 1
+              fi
+              echo "롤백 헬스체크 대기 중... ($i/15)"
+              sleep 4
+            done
+
+            echo "롤백도 실패" >&2
             docker compose logs --tail=100 app
             exit 1
           EOF
