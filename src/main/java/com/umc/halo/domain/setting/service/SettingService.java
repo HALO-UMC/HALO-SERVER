@@ -3,6 +3,7 @@ package com.umc.halo.domain.setting.service;
 import com.umc.halo.domain.setting.converter.SettingConverter;
 import com.umc.halo.domain.setting.dto.SettingReqDTO;
 import com.umc.halo.domain.setting.dto.SettingResDTO;
+import com.umc.halo.domain.setting.entity.Bgm;
 import com.umc.halo.domain.setting.entity.MemberSetting;
 import com.umc.halo.domain.setting.exception.SettingException;
 import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
@@ -31,6 +32,14 @@ public class SettingService {
     }
 
     @Transactional(readOnly = true)
+    public SettingResDTO.BgmSettings getBgmSettings(Long memberId) {
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
+
+        return SettingConverter.toBgmSettings(memberSetting);
+    }
+
+    @Transactional(readOnly = true)
     public SettingResDTO.Bgms getBgms() {
         List<SettingResDTO.BgmInfo> bgms = bgmRepository.findAll().stream().map(SettingConverter::toBgmInfo).toList();
         return SettingConverter.toBgms(bgms);
@@ -50,5 +59,34 @@ public class SettingService {
         );
 
         return SettingConverter.toNotificationSettings(memberSetting);
+    }
+
+    @Transactional
+    public SettingResDTO.BgmSettings updateBgmSettings(Long memberId, SettingReqDTO.UpdateBgmSettings dto) {
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
+
+        Bgm bgm = null;
+
+        if (dto.bgmEnabled() == null) {
+            throw new SettingException(SettingErrorCode.BGM_ENABLED_REQUIRED);
+        }
+
+        if (dto.bgmVolume() == null) {
+            throw new SettingException(SettingErrorCode.BGM_VOLUME_REQUIRED);
+        }
+
+        if (dto.bgmVolume() < 0 || dto.bgmVolume() > 100) {
+            throw new SettingException(SettingErrorCode.INVALID_BGM_VOLUME);
+        }
+
+        if(dto.bgmId() != null) {
+            bgm = bgmRepository.findById(dto.bgmId())
+                    .orElseThrow(() -> new SettingException(SettingErrorCode.BGM_NOT_FOUND));
+        }
+
+        memberSetting.updateBgmSettings(bgm, dto.bgmEnabled(), dto.bgmVolume());
+
+        return SettingConverter.toBgmSettings(memberSetting);
     }
 }

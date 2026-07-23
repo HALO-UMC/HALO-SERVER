@@ -78,6 +78,64 @@ public interface SettingControllerDocs {
     })
     ApiResponse<SettingResDTO.NotificationSettings> getNotificationSettings(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId);
 
+    // BGM 설정 조회
+    @Operation(
+            summary = "BGM 설정 조회 API",
+            description = """
+                    # BGM 설정 조회
+                    현재 BGM 설정을 조회합니다. (선택된 배경음악, 배경음악 ON, OFF 여부/배경음악 볼륨)
+                    
+                    ## 요청 형식
+                    - **Header**
+                        - Content-Type: application/json
+                        - Authorization: Bearer {Access Token}
+                    
+                    ## 동작 방식
+                    1. Access Token으로 현재 회원을 인증합니다.
+                    2. 회원의 BGM 설정 정보를 조회합니다.
+                    3. 현재 선택된 BGM ID, BGM 활성화 여부, BGM 볼륨을 반환합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": true,
+                                        "code": "BGM200_1",
+                                        "message": "BGM 설정 조회를 성공했습니다.",
+                                        "result": {
+                                            "bgmId": 1,
+                                            "bgmEnabled": true,
+                                            "bgmVolume": 70
+                                        }
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "memberSetting이 생성되지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "SETTING404_1",
+                                        "message": "설정을 찾을 수 없습니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            )
+    })
+    ApiResponse<SettingResDTO.BgmSettings> getBgmSettings(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId);
+
     // BGM 목록 조회
     @Operation(
             summary = "BGM 목록 조회 API",
@@ -223,5 +281,133 @@ public interface SettingControllerDocs {
                     )
             )
     })
-    ApiResponse<SettingResDTO.NotificationSettings> updateNotificationSettings(@AuthenticationPrincipal Long memberId, @RequestBody @Valid SettingReqDTO.UpdateNotificationSettings dto);
+    ApiResponse<SettingResDTO.NotificationSettings> updateNotificationSettings(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId, @RequestBody @Valid SettingReqDTO.UpdateNotificationSettings dto);
+
+    // BGM 설정 수정
+    @Operation(
+            summary = "BGM 설정 수정 API",
+            description = """
+                    # BGM 설정 수정
+                    BGM 설정을 수정합니다. (선택된 배경음악, 배경음악 ON, OFF 여부/배경음악 볼륨)
+                    
+                    ## 요청 형식
+                    - **Header**
+                        - Content-Type: application/json
+                        - Authorization: Bearer {Access Token}
+                    - **Body**
+                        - bgmId : 선택한 BGM ID (선택하지 않은 경우 null)
+                        - bgmEnabled : BGM ON/OFF 여부
+                        - bgmVolume : BGM 볼륨 (0~100)
+                    
+                    ## 동작 방식
+                    1. Access Token으로 현재 회원을 인증합니다.
+                    2. 회원의 BGM 설정 정보를 조회합니다.
+                    3. bgmId가 전달된 경우 해당 BGM이 존재하는지 검증합니다.
+                    4. 요청한 BGM 설정 값으로 회원의 설정을 수정합니다.
+                    5. 수정된 BGM 설정 정보를 반환합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": true,
+                                        "code": "BGM200_2",
+                                        "message": "BGM 설정 수정을 성공했습니다.",
+                                        "result": {
+                                            "bgmId": 1,
+                                            "bgmEnabled": true,
+                                            "bgmVolume": 70
+                                        }
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "bgmEnabled 필드가 null인 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "BGM400_1",
+                                        "message": "BGM 사용 여부는 필수입니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "bgmVolume 필드가 null인 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "BGM400_2",
+                                        "message": “BGM 볼륨은 필수입니다.”,
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "bgmVolume 필드값이 허용 범위를 벗어난 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "BGM400_3",
+                                        "message": “BGM 볼륨 값이 올바르지 않습니다.”,
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "존재하지 않는 bgmId가 입력된 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "BGM400_4",
+                                        "message": “존재하지 않는 BGM입니다.”,
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "memberSetting이 생성되지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "SETTING404_1",
+                                        "message": “설정을 찾을 수 없습니다.”,
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            )
+    })
+    ApiResponse<SettingResDTO.BgmSettings> updateBgmSettings(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId, @RequestBody @Valid SettingReqDTO.UpdateBgmSettings dto);
 }
