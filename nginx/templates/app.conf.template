@@ -1,8 +1,6 @@
-# TODO: DOMAIN_PLACEHOLDER 를 실제 도메인으로 바꿔야함
-
 server {
     listen 80;
-    server_name DOMAIN_PLACEHOLDER;
+    server_name ${DOMAIN};
 
     # Let's Encrypt 인증서 발급/갱신 시 사용하는 challenge 파일 경로
     location /.well-known/acme-challenge/ {
@@ -18,10 +16,10 @@ server {
 server {
     listen 443 ssl;
     http2 on;
-    server_name DOMAIN_PLACEHOLDER;
+    server_name ${DOMAIN};
 
-    ssl_certificate     /etc/letsencrypt/live/DOMAIN_PLACEHOLDER/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/DOMAIN_PLACEHOLDER/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
 
     location / {
