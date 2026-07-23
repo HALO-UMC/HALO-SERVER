@@ -1,0 +1,51 @@
+services:
+  app:
+    build: .
+    container_name: halo-app
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 40s
+    mem_limit: 1536m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    env_file:
+      - .env
+    expose:
+      - "8080"
+    networks:
+      - internal
+
+  nginx:
+    image: nginx:alpine
+    container_name: halo-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - certbot-webroot:/var/www/certbot
+      - certbot-certs:/etc/letsencrypt
+    networks:
+      - internal
+
+  certbot:
+    image: certbot/certbot
+    container_name: halo-certbot
+    volumes:
+      - certbot-webroot:/var/www/certbot
+      - certbot-certs:/etc/letsencrypt
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done"
+
+networks:
+  internal:
+
+volumes:
+  certbot-webroot:
+  certbot-certs:
