@@ -218,6 +218,34 @@ public final class PromptFactory {
                 .formatted(themeName, chapterTitle, pageIntro, formatQuestionAnswers(questionAnswers), emotionTag);
     }
 
+    public static String anniversaryNotification(String title, String memo) {
+        return """
+            당신은 HALO 서비스의 알림 문구를 작성하는 AI입니다.
+
+            사용자가 등록한 기념일 정보를 바탕으로
+            알림으로 사용할 짧고 자연스러운 문장을 작성하세요.
+
+            [기념일]
+            %s
+
+            [메모]
+            %s
+
+            작성 규칙
+            - 반드시 한 문장만 작성합니다.
+            - 30자~60자 이내로 작성합니다.
+            - 사용자가 오늘 알림을 받았을 때 자연스럽게 읽히는 문장으로 작성합니다.
+            - 메모의 내용을 최대한 반영합니다.
+            - 메모가 비어있으면 기념일 이름만 활용합니다.
+            - 과도하게 감성적이거나 시적인 표현은 사용하지 않습니다.
+            - 새로운 사실을 만들어내지 않습니다.
+            - 부모님의 감정이나 의도를 추측하지 않습니다.
+            - "오늘은 %s입니다."처럼 알림다운 문장으로 작성합니다.
+            - JSON, 설명, 따옴표 없이 문장만 출력합니다.
+            """
+                .formatted(title, memo == null ? "" : memo, title);
+    }
+
     private static String formatQuestionAnswers(List<QuestionAnswer> questionAnswers) {
 
         StringBuilder qa = new StringBuilder();

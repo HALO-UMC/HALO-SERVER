@@ -39,10 +39,9 @@ public class Notification extends BaseEntity {
     @Column(length = 255, nullable = false)
     private String message;
 
+    @Column(name = "scheduled_at", nullable = false)
+    private LocalDateTime scheduledAt;
+
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
-
-    @Column(name = "is_read", nullable = false)
-    @Builder.Default
-    private Boolean isRead = false;
 }

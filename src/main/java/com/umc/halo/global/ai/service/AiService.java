@@ -32,4 +32,13 @@ public class AiService {
 
         return aiClient.generate(prompt);
     }
+
+    public String generateAnniversaryNotificationMessage(String title, String memo) {
+
+        String filteredMemo = sensitiveDataFilter.mask(memo);
+
+        String prompt = PromptFactory.anniversaryNotification(title, filteredMemo);
+
+        return aiClient.generate(prompt);
+    }
 }
