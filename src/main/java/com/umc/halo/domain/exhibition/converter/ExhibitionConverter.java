@@ -1,6 +1,5 @@
 package com.umc.halo.domain.exhibition.converter;
 
-import com.umc.halo.domain.content.chapter.entity.Chapter;
 import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
 import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
@@ -73,12 +72,11 @@ public class ExhibitionConverter {
     }
 
     public static ExhibitionChapterResDTO.ChapterInfo toChapterInfo(
-            StorybookChapter sc, MemberChapter mc) {
-        Chapter chapter = sc.getChapter();
+            StorybookChapter sc, MemberChapter mc, String chapterImageUrl) {
         return new ExhibitionChapterResDTO.ChapterInfo(
                 sc.getChapterOrder(),
-                chapter.getImageUrl(),
-                chapter.getTitle(),
+                chapterImageUrl,
+                sc.getChapter().getTitle(),
                 mc.getSummary(),
                 mc.getCompletedDate(),
                 mc.getEmotion()

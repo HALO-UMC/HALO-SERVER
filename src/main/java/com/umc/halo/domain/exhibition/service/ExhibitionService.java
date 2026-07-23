@@ -26,6 +26,9 @@ import com.umc.halo.domain.exhibition.dto.ExhibitionChapterResDTO;
 import com.umc.halo.domain.exhibition.exception.ExhibitionException;
 import com.umc.halo.domain.exhibition.exception.code.ExhibitionErrorCode;
 import com.umc.halo.domain.record.entity.MemberChapter;
+import com.umc.halo.domain.content.chapter.entity.SceneCard;
+import com.umc.halo.domain.image.service.ImageService;
+import com.umc.halo.domain.record.enums.CoverType;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -39,6 +42,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ExhibitionService {
 
+    private final ImageService imageService;
     private final MemberRepository memberRepository;
     private final MemberStorybookRepository memberStorybookRepository;
     private final MemberChapterRepository memberChapterRepository;
@@ -118,10 +122,20 @@ public class ExhibitionService {
                 ));
 
         List<ExhibitionChapterResDTO.ChapterInfo> chapters = storybookChapters.stream()
-                .map(sc -> ExhibitionConverter.toChapterInfo(sc, myChapters.get(sc.getId())))
+                .map(sc -> {
+                    MemberChapter mc = myChapters.get(sc.getId());
+                    return ExhibitionConverter.toChapterInfo(sc, mc, resolveChapterImageUrl(mc));
+                })
                 .toList();
 
         return ExhibitionConverter.toChaptersInfo(storybookId, chapters);
+    }
+    private String resolveChapterImageUrl(MemberChapter mc) {
+        if (mc.getCoverType() == CoverType.IMAGE && mc.getImageKey() != null) {
+            return imageService.getImage(mc.getImageKey());
+        }
+        SceneCard sceneCard = mc.getSceneCard();
+        return sceneCard == null ? null : sceneCard.getImageUrl();
     }
     private boolean isCompleted(Member member, Storybook storybook) {
         int totalChapters = storybookChapterRepository
