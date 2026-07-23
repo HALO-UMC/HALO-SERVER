@@ -62,3 +62,8 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// Docker 빌드 시 plain.jar와의 COPY 충돌을 방지하기 위해 일반 JAR 생성 비활성화
+tasks.named('jar') {
+    enabled = false
+}
