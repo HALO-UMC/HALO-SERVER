@@ -1,0 +1,11 @@
+ALTER TABLE notification
+    DROP COLUMN is_read;
+
+ALTER TABLE notification
+    ADD COLUMN scheduled_at datetime NOT NULL;
+
+ALTER TABLE notification
+    ADD COLUMN anniversary_id BIGINT NULL;
+
+ALTER TABLE notification
+    ADD CONSTRAINT FK_NOTIFICATION_ON_ANNIVERSARY FOREIGN KEY (anniversary_id) REFERENCES anniversary (anniversary_id);
