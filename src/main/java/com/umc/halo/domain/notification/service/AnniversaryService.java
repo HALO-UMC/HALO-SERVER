@@ -14,7 +14,9 @@ import com.umc.halo.domain.notification.exception.AnniversaryErrorCode;
 import com.umc.halo.domain.notification.exception.AnniversaryException;
 import com.umc.halo.domain.notification.repository.AnniversaryRepository;
 import com.umc.halo.domain.notification.repository.CommonAnniversaryRepository;
+import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +33,7 @@ public class AnniversaryService {
     private final AnniversaryRepository anniversaryRepository;
     private final CommonAnniversaryRepository commonAnniversaryRepository;
     private final MemberRepository memberRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional(readOnly = true)
     public AnniversaryResDTO.GetAnniversaries getAnniversaries(Long memberId) {
@@ -131,6 +134,9 @@ public class AnniversaryService {
 
         Anniversary anniversary = AnniversaryConverter.toAnniversary(member, request);
         Anniversary savedAnniversary = anniversaryRepository.save(anniversary);
+
+        applicationEventPublisher.publishEvent(new AnniversaryCreatedEvent(savedAnniversary.getId()));
+
         return AnniversaryConverter.toCreateAnniversary(savedAnniversary);
     }
 

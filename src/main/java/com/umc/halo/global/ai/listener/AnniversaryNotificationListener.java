@@ -24,6 +24,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -54,8 +55,7 @@ public class AnniversaryNotificationListener {
             Notification d7Notification = NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, message, d7);
             Notification ddayNotification = NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, message, dday);
 
-            notificationRepository.save(d7Notification);
-            notificationRepository.save(ddayNotification);
+            notificationRepository.saveAll(List.of(d7Notification, ddayNotification));
 
         } catch (AiException e) {
             log.warn("기념일 알림 문구 생성 실패. anniversaryId={}", event.anniversaryId(), e);
