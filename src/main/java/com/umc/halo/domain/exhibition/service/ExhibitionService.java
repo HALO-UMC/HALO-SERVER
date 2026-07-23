@@ -21,7 +21,15 @@ import com.umc.halo.domain.record.repository.MemberStorybookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
+import com.umc.halo.domain.exhibition.dto.ExhibitionChapterResDTO;
+import com.umc.halo.domain.exhibition.exception.ExhibitionException;
+import com.umc.halo.domain.exhibition.exception.code.ExhibitionErrorCode;
+import com.umc.halo.domain.record.entity.MemberChapter;
 
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +44,7 @@ public class ExhibitionService {
     private final MemberChapterRepository memberChapterRepository;
     private final StorybookChapterRepository storybookChapterRepository;
     private final StorybookCharacterRepository storybookCharacterRepository;
-    private final StorybookService storybookService; 
+    private final StorybookService storybookService;
     public ExhibitionResDTO.MainInfo getExhibition(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
@@ -84,6 +92,36 @@ public class ExhibitionService {
                 collectedCharacterCount, inProgressStorybookCount,
                 currentStorybookId, completedDtos, inProgressDtos, recommendedDtos
         );
+    }
+
+    public ExhibitionChapterResDTO.ChaptersInfo getChapters(Long memberId, Long storybookId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
+        MemberStorybook memberStorybook = memberStorybookRepository
+                .findByMemberAndStorybook_Id(member, storybookId)
+                .orElseThrow(() -> new ExhibitionException(ExhibitionErrorCode.NOT_FOUND));
+
+        if (!isCompleted(member, memberStorybook.getStorybook())) {
+            throw new ExhibitionException(ExhibitionErrorCode.NOT_COMPLETED);
+        }
+
+        List<StorybookChapter> storybookChapters = storybookChapterRepository
+                .findByStorybook_IdOrderByChapterOrderAsc(storybookId);
+
+        Map<Long, MemberChapter> myChapters = memberChapterRepository
+                .findByMemberAndStorybookChapter_Storybook_Id(member, storybookId).stream()
+                .collect(Collectors.toMap(
+                        mc -> mc.getStorybookChapter().getId(),
+                        Function.identity()
+                ));
+
+        List<ExhibitionChapterResDTO.ChapterInfo> chapters = storybookChapters.stream()
+                .map(sc -> ExhibitionConverter.toChapterInfo(sc, myChapters.get(sc.getId())))
+                .toList();
+
+        return ExhibitionConverter.toChaptersInfo(storybookId, chapters);
     }
     private boolean isCompleted(Member member, Storybook storybook) {
         int totalChapters = storybookChapterRepository
