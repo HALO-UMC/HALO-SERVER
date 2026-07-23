@@ -72,6 +72,7 @@ jobs:
 
             install -m 600 /dev/null .env
             cat > .env << 'ENVEOF'
+            DOMAIN=${{ secrets.DOMAIN }}
             DB_URL=${{ secrets.DB_URL }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PW=${{ secrets.DB_PW }}
