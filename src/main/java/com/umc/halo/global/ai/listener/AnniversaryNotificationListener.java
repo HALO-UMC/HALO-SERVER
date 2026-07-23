@@ -11,6 +11,7 @@ import com.umc.halo.domain.setting.exception.SettingException;
 import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
+import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
 import com.umc.halo.global.ai.exception.AiException;
 import com.umc.halo.global.ai.service.AiService;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +60,58 @@ public class AnniversaryNotificationListener {
 
         } catch (AiException e) {
             log.warn("기념일 알림 문구 생성 실패. anniversaryId={}", event.anniversaryId(), e);
+        }
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateNotificationMessage(AnniversaryUpdatedEvent event) {
+
+        Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId()).orElseThrow();
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId())
+                .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
+
+        LocalTime notifyTime = memberSetting.getRegularNotificationTime();
+        LocalDateTime d7 = anniversary.getAnniversaryDate().minusDays(7).atTime(notifyTime);
+        LocalDateTime dday = anniversary.getAnniversaryDate().atTime(notifyTime);
+
+        List<Notification> notifications = notificationRepository.findAllByAnniversaryId(anniversary.getId());
+
+        if (!event.titleChanged() && !event.memoChanged()) {
+            notifications.forEach(notification -> {
+                if (notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
+                    notification.updateScheduledAt(d7);
+                } else {
+                    notification.updateScheduledAt(dday);
+                }
+            });
+            return;
+        }
+
+        try {
+            String message = aiService.generateAnniversaryNotificationMessage(anniversary.getTitle(), anniversary.getMemo());
+
+            notifications.forEach(notification -> {
+                if (notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
+                    notification.update(anniversary.getTitle(), message, d7);
+                } else {
+                    notification.update(anniversary.getTitle(), message, dday);
+                }
+
+            });
+
+        } catch (AiException e) {
+            log.warn("기념일 알림 재생성 실패. anniversaryId={}", anniversary.getId(), e);
+
+            notifications.forEach(notification -> {
+                if (notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
+                    notification.updateScheduledAt(d7);
+                } else {
+                    notification.updateScheduledAt(dday);
+                }
+
+            });
         }
     }
 }

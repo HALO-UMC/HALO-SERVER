@@ -44,4 +44,14 @@ public class Notification extends BaseEntity {
 
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
+
+    public void update(String title, String message, LocalDateTime scheduledAt) {
+        this.title = title;
+        this.message = message;
+        this.scheduledAt = scheduledAt;
+    }
+
+    public void updateScheduledAt(LocalDateTime scheduledAt) {
+        this.scheduledAt = scheduledAt;
+    }
 }

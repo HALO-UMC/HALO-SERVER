@@ -15,6 +15,7 @@ import com.umc.halo.domain.notification.exception.AnniversaryException;
 import com.umc.halo.domain.notification.repository.AnniversaryRepository;
 import com.umc.halo.domain.notification.repository.CommonAnniversaryRepository;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
+import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -146,6 +147,10 @@ public class AnniversaryService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         Anniversary anniversary = getOwnedAnniversary(memberId, anniversaryId);
+
+        boolean titleChanged = !Objects.equals(anniversary.getTitle(), request.title());
+        boolean memoChanged = !Objects.equals(anniversary.getMemo(), request.memo());
+
         anniversary.update(
                 request.title(),
                 request.anniversaryDate(),
@@ -153,6 +158,9 @@ public class AnniversaryService {
                 request.dayAlarmEnabled(),
                 request.memo()
         );
+
+        applicationEventPublisher.publishEvent(new AnniversaryUpdatedEvent(anniversaryId, titleChanged, memoChanged));
+
         return AnniversaryConverter.toUpdateAnniversary(anniversary);
     }
 
