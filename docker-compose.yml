@@ -1,8 +1,6 @@
 services:
   app:
     build: .
-    image: ghcr.io/halo-umc/halo-server:latest
-    pull_policy: always
     container_name: halo-app
     restart: unless-stopped
     init: true
@@ -17,22 +15,29 @@ services:
       - .env
     expose:
       - "8080"
-    ports:
-      - "127.0.0.1:8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     networks:
       - internal
 
   nginx:
-    image: nginx:alpine
+    build: ./nginx
     container_name: halo-nginx
     restart: unless-stopped
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/templates:/etc/nginx/templates:ro
       - certbot-webroot:/var/www/certbot
       - certbot-certs:/etc/letsencrypt
     networks:
@@ -41,6 +46,7 @@ services:
   certbot:
     image: certbot/certbot
     container_name: halo-certbot
+    restart: unless-stopped
     volumes:
       - certbot-webroot:/var/www/certbot
       - certbot-certs:/etc/letsencrypt

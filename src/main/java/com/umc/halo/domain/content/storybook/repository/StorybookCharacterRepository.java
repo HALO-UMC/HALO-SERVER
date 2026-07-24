@@ -11,4 +11,6 @@ import java.util.*;
 public interface StorybookCharacterRepository extends JpaRepository<StorybookCharacter, Long> {
 
     Optional<StorybookCharacter> findByStorybookAndVariant(Storybook storybook, Variant variant);
+
+    List<StorybookCharacter> findByStorybookInAndVariant(List<Storybook> storybooks, Variant variant);
 }

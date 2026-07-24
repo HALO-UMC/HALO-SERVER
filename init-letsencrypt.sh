@@ -14,28 +14,41 @@ if [ -z "$DOMAIN" ] || [ -z "$EMAIL" ]; then
   exit 1
 fi
 
+echo "### 0. 기존 인증서/갱신 설정 확인 ###"
+if docker compose run --rm --entrypoint /bin/sh certbot -ec "
+  [ -e /etc/letsencrypt/renewal/$DOMAIN.conf ] || [ -e /etc/letsencrypt/live/$DOMAIN/fullchain.pem ]
+"; then
+  echo "이미 $DOMAIN 에 대한 인증서 또는 renewal 설정이 존재합니다."
+  echo "이 스크립트를 다시 실행하면 기존 인증서가 삭제됩니다. 갱신은 'docker compose run --rm certbot renew'를 사용하고,"
+  echo "정말로 재발급이 필요하면 기존 인증서를 백업/삭제한 뒤 다시 실행하세요."
+  exit 1
+fi
+
 echo "### 1. 더미 인증서 생성 ###"
-docker compose run --rm --entrypoint "\
-  mkdir -p /etc/letsencrypt/live/$DOMAIN && \
+docker compose run --rm --entrypoint /bin/sh certbot -ec "
+  mkdir -p /etc/letsencrypt/live/$DOMAIN &&
   openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
     -keyout /etc/letsencrypt/live/$DOMAIN/privkey.pem \
     -out /etc/letsencrypt/live/$DOMAIN/fullchain.pem \
-    -subj '/CN=localhost'" certbot
+    -subj /CN=localhost
+"
 
 echo "### 2. nginx 기동 ###"
 docker compose up -d nginx
 
 echo "### 3. 더미 인증서 삭제 ###"
-docker compose run --rm --entrypoint "\
-  rm -rf /etc/letsencrypt/live/$DOMAIN && \
-  rm -rf /etc/letsencrypt/archive/$DOMAIN && \
-  rm -rf /etc/letsencrypt/renewal/$DOMAIN.conf" certbot
+docker compose run --rm --entrypoint /bin/sh certbot -ec "
+  rm -rf /etc/letsencrypt/live/$DOMAIN &&
+  rm -rf /etc/letsencrypt/archive/$DOMAIN &&
+  rm -rf /etc/letsencrypt/renewal/$DOMAIN.conf
+"
 
 echo "### 4. 실제 인증서 발급 ###"
-docker compose run --rm --entrypoint "\
+docker compose run --rm --entrypoint /bin/sh certbot -ec "
   certbot certonly --webroot -w /var/www/certbot \
     -d $DOMAIN \
-    --email $EMAIL --agree-tos --no-eff-email" certbot
+    --email $EMAIL --agree-tos --no-eff-email
+"
 
 echo "### 5. nginx 재시작 ###"
 docker compose exec nginx nginx -s reload
