@@ -17,15 +17,29 @@ public interface RecordControllerDocs {
             summary = "장 기록 작성 API",
             description = """
                     # 장 기록 작성
-                    
+
                     ## 요청 형식
-                    - 헤더: Authorization: Bearer {JWT 토큰}
-                    - storybookChapterId: 기록할 스토리북-장 ID
-                    - emotion / coverType: status가 COMPLETED일 때만 필수
-                    - imageUrl / imageKey: coverType이 IMAGE일 때만 필수
-                    - sceneCardId: coverType이 SCENE_CARD일 때만 필수
-                    - answers: 질문별 답변 목록 (최대 3개, 단계별 저장 시 일부만 포함 가능. status가 COMPLETED일 때는 장의 모든 질문에 대한 답변 필요)
-                    - status: DRAFT(임시저장) 또는 COMPLETED(최종완료)
+                    - **Header**
+                        - Authorization: Bearer {JWT 토큰}
+                    - **Body**
+                        - storybookChapterId : 기록할 스토리북-장 ID
+                        - emotion / coverType : status가 COMPLETED일 때만 필수
+                        - imageUrl / imageKey : coverType이 IMAGE일 때만 필수
+                        - sceneCardId : coverType이 SCENE_CARD일 때만 필수
+                        - answers : 질문별 답변 목록 (최대 3개, 단계별 저장 시 일부만 포함 가능. status가 COMPLETED일 때는 장의 모든 질문에 대한 답변 필요)
+                        - status : DRAFT(임시저장) 또는 COMPLETED(최종완료)
+
+                    ## 동작 방식
+                    1. storybookChapterId로 장을 조회합니다. 존재하지 않으면 404(CHAPTER404_1)를 반환합니다.
+                    2. 회원의 스토리북 진행 정보(MemberStorybook)를 조회합니다. 아직 시작하지 않은 스토리북이면 403(CHAPTER403_1)을 반환합니다.
+                    3. 오늘 이미 이 스토리북의 장을 완료했다면 409(CHAPTER409_1)를 반환합니다.
+                    4. 진행 중인 장 순서를 기준으로 요청한 장에 접근 가능한지 검증합니다. 이미 완료한 장이면 403(CHAPTER403_2)을 반환합니다.
+                    5. coverType과 imageUrl/imageKey/sceneCardId 조합이 일치하는지 검증합니다. (CHAPTER400_1)
+                    6. status가 COMPLETED이면 coverType, emotion이 모두 입력되었는지, 장의 모든 질문에 답변했는지 검증합니다. (CHAPTER400_4~6)
+                    7. sceneCardId가 있으면 해당 장의 장면 카드가 맞는지 확인합니다. (CHAPTER400_2)
+                    8. 장 기록(MemberChapter)을 생성하거나 갱신합니다. 동시 요청으로 중복 저장이 발생하면 409(CHAPTER409_2)를 반환합니다.
+                    9. 기존 답변을 삭제하고 요청받은 답변을 새로 저장합니다. 각 답변의 chapterQuestionId가 해당 장의 질문인지 검증합니다. (CHAPTER400_3)
+                    10. status가 COMPLETED면 스토리북 진행 상태를 갱신하고 AI 요약 생성 이벤트를 발행합니다. 마지막 장(10번째)이면 isStorybookCompleted를 true로 반환합니다. status가 DRAFT면 임시저장 상태로 진행 정보를 갱신합니다.
                     """,
             responses = {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -370,10 +384,20 @@ public interface RecordControllerDocs {
             summary = "완료된 장 다시보기 API",
             description = """
                     # 완료된 장 다시보기
-                    
+
                     ## 요청 형식
-                    - 헤더: Authorization: Bearer {JWT 토큰}
-                    - memberChapterId: 사용자 장 ID (path variable)
+                    - **Header**
+                        - Authorization: Bearer {JWT 토큰}
+                    - **Path Variable**
+                        - memberChapterId : 다시 볼 장 기록 ID
+
+                    ## 동작 방식
+                    1. memberChapterId로 장 기록을 조회합니다. 존재하지 않으면 404(CHAPTER404_4)를 반환합니다.
+                    2. 조회한 장 기록이 로그인한 회원 소유인지 확인합니다. 본인 소유가 아니면 존재하지 않는 것과 동일하게 404(CHAPTER404_4)를 반환합니다.
+                    3. 장 기록이 완료(COMPLETED) 상태인지 확인합니다. 아직 완료되지 않았다면 403(CHAPTER403_4)을 반환합니다.
+                    4. coverType이 IMAGE면 imageKey로 presigned imageUrl을 새로 발급합니다.
+                    5. 질문 순서대로 답변 목록을 조회합니다.
+                    6. 완료된 장의 상세 정보를 반환합니다.
 
                     ## 참고
                     - 응답의 imageUrl은 매 요청마다 새로 발급되는 presigned GET URL이며, 발급 후 1시간 동안만 유효합니다. 캐싱하지 말고 응답받은 URL을 바로 사용해주세요.
@@ -485,5 +509,3 @@ public interface RecordControllerDocs {
             @Parameter(description = "다시 볼 장 기록 ID", example = "10")
             @PathVariable Long memberChapterId);
 }
-
-
