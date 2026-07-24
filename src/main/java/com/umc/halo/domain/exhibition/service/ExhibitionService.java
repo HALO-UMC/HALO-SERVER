@@ -54,15 +54,39 @@ public class ExhibitionService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
-        List<MemberStorybook> memberStorybooks = memberStorybookRepository.findByMember(member);
-
+        List<MemberStorybook> memberStorybooks =
+                memberStorybookRepository.findAllByMemberWithStorybook(member);
         List<MemberStorybook> completed = new ArrayList<>();
         List<MemberStorybook> inProgress = new ArrayList<>();
-        for (MemberStorybook ms : memberStorybooks) {
-            if (isCompleted(member, ms.getStorybook())) {
-                completed.add(ms);
-            } else {
-                inProgress.add(ms);
+        Map<Long, List<MemberChapter>> chaptersByStorybook = Map.of();
+
+        if (!memberStorybooks.isEmpty()) {
+            List<Long> storybookIds = memberStorybooks.stream()
+                    .map(ms -> ms.getStorybook().getId())
+                    .toList();
+
+            Map<Long, Long> totalChapterCounts = storybookChapterRepository
+                    .findByStorybook_IdIn(storybookIds).stream()
+                    .collect(Collectors.groupingBy(
+                            sc -> sc.getStorybook().getId(), Collectors.counting()));
+
+            chaptersByStorybook = memberChapterRepository
+                    .findAllByMemberWithStorybookChapter(member).stream()
+                    .collect(Collectors.groupingBy(
+                            mc -> mc.getStorybookChapter().getStorybook().getId()));
+
+            for (MemberStorybook ms : memberStorybooks) {
+                Long storybookId = ms.getStorybook().getId();
+                long totalChapters = totalChapterCounts.getOrDefault(storybookId, 0L);
+                long completedCount = chaptersByStorybook.getOrDefault(storybookId, List.of()).stream()
+                        .filter(mc -> mc.getStatus() == Status.COMPLETED)
+                        .count();
+
+                if (totalChapters > 0 && completedCount == totalChapters) {
+                    completed.add(ms);
+                } else {
+                    inProgress.add(ms);
+                }
             }
         }
         int collectedCharacterCount = completed.size();
@@ -76,16 +100,26 @@ public class ExhibitionService {
             completed.sort(Comparator.comparing(MemberStorybook::getLastCompletedDate).reversed());
             currentStorybookId = completed.get(0).getStorybook().getId();
 
+            List<Storybook> completedStorybooks = completed.stream()
+                    .map(MemberStorybook::getStorybook)
+                    .toList();
+            Map<Long, StorybookCharacter> characterMap = storybookCharacterRepository
+                    .findByStorybookInAndVariant(completedStorybooks, Variant.ORIGINAL).stream()
+                    .collect(Collectors.toMap(c -> c.getStorybook().getId(), Function.identity()));
+
             for (MemberStorybook ms : completed) {
-                StorybookCharacter character = storybookCharacterRepository
-                        .findByStorybookAndVariant(ms.getStorybook(), Variant.ORIGINAL)
-                        .orElseThrow(() -> new StorybookException(StorybookErrorCode.NOT_FOUND_CHARACTER));
+                StorybookCharacter character = characterMap.get(ms.getStorybook().getId());
+                if (character == null) {
+                    throw new StorybookException(StorybookErrorCode.NOT_FOUND_CHARACTER);
+                }
                 completedDtos.add(ExhibitionConverter.toCompletedStorybook(ms, character));
             }
         } else if (!inProgress.isEmpty()) {
             for (MemberStorybook ms : inProgress) {
-                inProgressDtos.add(
-                        ExhibitionConverter.toInProgressStorybook(ms, resolveNextChapterOrder(member, ms)));
+                List<MemberChapter> myChapters =
+                        chaptersByStorybook.getOrDefault(ms.getStorybook().getId(), List.of());
+                inProgressDtos.add(ExhibitionConverter.toInProgressStorybook(
+                        ms, resolveNextChapterOrder(ms, myChapters)));
             }
         } else {
             recommendedDtos = storybookService.getRecommendedStorybooks(memberId).storybooks().stream()
@@ -104,13 +138,11 @@ public class ExhibitionService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
-        MemberStorybook memberStorybook = memberStorybookRepository
-                .findByMemberAndStorybook_Id(member, storybookId)
+        memberStorybookRepository.findAllByMemberWithStorybook(member).stream()
+                .filter(ms -> ms.getStorybook().getId().equals(storybookId))
+                .findFirst()
                 .orElseThrow(() -> new ExhibitionException(ExhibitionErrorCode.NOT_FOUND));
 
-        if (!isCompleted(member, memberStorybook.getStorybook())) {
-            throw new ExhibitionException(ExhibitionErrorCode.NOT_COMPLETED);
-        }
 
         List<StorybookChapter> storybookChapters = storybookChapterRepository
                 .findByStorybook_IdOrderByChapterOrderAsc(storybookId);
@@ -121,6 +153,13 @@ public class ExhibitionService {
                         mc -> mc.getStorybookChapter().getId(),
                         Function.identity()
                 ));
+
+        long completedCount = myChapters.values().stream()
+                .filter(mc -> mc.getStatus() == Status.COMPLETED)
+                .count();
+        if (storybookChapters.isEmpty() || completedCount != storybookChapters.size()) {
+            throw new ExhibitionException(ExhibitionErrorCode.NOT_COMPLETED);
+        }
 
         List<ExhibitionChapterResDTO.ChapterInfo> chapters = storybookChapters.stream()
                 .map(sc -> {
@@ -138,34 +177,14 @@ public class ExhibitionService {
         SceneCard sceneCard = mc.getSceneCard();
         return sceneCard == null ? null : sceneCard.getImageUrl();
     }
-    private Integer resolveNextChapterOrder(Member member, MemberStorybook ms) {
+
+    private Integer resolveNextChapterOrder(MemberStorybook ms, List<MemberChapter> myChapters) {
         Integer lastChapterOrder = ms.getLastChapterOrder();
 
-        StorybookChapter lastChapter = storybookChapterRepository
-                .findByStorybook_IdAndChapterOrder(ms.getStorybook().getId(), lastChapterOrder)
-                .orElse(null);
-
-        if (lastChapter == null) {
-            return lastChapterOrder;
-        }
-
-        MemberChapter lastMemberChapter =
-                memberChapterRepository.findByMemberAndStorybookChapter(member, lastChapter);
-
-        boolean lastCompleted =
-                lastMemberChapter != null && lastMemberChapter.getStatus() == Status.COMPLETED;
+        boolean lastCompleted = myChapters.stream()
+                .anyMatch(mc -> lastChapterOrder.equals(mc.getStorybookChapter().getChapterOrder())
+                        && mc.getStatus() == Status.COMPLETED);
 
         return lastCompleted ? lastChapterOrder + 1 : lastChapterOrder;
-    }
-    private boolean isCompleted(Member member, Storybook storybook) {
-        int totalChapters = storybookChapterRepository
-                .findByStorybook_IdOrderByChapterOrderAsc(storybook.getId()).size();
-
-        long completedCount = memberChapterRepository
-                .findByMemberAndStorybookChapter_Storybook_Id(member, storybook.getId()).stream()
-                .filter(mc -> mc.getStatus() == Status.COMPLETED)
-                .count();
-
-        return totalChapters > 0 && completedCount == totalChapters;
     }
 }

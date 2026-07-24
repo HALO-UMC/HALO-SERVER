@@ -31,4 +31,10 @@ public interface MemberChapterRepository extends JpaRepository<MemberChapter, Lo
             @Param("member") Member member,
             @Param("status") Status status,
             @Param("date") LocalDate date);
+
+    @Query("select mc from MemberChapter mc " +
+            "join fetch mc.storybookChapter sc " +
+            "join fetch sc.storybook " +
+            "where mc.member = :member")
+    List<MemberChapter> findAllByMemberWithStorybookChapter(@Param("member") Member member);
 }
