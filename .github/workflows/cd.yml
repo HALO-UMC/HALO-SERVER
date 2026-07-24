@@ -115,7 +115,7 @@ jobs:
 
             echo "이전 이미지로 롤백 시도" >&2
             docker tag "$PREV_IMAGE_ID" ${{ env.IMAGE_NAME }}:latest
-            docker compose up -d --force-recreate app
+            docker compose up -d --force-recreate --pull never app
 
             for i in $(seq 1 15); do
               if curl -sf http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
