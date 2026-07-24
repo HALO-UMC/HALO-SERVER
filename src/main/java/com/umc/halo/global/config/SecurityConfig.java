@@ -1,17 +1,14 @@
 package com.umc.halo.global.config;
 
-import com.umc.halo.global.security.JwtAccessDeniedHandler;
-import com.umc.halo.global.security.JwtAuthFilter;
-import com.umc.halo.global.security.JwtAuthenticationEntryPoint;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.umc.halo.global.security.*;
+import lombok.*;
+import org.springframework.context.annotation.*;
+import org.springframework.http.*;
+import org.springframework.security.config.annotation.web.builders.*;
+import org.springframework.security.config.annotation.web.configurers.*;
+import org.springframework.security.config.http.*;
+import org.springframework.security.web.*;
+import org.springframework.security.web.authentication.*;
 
 @Configuration
 @RequiredArgsConstructor
@@ -26,6 +23,8 @@ public class SecurityConfig {
             // Swagger
             "/swagger-ui/**",
             "/v3/api-docs/**",
+            // 헬스체크 (배포 스크립트에서 인증 없이 확인)
+            "/actuator/health",
             // 인증(소셜 로그인 / 토큰 재발급)
             "/api/v1/auth/login",
             "/api/v1/auth/reissue",
@@ -52,11 +51,11 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-        // 인증/인가 실패 시 공통 응답 포맷으로 반환
+                // 인증/인가 실패 시 공통 응답 포맷으로 반환
                 .exceptionHandling(ex -> ex
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                .accessDeniedHandler(jwtAccessDeniedHandler)
-        )
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler)
+                )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
