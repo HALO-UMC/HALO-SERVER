@@ -27,6 +27,11 @@ server {
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
 
+    # actuator 외부 노출 차단
+    location /actuator {
+        return 404;
+    }
+
     location / {
         proxy_pass http://app_upstream;
         proxy_set_header Host $host;
