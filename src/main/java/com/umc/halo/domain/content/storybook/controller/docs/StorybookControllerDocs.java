@@ -18,15 +18,15 @@ public interface StorybookControllerDocs {
     @Operation(
             summary = "홈 화면 조회 API",
             description = """
-                    ### 홈 화면 조회
+                    # 홈 화면 조회
 
                     로그인한 회원의 진행 중인 스토리북 현황, 책장 목록, 추천 스토리북과 홈 화면 상태를 조회합니다.
 
-                    **요청 형식**
-                    - Header
+                    ## 요청 형식
+                    - **Header**
                         - Authorization: Bearer {accessToken}
 
-                    **동작 방식**
+                    ## 동작 방식
                     1. 인증된 회원의 진행 중인 스토리북들을 조회합니다.
                     2. 진행 중인 스토리북 전체의 제목/진행 상황을 리스트로 계산합니다.
                     3. 전체 스토리북의 책장 상태(NOT_STARTED/IN_PROGRESS/COMPLETED)를 계산합니다.
@@ -95,15 +95,15 @@ public interface StorybookControllerDocs {
     @Operation(
             summary = "스토리북 목록 조회 API",
             description = """
-                    ### 스토리북 목록 조회
+                    # 스토리북 목록 조회
 
                     로그인한 회원의 스토리북 목록과 진행 상태, 상황별 추천 5개 카테고리를 조회합니다.
 
-                    **요청 형식**
-                    - Header
+                    ## 요청 형식
+                    - **Header**
                         - Authorization: Bearer {accessToken}
 
-                    **동작 방식**
+                    ## 동작 방식
                     1. 전체 스토리북을 테마 순서대로 조회합니다.
                     2. 회원별 진행 상태(NOT_STARTED/IN_PROGRESS/TODAY_DONE/COMPLETED)를 계산합니다.
                     3. 회원이 온보딩에서 선택한 목적 태그를 기준으로 상황별 추천 카테고리를 구성합니다.
@@ -171,17 +171,17 @@ public interface StorybookControllerDocs {
     @Operation(
             summary = "스토리북 상세 조회 API",
             description = """
-                    ### 스토리북 상세 조회
+                    # 스토리북 상세 조회
 
                     스토리북 상세 정보와 10개 장 목록(진행 상태 포함)을 조회합니다.
 
-                    **요청 형식**
-                    - Header
+                    ## 요청 형식
+                    - **Header**
                         - Authorization: Bearer {accessToken}
-                    - Path Variable
+                    - **Path Variable**
                         - storybookId: 조회할 스토리북 ID
 
-                    **동작 방식**
+                    ## 동작 방식
                     1. storybookId로 스토리북을 조회합니다. 존재하지 않으면 404(STORYBOOK404_1)를 반환합니다.
                     2. 회원의 장별 완료 여부를 조회합니다.
                     3. member_storybook의 lastCompletedDate로 오늘 완료 여부를 확인합니다.
@@ -255,17 +255,17 @@ public interface StorybookControllerDocs {
     @Operation(
             summary = "스토리북 시작하기 API",
             description = """
-                    ### 스토리북 시작하기
+                    # 스토리북 시작하기
 
                     선택한 스토리북을 시작합니다.
 
-                    **요청 형식**
-                    - Header
+                    ## 요청 형식
+                    - **Header**
                         - Authorization: Bearer {accessToken}
-                    - Path Variable
+                    - **Path Variable**
                         - storybookId: 시작할 스토리북 ID
 
-                    **동작 방식**
+                    ## 동작 방식
                     1. storybookId로 스토리북을 조회합니다. 존재하지 않으면 404(STORYBOOK404_1)를 반환합니다.
                     2. 이미 시작한 스토리북인지 확인합니다.
                     3. 완료까지 한 경우 409(STORYBOOK409_2), 진행 중인 경우 409(STORYBOOK409_1)를 반환합니다.
@@ -318,15 +318,15 @@ public interface StorybookControllerDocs {
     @Operation(
             summary = "추천 스토리북 조회 API",
             description = """
-                    ### 추천 스토리북 조회
+                    # 추천 스토리북 조회
 
                     온보딩 시 선택한 목적 태그를 기반으로 추천 스토리북 2개를 조회합니다.
 
-                    **요청 형식**
-                    - Header
+                    ## 요청 형식
+                    - **Header**
                         - Authorization: Bearer {accessToken}
 
-                    **동작 방식**
+                    ## 동작 방식
                     1. 회원이 온보딩에서 선택한 목적 태그를 조회합니다.
                     2. 태그와 매칭되는 스토리북을 우선순위(PRIMARY > SECONDARY) 순으로 정렬합니다.
                     3. 매칭된 스토리북이 2개 미만이면 테마 순서를 기준으로 나머지를 채웁니다.
