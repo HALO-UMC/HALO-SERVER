@@ -91,7 +91,8 @@ jobs:
             # 롤백 대비, 교체되기 전 현재 실행 중인 이미지 ID 기록 (최초 배포면 빈 값)
             PREV_IMAGE_ID=$(docker inspect --format='{{.Image}}' halo-app 2>/dev/null || true)
 
-            docker compose pull
+            docker compose pull app certbot
+            docker compose build nginx
             docker compose up -d --remove-orphans --force-recreate
 
             for i in $(seq 1 15); do
