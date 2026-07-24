@@ -2,6 +2,7 @@ package com.umc.halo.domain.content.storybook.repository;
 
 import com.umc.halo.domain.content.storybook.entity.*;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.*;
 
 import java.util.List;
@@ -17,4 +18,10 @@ public interface StorybookChapterRepository extends JpaRepository<StorybookChapt
     Optional<StorybookChapter> findByStorybookIdAndChapterOrder(Long storybookId, Integer chapterOrder);
 
     List<StorybookChapter> findByStorybook_IdIn(List<Long> storybookIds);
+
+    @Query("select sc from StorybookChapter sc " +
+            "join fetch sc.chapter " +
+            "where sc.storybook.id = :storybookId " +
+            "order by sc.chapterOrder asc")
+    List<StorybookChapter> findAllByStorybookIdWithChapter(@Param("storybookId") Long storybookId);
 }

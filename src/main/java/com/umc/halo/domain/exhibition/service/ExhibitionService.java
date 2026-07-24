@@ -97,7 +97,9 @@ public class ExhibitionService {
         Long currentStorybookId = null;
 
         if (!completed.isEmpty()) {
-            completed.sort(Comparator.comparing(MemberStorybook::getLastCompletedDate).reversed());
+            completed.sort(Comparator.comparing(MemberStorybook::getLastCompletedDate)
+                    .thenComparing(ms -> ms.getStorybook().getId())
+                    .reversed());
             currentStorybookId = completed.get(0).getStorybook().getId();
 
             List<Storybook> completedStorybooks = completed.stream()
@@ -145,10 +147,10 @@ public class ExhibitionService {
 
 
         List<StorybookChapter> storybookChapters = storybookChapterRepository
-                .findByStorybook_IdOrderByChapterOrderAsc(storybookId);
+                .findAllByStorybookIdWithChapter(storybookId);
 
         Map<Long, MemberChapter> myChapters = memberChapterRepository
-                .findByMemberAndStorybookChapter_Storybook_Id(member, storybookId).stream()
+                .findAllByMemberAndStorybookIdWithSceneCard(member, storybookId).stream()
                 .collect(Collectors.toMap(
                         mc -> mc.getStorybookChapter().getId(),
                         Function.identity()
