@@ -86,6 +86,36 @@ public interface StorybookControllerDocs {
                                     }
                                     """)
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 회원",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER404_1",
+                                      "message": "존재하지 않는 회원입니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
             )
     })
     ApiResponse<StorybookResDTO.GetHome> getHome(
@@ -162,6 +192,36 @@ public interface StorybookControllerDocs {
                                     }
                                     """)
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 회원",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER404_1",
+                                      "message": "존재하지 않는 회원입니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
             )
     })
     ApiResponse<StorybookResDTO.GetStorybookList> getStorybookList(
@@ -179,7 +239,7 @@ public interface StorybookControllerDocs {
                     - **Header**
                         - Authorization: Bearer {accessToken}
                     - **Path Variable**
-                        - storybookId: 조회할 스토리북 ID
+                        - storybookId : 조회할 스토리북 ID
 
                     ## 동작 방식
                     1. storybookId로 스토리북을 조회합니다. 존재하지 않으면 404(STORYBOOK404_1)를 반환합니다.
@@ -232,18 +292,49 @@ public interface StorybookControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "404",
-                    description = "존재하지 않는 스토리북",
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
                                     {
                                       "isSuccess": false,
-                                      "code": "STORYBOOK404_1",
-                                      "message": "존재하지 않는 스토리북입니다.",
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
                                       "result": null
                                     }
                                     """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 회원 또는 스토리북",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "존재하지 않는 회원",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "MEMBER404_1",
+                                                      "message": "존재하지 않는 회원입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "존재하지 않는 스토리북",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "STORYBOOK404_1",
+                                                      "message": "존재하지 않는 스토리북입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             )
     })
@@ -263,7 +354,7 @@ public interface StorybookControllerDocs {
                     - **Header**
                         - Authorization: Bearer {accessToken}
                     - **Path Variable**
-                        - storybookId: 시작할 스토리북 ID
+                        - storybookId : 시작할 스토리북 ID
 
                     ## 동작 방식
                     1. storybookId로 스토리북을 조회합니다. 존재하지 않으면 404(STORYBOOK404_1)를 반환합니다.
@@ -295,18 +386,80 @@ public interface StorybookControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "409",
-                    description = "이미 진행중이거나 이미 완료한 스토리북",
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
                                     {
                                       "isSuccess": false,
-                                      "code": "STORYBOOK409_1",
-                                      "message": "이미 시작한 스토리북입니다.",
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
                                       "result": null
                                     }
                                     """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 회원 또는 스토리북",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "존재하지 않는 회원",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "MEMBER404_1",
+                                                      "message": "존재하지 않는 회원입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "존재하지 않는 스토리북",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "STORYBOOK404_1",
+                                                      "message": "존재하지 않는 스토리북입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "이미 진행중이거나 이미 완료한 스토리북",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "이미 진행 중인 스토리북",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "STORYBOOK409_1",
+                                                      "message": "이미 시작한 스토리북입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "이미 완료한 스토리북",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "STORYBOOK409_2",
+                                                      "message": "이미 완료한 스토리북은 다시 시작할 수 없습니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             )
     })
@@ -363,6 +516,36 @@ public interface StorybookControllerDocs {
                                           }
                                         ]
                                       }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 회원",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER404_1",
+                                      "message": "존재하지 않는 회원입니다.",
+                                      "result": null
                                     }
                                     """)
                     )
