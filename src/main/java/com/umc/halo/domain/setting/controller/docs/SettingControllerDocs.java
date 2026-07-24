@@ -22,12 +22,12 @@ public interface SettingControllerDocs {
             description = """
                     # 알림 설정 조회
                     현재 알림 설정을 조회합니다. (정기 알림/정기 알림 시간/전체 알림/오늘의 장 알림/리텐션 알림/기념일 알림)
-                    
+
                     ## 요청 형식
                     - **Header**
                         - Content-Type: application/json
                         - Authorization: Bearer {Access Token}
-                    
+
                     ## 동작 방식
                     1. Access Token으로 현재 회원을 인증합니다.
                     2. 회원의 알림 설정 정보를 조회합니다.
@@ -60,6 +60,22 @@ public interface SettingControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "AUTH401_1",
+                                        "message": "토큰이 만료되었습니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "memberSetting이 생성되지 않음",
                     content = @Content(
@@ -84,12 +100,12 @@ public interface SettingControllerDocs {
             description = """
                     # BGM 설정 조회
                     현재 BGM 설정을 조회합니다. (선택된 배경음악, 배경음악 ON, OFF 여부/배경음악 볼륨)
-                    
+
                     ## 요청 형식
                     - **Header**
                         - Content-Type: application/json
                         - Authorization: Bearer {Access Token}
-                    
+
                     ## 동작 방식
                     1. Access Token으로 현재 회원을 인증합니다.
                     2. 회원의 BGM 설정 정보를 조회합니다.
@@ -112,6 +128,22 @@ public interface SettingControllerDocs {
                                             "bgmEnabled": true,
                                             "bgmVolume": 70
                                         }
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "AUTH401_1",
+                                        "message": "토큰이 만료되었습니다.",
+                                        "result": null
                                     }
                                     """
                             )
@@ -142,12 +174,12 @@ public interface SettingControllerDocs {
             description = """
                     # BGM 목록 조회
                     내장으로 다운로드받은 BGM 목록을 조회합니다.
-                    
+
                     ## 요청 형식
                     - **Header**
                         - Content-Type: application/json
                         - Authorization: Bearer {Access Token}
-                    
+
                     ## 동작 방식
                     1. 서버에 등록된 BGM 메타데이터를 조회합니다.
                     2. 각 BGM의 제목, 파일명, 이미지 정보를 반환합니다.
@@ -184,10 +216,7 @@ public interface SettingControllerDocs {
                                              "title": "산들바람3",
                                              "fileName": "http://www.bgm-example3.com",
                                              "imageName": "http://www.img-example3.com"
-                                           },
-                                           .
-                                           .
-                                           .
+                                           }
                                          ]
                                        }
                                      }
@@ -220,7 +249,7 @@ public interface SettingControllerDocs {
             description = """
                     # 알림 설정 수정
                     알림 설정을 수정합니다. (정기 알림/정기 알림 시간/전체 알림/오늘의 장 알림/리텐션 알림/기념일 알림)
-                    
+
                     ## 요청 형식
                     - **Header**
                         - Content-Type: application/json
@@ -231,7 +260,7 @@ public interface SettingControllerDocs {
                         - todayChapterNotificationEnabled : 오늘의 장 알림 ON/OFF 여부
                         - retentionNotificationEnabled : 리텐션 알림 ON/OFF 여부
                         - anniversaryNotificationEnabled : 기념일 알림 ON/OFF 여부
-                    
+
                     ## 동작 방식
                     1. Access Token으로 현재 회원을 인증합니다.
                     2. 회원의 알림 설정 정보를 조회합니다.
@@ -265,6 +294,22 @@ public interface SettingControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "AUTH401_1",
+                                        "message": "토큰이 만료되었습니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "memberSetting이 생성되지 않음",
                     content = @Content(
@@ -289,7 +334,7 @@ public interface SettingControllerDocs {
             description = """
                     # BGM 설정 수정
                     BGM 설정을 수정합니다. (선택된 배경음악, 배경음악 ON, OFF 여부/배경음악 볼륨)
-                    
+
                     ## 요청 형식
                     - **Header**
                         - Content-Type: application/json
@@ -298,7 +343,7 @@ public interface SettingControllerDocs {
                         - bgmId : 선택한 BGM ID (선택하지 않은 경우 null)
                         - bgmEnabled : BGM ON/OFF 여부
                         - bgmVolume : BGM 볼륨 (0~100)
-                    
+
                     ## 동작 방식
                     1. Access Token으로 현재 회원을 인증합니다.
                     2. 회원의 BGM 설정 정보를 조회합니다.
@@ -353,7 +398,7 @@ public interface SettingControllerDocs {
                                     {
                                         "isSuccess": false,
                                         "code": "BGM400_2",
-                                        "message": “BGM 볼륨은 필수입니다.”,
+                                        "message": "BGM 볼륨은 필수입니다.",
                                         "result": null
                                     }
                                     """
@@ -369,7 +414,7 @@ public interface SettingControllerDocs {
                                     {
                                         "isSuccess": false,
                                         "code": "BGM400_3",
-                                        "message": “BGM 볼륨 값이 올바르지 않습니다.”,
+                                        "message": "BGM 볼륨 값이 올바르지 않습니다.",
                                         "result": null
                                     }
                                     """
@@ -385,7 +430,23 @@ public interface SettingControllerDocs {
                                     {
                                         "isSuccess": false,
                                         "code": "BGM400_4",
-                                        "message": “존재하지 않는 BGM입니다.”,
+                                        "message": "존재하지 않는 BGM입니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "AUTH401_1",
+                                        "message": "토큰이 만료되었습니다.",
                                         "result": null
                                     }
                                     """
@@ -401,7 +462,7 @@ public interface SettingControllerDocs {
                                     {
                                         "isSuccess": false,
                                         "code": "SETTING404_1",
-                                        "message": “설정을 찾을 수 없습니다.”,
+                                        "message": "설정을 찾을 수 없습니다.",
                                         "result": null
                                     }
                                     """
