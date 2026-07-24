@@ -33,6 +33,38 @@ public interface AnniversaryControllerDocs {
                     3. 음력 기반 기본 기념일(추석, 설날 등)은 KASI(한국천문연구원) 표준 기반 음력-양력 변환 라이브러리로 실제 양력 날짜를 계산하여 D-day에 반영합니다.
                     4. 다가오는 기념일(upcomingAnniversaries), 내가 추가한 기념일(myAnniversaries), 기본 기념일(commonAnniversaries) 세 목록을 함께 반환합니다.
                     """)
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 회원",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "MEMBER404_1",
+                                      "message": "존재하지 않는 회원입니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            )
+    })
     ApiResponse<AnniversaryResDTO.GetAnniversaries> getAnniversaries(
             @AuthenticationPrincipal Long memberId
     );
@@ -74,6 +106,21 @@ public interface AnniversaryControllerDocs {
                                       "result": {
                                         "anniversaryId": 5
                                       }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
+                                      "result": null
                                     }
                                     """)
                     )
@@ -143,18 +190,49 @@ public interface AnniversaryControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "404",
-                    description = "존재하지 않는 기념일",
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
                                     {
                                       "isSuccess": false,
-                                      "code": "ANNIVERSARY404_1",
-                                      "message": "존재하지 않는 일정입니다.",
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
                                       "result": null
                                     }
                                     """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 회원 또는 기념일",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "존재하지 않는 회원",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "MEMBER404_1",
+                                                      "message": "존재하지 않는 회원입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "존재하지 않는 기념일",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ANNIVERSARY404_1",
+                                                      "message": "존재하지 않는 일정입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -215,18 +293,49 @@ public interface AnniversaryControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "404",
-                    description = "존재하지 않는 기념일 포함",
+                    responseCode = "401",
+                    description = "accessToken 만료·유효하지 않음",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = """
                                     {
                                       "isSuccess": false,
-                                      "code": "ANNIVERSARY404_1",
-                                      "message": "존재하지 않는 일정입니다.",
+                                      "code": "AUTH401_1",
+                                      "message": "토큰이 만료되었습니다.",
                                       "result": null
                                     }
                                     """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 회원 또는 기념일 포함",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "존재하지 않는 회원",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "MEMBER404_1",
+                                                      "message": "존재하지 않는 회원입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "존재하지 않는 기념일 포함",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ANNIVERSARY404_1",
+                                                      "message": "존재하지 않는 일정입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
