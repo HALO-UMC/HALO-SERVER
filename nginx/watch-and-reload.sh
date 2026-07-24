@@ -13,7 +13,7 @@ trap 'kill -TERM "$NGINX_PID" 2>/dev/null' TERM INT
 
 watch_and_reload() {
   while true; do
-    inotifywait -m -r -e close_write -e create -e moved_to -e delete \
+    inotifywait -m -r -e close_write -e create -e moved_to \
       /etc/letsencrypt/live /etc/letsencrypt/archive 2>/dev/null |
     while read -r _; do
       echo "[watch-and-reload] 인증서 변경 감지, nginx reload"
