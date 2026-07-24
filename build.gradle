@@ -68,3 +68,8 @@ tasks.named('test') {
 tasks.named('jar') {
     enabled = false
 }
+
+// build/libs에 파일명이 고정된 jar 하나만 남도록 해서 Dockerfile의 COPY 매칭을 단수로 고정
+tasks.named('bootJar') {
+    archiveFileName = 'app.jar'
+}
