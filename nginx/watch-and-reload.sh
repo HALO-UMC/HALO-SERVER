@@ -3,6 +3,9 @@
 # certbot renew로 갱신될 때마다 nginx를 reload한다.
 set -e
 
+# 직접 치환
+envsubst '${DOMAIN}' < /etc/nginx/templates/app.conf.template > /etc/nginx/conf.d/app.conf
+
 nginx -g "daemon off;" &
 NGINX_PID=$!
 
