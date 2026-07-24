@@ -182,7 +182,7 @@ public interface OnboardingControllerDocs {
             description = """
                     # 온보딩 진행 상태 조회
 
-                    완료 여부 + 이어할 단계(currentStep) + 지금까지 저장된 값(savedData)을 반환합니다.
+                    완료 여부 + 저장된 단계(currentStep) + 지금까지 저장된 값(savedData)을 반환합니다.
                     시작 전이면 currentStep, savedData는 null 입니다.
 
                     ## 요청 형식
@@ -193,7 +193,7 @@ public interface OnboardingControllerDocs {
                     1. 회원의 저장된 온보딩 단계(onboardingStep)를 조회합니다.
                     2. 온보딩을 시작한 적이 없으면(onboardingStep이 null) currentStep과 savedData를 null로 반환합니다.
                     3. 시작했다면 회원의 태그를 카테고리별로 조회하여 parentTagIds, currentRelationTagId, goalTagIds로 매핑합니다.
-                    4. 온보딩 완료 여부, 이어서 진행할 단계, 지금까지 저장된 값을 함께 반환합니다.
+                    4. 온보딩 완료 여부, 현재까지 저장된 단계, 지금까지 저장된 값을 함께 반환합니다.
                     """
     )
     @ApiResponses(value = {

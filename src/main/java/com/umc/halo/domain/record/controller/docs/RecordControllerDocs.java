@@ -33,7 +33,7 @@ public interface RecordControllerDocs {
                     1. storybookChapterId로 장을 조회합니다. 존재하지 않으면 404(CHAPTER404_1)를 반환합니다.
                     2. 회원의 스토리북 진행 정보(MemberStorybook)를 조회합니다. 아직 시작하지 않은 스토리북이면 403(CHAPTER403_1)을 반환합니다.
                     3. 오늘 이미 이 스토리북의 장을 완료했다면 409(CHAPTER409_1)를 반환합니다.
-                    4. 진행 중인 장 순서를 기준으로 요청한 장에 접근 가능한지 검증합니다. 이미 완료한 장이면 403(CHAPTER403_2)을 반환합니다.
+                    4. 진행 중인 장 순서를 기준으로 요청한 장에 접근 가능한지 검증합니다. 아직 열리지 않은 장이면 403(CHAPTER403_1), 이미 완료한 장이면 403(CHAPTER403_2)을 반환합니다.
                     5. coverType과 imageUrl/imageKey/sceneCardId 조합이 일치하는지 검증합니다. (CHAPTER400_1)
                     6. status가 COMPLETED이면 coverType, emotion이 모두 입력되었는지, 장의 모든 질문에 답변했는지 검증합니다. (CHAPTER400_4~6)
                     7. sceneCardId가 있으면 해당 장의 장면 카드가 맞는지 확인합니다. (CHAPTER400_2)
