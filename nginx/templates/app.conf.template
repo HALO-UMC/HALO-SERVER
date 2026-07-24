@@ -8,8 +8,9 @@ server {
     }
 
     # 그 외 모든 요청은 HTTPS로 리다이렉트
+    # $host를 그대로 쓰면 조작된 Host 헤더로 open redirect가 가능해지므로 고정 도메인을 사용
     location / {
-        return 301 https://$host$request_uri;
+        return 301 https://${DOMAIN}$request_uri;
     }
 }
 
