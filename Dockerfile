@@ -6,7 +6,8 @@ ENV TZ=Asia/Seoul
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # 비루트 계정 생성 (AL2023 미니멀 이미지엔 shadow-utils가 빠져 있어 먼저 설치)
-RUN dnf install -y shadow-utils && dnf clean all && \
+# curl-minimal: docker-compose healthcheck에서 /actuator/health 호출용
+RUN dnf install -y shadow-utils curl-minimal && dnf clean all && \
     groupadd halo && useradd -g halo -M halo
 
 # CI에서 --build-arg 로 실제 jar 경로를 넘겨줄 수 있도록 기본값만 지정

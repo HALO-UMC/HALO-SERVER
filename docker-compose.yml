@@ -15,6 +15,12 @@ services:
       - .env
     expose:
       - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     networks:
       - internal
 
@@ -23,7 +29,8 @@ services:
     container_name: halo-nginx
     restart: unless-stopped
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     ports:
       - "80:80"
       - "443:443"
