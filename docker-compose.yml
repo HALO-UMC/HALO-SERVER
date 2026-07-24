@@ -25,7 +25,7 @@ services:
       - internal
 
   nginx:
-    image: nginx:alpine
+    build: ./nginx
     container_name: halo-nginx
     restart: unless-stopped
     depends_on:
@@ -46,6 +46,7 @@ services:
   certbot:
     image: certbot/certbot
     container_name: halo-certbot
+    restart: unless-stopped
     volumes:
       - certbot-webroot:/var/www/certbot
       - certbot-certs:/etc/letsencrypt
