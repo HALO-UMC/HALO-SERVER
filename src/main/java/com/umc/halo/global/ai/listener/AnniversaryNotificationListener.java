@@ -26,11 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -63,17 +60,15 @@ public class AnniversaryNotificationListener {
         LocalDateTime d7 = anniversary.getAnniversaryDate().minusDays(7).atTime(notifyTime);
         LocalDateTime dday = anniversary.getAnniversaryDate().atTime(notifyTime);
 
-        List<Notification> notifications = new ArrayList<>();
 
         if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
-            notifications.add(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7));
+            saveOrUpdateNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
         }
 
         if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
-            notifications.add(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday));
+            saveOrUpdateNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
         }
 
-        notificationRepository.saveAll(notifications);
     }
 
     @Async
@@ -91,47 +86,24 @@ public class AnniversaryNotificationListener {
         LocalDateTime d7 = anniversary.getAnniversaryDate().minusDays(7).atTime(notifyTime);
         LocalDateTime dday = anniversary.getAnniversaryDate().atTime(notifyTime);
 
-        Notification d7Notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), NotificationType.ANNIVERSARY_D7, List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED)).orElse(null);
-        Notification ddayNotification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), NotificationType.ANNIVERSARY_DDAY, List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED)).orElse(null);
-
-        if (!event.titleChanged() && !event.memoChanged()) {
-            syncNotificationSchedule(anniversary, d7Notification, ddayNotification, d7, dday, now);
-            return;
-        }
-
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
-        String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
-        String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
+        String d7Message = null;
+        String ddayMessage = null;
 
-        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
-
-            if (d7Notification == null) {
-                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7));
-            } else {
-                d7Notification.update(d7Title, d7Message, d7);
-            }
-
-        } else if (d7Notification != null) {
-            d7Notification.cancel();
+        if(event.titleChanged() || event.memoChanged()) {
+            d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
+            ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
         }
 
-        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
-            if (ddayNotification == null) {
-                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday));
-            } else {
-                ddayNotification.update(ddayTitle, ddayMessage, dday);
-            }
+        updateOrCancel(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7, now, anniversary.getSevenDaysAlarmEnabled());;
+        updateOrCancel(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday, now, anniversary.getDayAlarmEnabled());
 
-        } else if (ddayNotification != null) {
-            ddayNotification.cancel();
-        }
     }
 
     private String createNotificationTitle(Anniversary anniversary, NotificationType notificationType) {
         if (notificationType == NotificationType.ANNIVERSARY_D7) {
-            long days = ChronoUnit.DAYS.between(LocalDate.now(), anniversary.getAnniversaryDate());
-            return anniversary.getTitle() + "까지 " + days + "일 남았어요.";
+            return anniversary.getTitle() + "까지 7일 남았어요.";
         }
 
         return "오늘은 " + anniversary.getTitle() + "입니다.";
@@ -161,21 +133,32 @@ public class AnniversaryNotificationListener {
         return "소중한 마음을 전하는 하루가 되어보세요.";
     }
 
-    private void syncNotificationSchedule(Anniversary anniversary, Notification d7Notification, Notification ddayNotification, LocalDateTime d7, LocalDateTime dday, LocalDateTime now) {
-        syncNotification(anniversary, d7Notification, NotificationType.ANNIVERSARY_D7, d7, now);
-        syncNotification(anniversary, ddayNotification, NotificationType.ANNIVERSARY_DDAY, dday, now);
+
+
+    private void saveOrUpdateNotification(Anniversary anniversary, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt) {
+
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED)).orElse(null);
+
+        if(notification == null) {
+            notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, notificationType, title, message, scheduledAt));
+        } else {
+            notification.update(title, message, scheduledAt);
+        }
     }
 
-    private void syncNotification(Anniversary anniversary, Notification notification, NotificationType type, LocalDateTime scheduledAt, LocalDateTime now) {
+    private void updateOrCancel(Anniversary anniversary, NotificationType type, String title, String message, LocalDateTime scheduledAt, LocalDateTime now, boolean enabled) {
 
-        boolean enabled = type == NotificationType.ANNIVERSARY_D7 ? anniversary.getSevenDaysAlarmEnabled() : anniversary.getDayAlarmEnabled();
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), type, List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED)).orElse(null);
 
         if(enabled && scheduledAt.isAfter(now)) {
-            if(notification != null) {
-                notification.reserve(scheduledAt);
-            }
-            else {
-                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, type, createNotificationTitle(anniversary,type), createNotificationMessage(anniversary,type), scheduledAt));
+            if(notification == null) {
+                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, type, title, message != null ? message : createDefaultNotificationMessage(type), scheduledAt));
+            } else {
+                if(message != null) {
+                    notification.update(title, message, scheduledAt);
+                } else {
+                    notification.reserve(scheduledAt);
+                }
             }
         } else {
             if(notification != null) {

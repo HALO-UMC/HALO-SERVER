@@ -25,3 +25,6 @@ ALTER TABLE notification
 
 ALTER TABLE notification
     ADD CONSTRAINT FK_NOTIFICATION_ON_ANNIVERSARY FOREIGN KEY (anniversary_id) REFERENCES anniversary (anniversary_id);
+
+ALTER TABLE notification
+    ADD CONSTRAINT uk_notification_anniversary_type UNIQUE (anniversary_id, notification_type);

@@ -9,7 +9,10 @@ import lombok.*;
 import java.time.*;
 
 @Entity
-@Table(name = "notification")
+@Table(
+        name = "notification",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"anniversary_id", "notification_type"})
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
@@ -60,12 +63,17 @@ public class Notification extends BaseEntity {
     }
 
     public void reserve(LocalDateTime scheduledAt) {
+        if (this.status == NotificationStatus.SENT) {
+            return;
+        }
         this.scheduledAt = scheduledAt;
         this.status = NotificationStatus.SCHEDULED;
     }
 
     public void cancel() {
-        this.status = NotificationStatus.CANCELED;
+        if (this.status != NotificationStatus.SENT) {
+            this.status = NotificationStatus.CANCELED;
+        }
     }
 
     public boolean isReserved() {
