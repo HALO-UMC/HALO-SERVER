@@ -49,7 +49,7 @@ public class Notification extends BaseEntity {
     private LocalDateTime sentAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     @Builder.Default
     private NotificationStatus status = NotificationStatus.SCHEDULED;
 

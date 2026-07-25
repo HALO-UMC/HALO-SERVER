@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -50,15 +51,20 @@ public class AnniversaryNotificationListener {
         MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId())
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
+        LocalDateTime now = LocalDateTime.now();
+        LocalTime notifyTime = memberSetting.getRegularNotificationTime();
+
+        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate());
+        if (nextOccurrence == null) {
+            return;
+        }
+        LocalDateTime d7 = nextOccurrence.minusDays(7).atTime(notifyTime);
+        LocalDateTime dday = nextOccurrence.atTime(notifyTime);
+
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
         String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalTime notifyTime = memberSetting.getRegularNotificationTime();
-        LocalDateTime d7 = anniversary.getAnniversaryDate().minusDays(7).atTime(notifyTime);
-        LocalDateTime dday = anniversary.getAnniversaryDate().atTime(notifyTime);
 
 
         if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
@@ -83,8 +89,15 @@ public class AnniversaryNotificationListener {
 
         LocalDateTime now = LocalDateTime.now();
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
-        LocalDateTime d7 = anniversary.getAnniversaryDate().minusDays(7).atTime(notifyTime);
-        LocalDateTime dday = anniversary.getAnniversaryDate().atTime(notifyTime);
+
+        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate());
+        if (nextOccurrence == null) {
+            cancelNotification(anniversary, NotificationType.ANNIVERSARY_D7);
+            cancelNotification(anniversary, NotificationType.ANNIVERSARY_DDAY);
+            return;
+        }
+        LocalDateTime d7 = nextOccurrence.minusDays(7).atTime(notifyTime);
+        LocalDateTime dday = nextOccurrence.atTime(notifyTime);
 
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
@@ -165,5 +178,32 @@ public class AnniversaryNotificationListener {
                 notification.cancel();
             }
         }
+    }
+
+    private void cancelNotification(Anniversary anniversary, NotificationType type) {
+
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), type, List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED)).orElse(null);
+
+        if(notification != null) {
+            notification.cancel();
+        }
+    }
+
+    private LocalDate resolveNextOccurrence(Anniversary anniversary, LocalDate today) {
+
+        LocalDate anniversaryDate = anniversary.getAnniversaryDate();
+
+        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
+            return anniversaryDate.isBefore(today) ? null : anniversaryDate;
+        }
+
+        LocalDate thisYear;
+
+        try {
+            thisYear = anniversaryDate.withYear(today.getYear());
+        } catch (Exception e) {
+            thisYear = LocalDate.of(today.getYear(), 2, 28);
+        }
+        return thisYear.isBefore(today) ? anniversary.getAnniversaryDate().withYear(today.getYear() + 1) : thisYear;
     }
 }
