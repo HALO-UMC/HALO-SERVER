@@ -119,7 +119,7 @@ jobs:
             docker compose up -d --remove-orphans --force-recreate
 
             for i in $(seq 1 15); do
-              if curl -sf http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
+              if curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
                 echo "헬스체크 통과"
                 echo "$IMAGE_TAG" > .deployed_sha
                 docker image prune -f
@@ -151,8 +151,8 @@ jobs:
             docker compose up -d --force-recreate app nginx
 
             for i in $(seq 1 15); do
-              if curl -sf http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"' \
-                && [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1/)" = "301" ]; then
+              if curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"' \
+                && [ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://127.0.0.1/)" = "301" ]; then
                 echo "롤백 완료, 이전 버전으로 정상 기동"
                 exit 1
               fi
