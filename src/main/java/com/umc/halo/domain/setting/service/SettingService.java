@@ -1,5 +1,10 @@
 package com.umc.halo.domain.setting.service;
 
+import com.umc.halo.domain.notification.entity.Anniversary;
+import com.umc.halo.domain.notification.entity.Notification;
+import com.umc.halo.domain.notification.enums.NotificationStatus;
+import com.umc.halo.domain.notification.enums.NotificationType;
+import com.umc.halo.domain.notification.repository.NotificationRepository;
 import com.umc.halo.domain.setting.converter.SettingConverter;
 import com.umc.halo.domain.setting.dto.SettingReqDTO;
 import com.umc.halo.domain.setting.dto.SettingResDTO;
@@ -14,7 +19,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +31,7 @@ public class SettingService {
 
     private final MemberSettingRepository memberSettingRepository;
     private final BgmRepository bgmRepository;
+    private final NotificationRepository notificationRepository;
 
     @Transactional(readOnly = true)
     public SettingResDTO.NotificationSettings getNotificationSettings(Long memberId) {
@@ -50,6 +60,9 @@ public class SettingService {
         MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
+        LocalTime previousNotificationTime = memberSetting.getRegularNotificationTime();
+        boolean previousAnniversaryEnabled = memberSetting.getAnniversaryNotificationEnabled();
+
         memberSetting.updateNotificationSettings(
                 dto.regularNotificationEnabled(),
                 dto.regularNotificationTime(),
@@ -57,6 +70,14 @@ public class SettingService {
                 dto.retentionNotificationEnabled(),
                 dto.anniversaryNotificationEnabled()
         );
+
+        if (!Objects.equals(previousNotificationTime, dto.regularNotificationTime())) {
+            updateNotificationScheduledTime(memberId, dto.regularNotificationTime());
+        }
+
+        if (previousAnniversaryEnabled != dto.anniversaryNotificationEnabled()) {
+            updateAnniversaryNotifications(memberId, dto.anniversaryNotificationEnabled(), memberSetting);
+        }
 
         return SettingConverter.toNotificationSettings(memberSetting);
     }
@@ -88,5 +109,88 @@ public class SettingService {
         memberSetting.updateBgmSettings(bgm, dto.bgmEnabled(), dto.bgmVolume());
 
         return SettingConverter.toBgmSettings(memberSetting);
+    }
+
+    private void updateNotificationScheduledTime(Long memberId, LocalTime notifyTime) {
+
+        List<Notification> notifications = notificationRepository.findAllByMemberIdAndNotificationTypeInAndStatusIn(memberId, List.of(NotificationType.ANNIVERSARY_D7, NotificationType.ANNIVERSARY_DDAY), List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED));
+
+        for(Notification notification : notifications) {
+
+            if (notification.getAnniversary() == null) {
+                continue;
+            }
+
+            Anniversary anniversary = notification.getAnniversary();
+            LocalDate nextOccurrence = resolveNextOccurrence(anniversary, LocalDate.now());
+
+            if(nextOccurrence == null) {
+                continue;
+            }
+
+            LocalDateTime scheduledAt;
+
+            if(notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
+                scheduledAt = nextOccurrence.minusDays(7).atTime(notifyTime);
+            } else if(notification.getNotificationType() == NotificationType.ANNIVERSARY_DDAY) {
+                scheduledAt = nextOccurrence.atTime(notifyTime);
+            } else {
+                continue;
+            }
+
+            notification.updateScheduledAt(scheduledAt);
+        }
+    }
+
+    private void updateAnniversaryNotifications(Long memberId, boolean enabled, MemberSetting memberSetting) {
+
+        List<Notification> notifications = notificationRepository.findAllByMemberIdAndNotificationTypeInAndStatusIn(memberId, List.of(NotificationType.ANNIVERSARY_D7, NotificationType.ANNIVERSARY_DDAY), List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED));
+
+        for(Notification notification : notifications) {
+
+            if(!enabled) {
+                notification.cancel();
+                continue;
+            }
+
+            if (notification.getAnniversary() == null) {
+                continue;
+            }
+
+            Anniversary anniversary = notification.getAnniversary();
+            LocalDate nextOccurrence = resolveNextOccurrence(anniversary, LocalDate.now());
+
+            if(nextOccurrence == null) {
+                continue;
+            }
+
+            LocalDateTime scheduledAt;
+
+            if(notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
+                scheduledAt = nextOccurrence.minusDays(7).atTime(memberSetting.getRegularNotificationTime());
+            } else {
+                scheduledAt = nextOccurrence.atTime(memberSetting.getRegularNotificationTime());
+            }
+
+            notification.reserve(scheduledAt);
+        }
+    }
+
+    private LocalDate resolveNextOccurrence(Anniversary anniversary, LocalDate today) {
+
+        LocalDate anniversaryDate = anniversary.getAnniversaryDate();
+
+        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
+            return anniversaryDate.isBefore(today) ? null : anniversaryDate;
+        }
+
+        LocalDate thisYear;
+
+        try {
+            thisYear = anniversaryDate.withYear(today.getYear());
+        } catch (Exception e) {
+            thisYear = LocalDate.of(today.getYear(), 2, 28);
+        }
+        return thisYear.isBefore(today) ? anniversary.getAnniversaryDate().withYear(today.getYear() + 1) : thisYear;
     }
 }

@@ -76,11 +76,8 @@ public class Notification extends BaseEntity {
         }
     }
 
-    public boolean isReserved() {
-        return status == NotificationStatus.SCHEDULED;
+    public void updateScheduledAt(LocalDateTime scheduledAt) {
+        this.scheduledAt = scheduledAt;
     }
 
-    public boolean isCanceled() {
-        return status == NotificationStatus.CANCELED;
-    }
 }
