@@ -16,12 +16,20 @@ public interface RelationshipControllerDocs {
             summary = "관계 정보 조회 API",
             description = """
                     # 관계 정보 조회
-                    
-                    ## 요청 형식
-                    - 헤더: Authorization: Bearer {JWT 토큰}
-                    
+
                     마이페이지에서 온보딩 때 선택한 관계 태그를 조회합니다.
                     온보딩 전이면 빈 목록([])과 null을 반환합니다.
+
+                    ## 요청 형식
+                    - **Header**
+                        - Authorization: Bearer {JWT 토큰}
+
+                    ## 동작 방식
+                    1. 인증된 회원을 조회합니다. 존재하지 않으면 404(MEMBER404_1)를 반환합니다.
+                    2. 회원이 온보딩에서 선택한 태그 목록을 조회합니다.
+                    3. 태그를 카테고리별로 분류합니다: 부모님 성향(parentPersonalityTags), 현재 관계 상태(currentRelationState), 목표 관계(goalRelationships).
+                    4. 온보딩 전이라 저장된 태그가 없으면 빈 목록([])과 null을 반환합니다.
+                    5. 분류된 관계 정보를 반환합니다.
                     """
     )
     @ApiResponses(value = {

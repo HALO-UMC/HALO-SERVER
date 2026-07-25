@@ -21,12 +21,16 @@ public interface TermControllerDocs {
             summary = "약관 목록 조회 API",
             description = """
                     # 약관 목록 조회
-                    
-                    ## 요청 형식
-                    - 인증이 필요하지 않습니다. (Public)
-                    
+
                     약관 동의 화면에 노출할 약관 목록을 조회합니다.
                     isRequired가 true면 필수 약관, false면 선택 약관입니다.
+
+                    ## 요청 형식
+                    - 인증이 필요하지 않습니다. (Public)
+
+                    ## 동작 방식
+                    1. 등록된 전체 약관을 ID 순으로 조회합니다.
+                    2. 각 약관의 필수 여부(isRequired)와 함께 목록을 반환합니다.
                     """
     )
     @ApiResponses(value = {
@@ -57,14 +61,23 @@ public interface TermControllerDocs {
             summary = "약관 동의 처리 API",
             description = """
                     # 약관 동의 처리
-                    
-                    ## 요청 형식
-                    - 헤더: Authorization: Bearer {JWT 토큰}
-                    - Body: agreements (약관별 동의 내역)
-                    
+
                     필수 약관에 모두 동의해야 저장됩니다.
                     선택 약관은 동의하지 않아도 서비스 이용이 가능합니다.
                     이미 동의한 약관은 새로 저장하지 않고 동의 여부만 갱신합니다.
+
+                    ## 요청 형식
+                    - **Header**
+                        - Authorization: Bearer {JWT 토큰}
+                    - **Body**
+                        - agreements : 약관별 동의 내역
+
+                    ## 동작 방식
+                    1. 인증된 회원을 조회합니다. 존재하지 않으면 404(MEMBER404_1)를 반환합니다.
+                    2. 요청받은 약관 ID들이 모두 존재하는지 확인합니다. 존재하지 않으면 404(TERMS404_1)를 반환합니다.
+                    3. 필수 약관(isRequired=true)이 모두 요청에 포함되어 동의(true) 처리되었는지 검증합니다. 하나라도 빠지거나 미동의면 400(TERMS400_1)을 반환합니다.
+                    4. 이미 동의 이력이 있는 약관은 동의 여부만 갱신하고, 없는 약관은 새로 저장합니다. (동시 요청으로 인한 저장 충돌 시 재조회 후 갱신 처리)
+                    5. 처리 결과를 반환합니다.
                     """
     )
     @ApiResponses(value = {
@@ -138,13 +151,20 @@ public interface TermControllerDocs {
             summary = "약관 동의 여부 조회 API",
             description = """
                     # 약관 동의 여부 조회
-                    
-                    ## 요청 형식
-                    - 헤더: Authorization: Bearer {JWT 토큰}
-                    
+
                     필수 약관 전체 동의 여부를 조회합니다.
                     앱 실행 시 약관 동의 화면 노출 여부 판단에 사용합니다.
                     필수 약관 중 하나라도 동의하지 않았으면 false를 반환합니다.
+
+                    ## 요청 형식
+                    - **Header**
+                        - Authorization: Bearer {JWT 토큰}
+
+                    ## 동작 방식
+                    1. 인증된 회원을 조회합니다. 존재하지 않으면 404(MEMBER404_1)를 반환합니다.
+                    2. 회원이 동의한 약관 목록을 조회합니다.
+                    3. 필수 약관(isRequired=true)이 모두 동의 목록에 포함되어 있는지 확인합니다.
+                    4. 필수 약관 중 하나라도 동의하지 않았으면 termsAgreed를 false로, 모두 동의했으면 true로 반환합니다.
                     """
     )
     @ApiResponses(value = {
