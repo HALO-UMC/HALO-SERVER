@@ -9,7 +9,10 @@ import lombok.*;
 import java.time.*;
 
 @Entity
-@Table(name = "notification")
+@Table(
+        name = "notification",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"anniversary_id", "notification_type"})
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
@@ -25,6 +28,10 @@ public class Notification extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "anniversary_id")
+    private Anniversary anniversary;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "notification_type", nullable = false)
     private NotificationType notificationType;
@@ -35,10 +42,45 @@ public class Notification extends BaseEntity {
     @Column(length = 255, nullable = false)
     private String message;
 
+    @Column(name = "scheduled_at", nullable = false)
+    private LocalDateTime scheduledAt;
+
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
 
-    @Column(name = "is_read", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
     @Builder.Default
-    private Boolean isRead = false;
+    private NotificationStatus status = NotificationStatus.SCHEDULED;
+
+    public void update(String title, String message, LocalDateTime scheduledAt) {
+        this.title = title;
+        this.message = message;
+        this.scheduledAt = scheduledAt;
+        if (this.status != NotificationStatus.SENT) {
+            this.status = NotificationStatus.SCHEDULED;
+        }
+    }
+
+    public void reserve(LocalDateTime scheduledAt) {
+        if (this.status == NotificationStatus.SENT) {
+            return;
+        }
+        this.scheduledAt = scheduledAt;
+        this.status = NotificationStatus.SCHEDULED;
+    }
+
+    public void cancel() {
+        if (this.status != NotificationStatus.SENT) {
+            this.status = NotificationStatus.CANCELED;
+        }
+    }
+
+    public boolean isReserved() {
+        return status == NotificationStatus.SCHEDULED;
+    }
+
+    public boolean isCanceled() {
+        return status == NotificationStatus.CANCELED;
+    }
 }

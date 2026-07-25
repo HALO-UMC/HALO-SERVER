@@ -1,5 +1,6 @@
 package com.umc.halo.global.ai.service;
 
+import com.umc.halo.domain.notification.enums.NotificationType;
 import com.umc.halo.global.ai.AiClient;
 import com.umc.halo.global.ai.QuestionAnswer;
 import com.umc.halo.global.ai.factory.PromptFactory;
@@ -29,6 +30,16 @@ public class AiService {
                         .toList();
 
         String prompt = PromptFactory.chapterSummary(themeName, chapterTitle, pageIntro, filteredAnswers, emotionTag);
+
+        return aiClient.generate(prompt);
+    }
+
+    public String generateAnniversaryNotificationMessage(String title, String memo) {
+
+        String filteredTitle = sensitiveDataFilter.mask(title);
+        String filteredMemo = sensitiveDataFilter.mask(memo);
+
+        String prompt = PromptFactory.anniversaryNotification(filteredTitle, filteredMemo);
 
         return aiClient.generate(prompt);
     }
