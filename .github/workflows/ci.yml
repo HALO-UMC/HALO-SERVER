@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ develop, main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: halo
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DB_URL: jdbc:mysql://127.0.0.1:3306/halo
+      DB_USER: root
+      DB_PW: ""
+      JWT_SECRET_KEY: ci-test-secret-key-not-used-in-production-must-be-long-enough
+      GOOGLE_CLIENT_ID: test
+      KAKAO_NATIVE_APP_KEY: test
+      GEMINI_API_KEY: test
+      S3_BUCKET_NAME: test
+      S3_BUCKET_ACCESS_KEY: test
+      S3_BUCKET_SECRET_KEY: test
+
+    steps:
+      - name: 소스 체크아웃
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: JDK 21 설정
+        uses: actions/setup-java@v5
+        with:
+          distribution: corretto
+          java-version: "21"
+
+      - name: Gradle 캐시
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: gradlew 실행 권한 부여
+        run: chmod +x gradlew
+
+      - name: 빌드 및 테스트
+        run: ./gradlew build
