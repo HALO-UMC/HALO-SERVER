@@ -77,6 +77,9 @@ public class Notification extends BaseEntity {
     }
 
     public void updateScheduledAt(LocalDateTime scheduledAt) {
+        if (this.status == NotificationStatus.SENT) {
+            return;
+        }
         this.scheduledAt = scheduledAt;
     }
 

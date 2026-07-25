@@ -14,7 +14,6 @@ import com.umc.halo.domain.setting.exception.SettingException;
 import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.BgmRepository;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -190,6 +189,6 @@ public class SettingService {
         } catch (Exception e) {
             thisYear = LocalDate.of(today.getYear(), 2, 28);
         }
-        return thisYear.isBefore(today) ? anniversary.getAnniversaryDate().withYear(today.getYear() + 1) : thisYear;
+        return thisYear.isBefore(today) ? anniversaryDate.withYear(today.getYear() + 1) : thisYear;
     }
 }
