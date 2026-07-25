@@ -16,7 +16,7 @@ import com.umc.halo.domain.record.repository.MemberStorybookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.Set;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -50,20 +50,17 @@ public class CalendarService {
 
         int completedPageCount = completedChapters.size();
 
-        List<Integer> recordedDays = completedChapters.stream()
-                .map(mc -> mc.getCompletedDate().getDayOfMonth())
-                .distinct()
-                .sorted()
-                .toList();
 
         List<MemberStorybook> memberStorybooks = memberStorybookRepository
                 .findAllByMemberWithStorybook(member);
 
-        List<CalendarMonthlyResDTO.CompletedStorybook> completedStorybooks = memberStorybooks.stream()
+        List<MemberStorybook> completedThisMonth = memberStorybooks.stream()
                 .filter(ms -> ms.getLastChapterOrder() == TOTAL_CHAPTER_COUNT)
                 .filter(ms -> ms.getLastCompletedDate() != null
                         && !ms.getLastCompletedDate().isBefore(startDate)
                         && !ms.getLastCompletedDate().isAfter(endDate))
+                .toList();
+        List<CalendarMonthlyResDTO.CompletedStorybook> completedStorybooks = completedThisMonth.stream()
                 .map(ms -> CalendarConverter.toCompletedStorybook(ms.getStorybook()))
                 .toList();
 
@@ -75,6 +72,18 @@ public class CalendarService {
                         && !ms.getLastCompletedDate().isBefore(startDate)
                         && !ms.getLastCompletedDate().isAfter(endDate))
                 .count();
+
+
+        Set<Integer> completedStorybookDays = completedThisMonth.stream()
+                .map(ms -> ms.getLastCompletedDate().getDayOfMonth())
+                .collect(Collectors.toSet());
+
+        List<CalendarMonthlyResDTO.RecordedDay> recordedDays = completedChapters.stream()
+                .map(mc -> mc.getCompletedDate().getDayOfMonth())
+                .distinct()
+                .sorted()
+                .map(day -> CalendarConverter.toRecordedDay(day, completedStorybookDays.contains(day)))
+                .toList();
 
         CalendarMonthlyResDTO.Stats stats = CalendarConverter.toStats(
                 completedPageCount, completedStorybookCount, inProgressStorybookCount);

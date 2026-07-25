@@ -17,17 +17,22 @@ public class CalendarConverter {
                 .inProgressStorybookCount(inProgressStorybookCount)
                 .build();
     }
+    public static CalendarMonthlyResDTO.RecordedDay toRecordedDay(int day, boolean hasCompletedStorybook) {
+        return CalendarMonthlyResDTO.RecordedDay.builder()
+                .day(day)
+                .hasCompletedStorybook(hasCompletedStorybook)
+                .build();
+    }
 
     public static CalendarMonthlyResDTO.CompletedStorybook toCompletedStorybook(Storybook storybook) {
         return CalendarMonthlyResDTO.CompletedStorybook.builder()
                 .storybookId(storybook.getId())
-                .spineColor(storybook.getSpineColor())
                 .build();
     }
 
     public static CalendarMonthlyResDTO.MonthlyInfo toMonthlyInfo(
             CalendarMonthlyResDTO.Stats stats,
-            List<Integer> recordedDays,
+            List<CalendarMonthlyResDTO.RecordedDay> recordedDays,
             List<CalendarMonthlyResDTO.CompletedStorybook> completedStorybooks) {
         return CalendarMonthlyResDTO.MonthlyInfo.builder()
                 .stats(stats)
