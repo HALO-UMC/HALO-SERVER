@@ -3,7 +3,7 @@ package com.umc.halo.domain.notification.controller;
 import com.umc.halo.domain.notification.controller.docs.AnniversaryControllerDocs;
 import com.umc.halo.domain.notification.dto.AnniversaryReqDTO;
 import com.umc.halo.domain.notification.dto.AnniversaryResDTO;
-import com.umc.halo.domain.notification.exception.AnniversarySuccessCode;
+import com.umc.halo.domain.notification.exception.code.AnniversarySuccessCode;
 import com.umc.halo.domain.notification.service.AnniversaryService;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;

@@ -10,7 +10,7 @@ import com.umc.halo.domain.notification.dto.AnniversaryReqDTO;
 import com.umc.halo.domain.notification.dto.AnniversaryResDTO;
 import com.umc.halo.domain.notification.entity.Anniversary;
 import com.umc.halo.domain.notification.entity.CommonAnniversary;
-import com.umc.halo.domain.notification.exception.AnniversaryErrorCode;
+import com.umc.halo.domain.notification.exception.code.AnniversaryErrorCode;
 import com.umc.halo.domain.notification.exception.AnniversaryException;
 import com.umc.halo.domain.notification.repository.AnniversaryRepository;
 import com.umc.halo.domain.notification.repository.CommonAnniversaryRepository;
