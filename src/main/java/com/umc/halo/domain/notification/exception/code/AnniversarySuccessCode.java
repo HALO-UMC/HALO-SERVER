@@ -1,4 +1,4 @@
-package com.umc.halo.domain.notification.exception;
+package com.umc.halo.domain.notification.exception.code;
 
 import com.umc.halo.global.apiPayload.code.BaseSuccessCode;
 import lombok.AllArgsConstructor;
