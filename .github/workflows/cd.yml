@@ -114,23 +114,38 @@ jobs:
             export IMAGE_TAG="${{ github.sha }}"
             docker compose config >/dev/null
 
-            docker compose pull app certbot
-            docker compose build nginx
-            docker compose up -d --remove-orphans --force-recreate
+            # elif 대신 개별 if: 앞 단계 실패 시 up을 건너뛰면 구버전이 헬스체크를 통과해 잘못된 SHA가 기록될 수 있음
+            DEPLOY_OK=true
+            if ! docker compose pull app certbot; then
+              echo "이미지 pull 실패" >&2
+              DEPLOY_OK=false
+            fi
+            if [ "$DEPLOY_OK" = true ] && ! docker compose build nginx; then
+              echo "nginx 빌드 실패" >&2
+              DEPLOY_OK=false
+            fi
+            if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --remove-orphans --force-recreate; then
+              echo "compose up 실패" >&2
+              DEPLOY_OK=false
+            fi
 
-            for i in $(seq 1 15); do
-              if curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
-                echo "헬스체크 통과"
-                echo "$IMAGE_TAG" > .deployed_sha
-                docker image prune -f
-                exit 0
-              fi
-              echo "헬스체크 대기 중... ($i/15)"
-              sleep 4
-            done
+            if [ "$DEPLOY_OK" = true ]; then
+              for i in $(seq 1 15); do
+                if curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
+                  echo "헬스체크 통과"
+                  echo "$IMAGE_TAG" > .deployed_sha
+                  docker image prune -f || true
+                  exit 0
+                fi
+                echo "헬스체크 대기 중... ($i/15)"
+                sleep 4
+              done
+              echo "헬스체크 실패" >&2
+            else
+              echo "배포 명령 실패로 헬스체크 생략, 롤백 절차로 진행" >&2
+            fi
 
-            echo "헬스체크 실패" >&2
-            docker compose logs --tail=100 app
+            docker compose logs --tail=100 app || true
 
             if [ -z "$PREV_SHA" ]; then
               echo "이전 이미지 정보 없음, 롤백 불가" >&2
@@ -146,21 +161,34 @@ jobs:
 
             export IMAGE_TAG="$PREV_SHA"
             docker compose config >/dev/null
-            docker compose pull app
-            docker compose build nginx
-            docker compose up -d --force-recreate app nginx
 
-            for i in $(seq 1 15); do
-              if curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"' \
-                && [ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://127.0.0.1/)" = "301" ]; then
-                echo "롤백 완료, 이전 버전으로 정상 기동"
-                exit 1
-              fi
-              echo "롤백 헬스체크 대기 중... ($i/15)"
-              sleep 4
-            done
+            ROLLBACK_OK=true
+            if ! docker compose pull app; then
+              echo "롤백용 이미지 pull 실패" >&2
+              ROLLBACK_OK=false
+            fi
+            if [ "$ROLLBACK_OK" = true ] && ! docker compose build nginx; then
+              echo "롤백용 nginx 빌드 실패" >&2
+              ROLLBACK_OK=false
+            fi
+            if [ "$ROLLBACK_OK" = true ] && ! docker compose up -d --force-recreate app nginx; then
+              echo "롤백용 compose up 실패" >&2
+              ROLLBACK_OK=false
+            fi
+
+            if [ "$ROLLBACK_OK" = true ]; then
+              for i in $(seq 1 15); do
+                if curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"' \
+                  && [ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://127.0.0.1/)" = "301" ]; then
+                  echo "롤백 완료, 이전 버전으로 정상 기동"
+                  exit 1
+                fi
+                echo "롤백 헬스체크 대기 중... ($i/15)"
+                sleep 4
+              done
+            fi
 
             echo "롤백도 실패" >&2
-            docker compose logs --tail=100 app nginx
+            docker compose logs --tail=100 app nginx || true
             exit 1
           EOF
