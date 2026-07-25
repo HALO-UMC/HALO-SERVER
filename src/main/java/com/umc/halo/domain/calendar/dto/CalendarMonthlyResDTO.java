@@ -8,7 +8,7 @@ public class CalendarMonthlyResDTO {
     @Builder
     public record MonthlyInfo(
             Stats stats,
-            List<Integer> recordedDays,
+            List<RecordedDay> recordedDays,
             List<CompletedStorybook> completedStorybooks
     ) {}
 
@@ -21,7 +21,11 @@ public class CalendarMonthlyResDTO {
 
     @Builder
     public record CompletedStorybook(
-            Long storybookId,
-            String spineColor
+            Long storybookId
+    ) {}
+    @Builder
+    public record RecordedDay(
+            Integer day,
+            Boolean hasCompletedStorybook
     ) {}
 }

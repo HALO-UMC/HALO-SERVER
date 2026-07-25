@@ -52,12 +52,16 @@ public interface CalendarControllerDocs {
                               "message": "캘린더 메인 조회를 성공했습니다.",
                               "result": {
                                 "stats": { "completedPageCount": 30, "completedStorybookCount": 3, "inProgressStorybookCount": 2 },
-                                "recordedDays": [9, 10, 11, 19],
+                                "recordedDays": [
+                                  { "day": 9, "hasCompletedStorybook": false },
+                                  { "day": 19, "hasCompletedStorybook": true }
+                                ],
                                 "completedStorybooks": [
-                                  { "storybookId": 1, "spineColor": "#F0997B" },
-                                  { "storybookId": 2, "spineColor": "#FAC775" },
-                                  { "storybookId": 3, "spineColor": "#D3C7A9" }
+                                  { "storybookId": 1 },
+                                  { "storybookId": 2 },
+                                  { "storybookId": 3 }
                                 ]
+                               
                               }
                             }
                             """))
