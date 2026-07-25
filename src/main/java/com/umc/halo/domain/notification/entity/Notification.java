@@ -45,13 +45,34 @@ public class Notification extends BaseEntity {
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    @Builder.Default
+    private NotificationStatus status = NotificationStatus.SCHEDULED;
+
     public void update(String title, String message, LocalDateTime scheduledAt) {
         this.title = title;
         this.message = message;
         this.scheduledAt = scheduledAt;
+        if (this.status != NotificationStatus.SENT) {
+            this.status = NotificationStatus.SCHEDULED;
+        }
     }
 
-    public void updateScheduledAt(LocalDateTime scheduledAt) {
+    public void reserve(LocalDateTime scheduledAt) {
         this.scheduledAt = scheduledAt;
+        this.status = NotificationStatus.SCHEDULED;
+    }
+
+    public void cancel() {
+        this.status = NotificationStatus.CANCELED;
+    }
+
+    public boolean isReserved() {
+        return status == NotificationStatus.SCHEDULED;
+    }
+
+    public boolean isCanceled() {
+        return status == NotificationStatus.CANCELED;
     }
 }

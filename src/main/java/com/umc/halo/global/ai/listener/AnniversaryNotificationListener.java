@@ -3,6 +3,7 @@ package com.umc.halo.global.ai.listener;
 import com.umc.halo.domain.notification.converter.NotificationConverter;
 import com.umc.halo.domain.notification.entity.Anniversary;
 import com.umc.halo.domain.notification.entity.Notification;
+import com.umc.halo.domain.notification.enums.NotificationStatus;
 import com.umc.halo.domain.notification.enums.NotificationType;
 import com.umc.halo.domain.notification.exception.AnniversaryErrorCode;
 import com.umc.halo.domain.notification.exception.AnniversaryException;
@@ -54,17 +55,8 @@ public class AnniversaryNotificationListener {
 
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
-        String d7Message;
-        String ddayMessage;
-
-        try {
-            d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
-            ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
-        } catch (AiException e) {
-            log.warn("기념일 알림 문구 생성 실패. anniversaryId={}", event.anniversaryId(), e);
-            d7Message = "오늘부터 조금씩 마음을 준비해 보세요.";
-            ddayMessage = "소중한 마음을 전하는 하루가 되어보세요.";
-        }
+        String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
+        String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
 
         LocalDateTime now = LocalDateTime.now();
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
@@ -99,40 +91,18 @@ public class AnniversaryNotificationListener {
         LocalDateTime d7 = anniversary.getAnniversaryDate().minusDays(7).atTime(notifyTime);
         LocalDateTime dday = anniversary.getAnniversaryDate().atTime(notifyTime);
 
-        Notification d7Notification = notificationRepository.findByAnniversaryIdAndNotificationType(anniversary.getId(), NotificationType.ANNIVERSARY_D7).orElse(null);
-        Notification ddayNotification = notificationRepository.findByAnniversaryIdAndNotificationType(anniversary.getId(), NotificationType.ANNIVERSARY_DDAY).orElse(null);
+        Notification d7Notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), NotificationType.ANNIVERSARY_D7, List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED)).orElse(null);
+        Notification ddayNotification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), NotificationType.ANNIVERSARY_DDAY, List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED)).orElse(null);
 
         if (!event.titleChanged() && !event.memoChanged()) {
-            if (d7Notification != null) {
-                if (d7.isAfter(now)) {
-                    d7Notification.updateScheduledAt(d7);
-                } else {
-                    notificationRepository.delete(d7Notification);
-                }
-            }
-            if (ddayNotification != null) {
-                if (dday.isAfter(now)) {
-                    ddayNotification.updateScheduledAt(dday);
-                } else {
-                    notificationRepository.delete(ddayNotification);
-                }
-            }
+            syncNotificationSchedule(anniversary, d7Notification, ddayNotification, d7, dday, now);
             return;
         }
 
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
-        String d7Message;
-        String ddayMessage;
-
-        try {
-            d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
-            ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
-        } catch (AiException e) {
-            log.warn("기념일 알림 재생성 실패. anniversaryId={}", anniversary.getId(), e);
-            d7Message = "오늘부터 조금씩 마음을 준비해 보세요.";
-            ddayMessage = "소중한 마음을 전하는 하루가 되어보세요.";
-        }
+        String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
+        String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
 
         if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
 
@@ -143,7 +113,7 @@ public class AnniversaryNotificationListener {
             }
 
         } else if (d7Notification != null) {
-            notificationRepository.delete(d7Notification);
+            d7Notification.cancel();
         }
 
         if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
@@ -154,7 +124,7 @@ public class AnniversaryNotificationListener {
             }
 
         } else if (ddayNotification != null) {
-            notificationRepository.delete(ddayNotification);
+            ddayNotification.cancel();
         }
     }
 
@@ -170,12 +140,47 @@ public class AnniversaryNotificationListener {
     private String createNotificationMessage(Anniversary anniversary, NotificationType notificationType) {
 
         if (anniversary.getMemo() == null || anniversary.getMemo().isBlank()) {
-            if (notificationType == NotificationType.ANNIVERSARY_D7) {
-                return "오늘부터 조금씩 마음을 준비해 보세요.";
-            }
-            return "소중한 마음을 전하는 하루가 되어보세요.";
+            return createDefaultNotificationMessage(notificationType);
         }
 
-        return aiService.generateAnniversaryNotificationMessage(anniversary.getTitle(), anniversary.getMemo());
+        try {
+            return aiService.generateAnniversaryNotificationMessage(anniversary.getTitle(), anniversary.getMemo());
+        } catch (AiException e) {
+            log.warn("AI 알림 문구 생성 실패. anniversaryId={}", anniversary.getId(), e);
+            return createDefaultNotificationMessage(notificationType);
+        }
+
+    }
+
+    private String createDefaultNotificationMessage(NotificationType notificationType) {
+
+        if (notificationType == NotificationType.ANNIVERSARY_D7) {
+            return "오늘부터 조금씩 마음을 준비해 보세요.";
+        }
+
+        return "소중한 마음을 전하는 하루가 되어보세요.";
+    }
+
+    private void syncNotificationSchedule(Anniversary anniversary, Notification d7Notification, Notification ddayNotification, LocalDateTime d7, LocalDateTime dday, LocalDateTime now) {
+        syncNotification(anniversary, d7Notification, NotificationType.ANNIVERSARY_D7, d7, now);
+        syncNotification(anniversary, ddayNotification, NotificationType.ANNIVERSARY_DDAY, dday, now);
+    }
+
+    private void syncNotification(Anniversary anniversary, Notification notification, NotificationType type, LocalDateTime scheduledAt, LocalDateTime now) {
+
+        boolean enabled = type == NotificationType.ANNIVERSARY_D7 ? anniversary.getSevenDaysAlarmEnabled() : anniversary.getDayAlarmEnabled();
+
+        if(enabled && scheduledAt.isAfter(now)) {
+            if(notification != null) {
+                notification.reserve(scheduledAt);
+            }
+            else {
+                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, type, createNotificationTitle(anniversary,type), createNotificationMessage(anniversary,type), scheduledAt));
+            }
+        } else {
+            if(notification != null) {
+                notification.cancel();
+            }
+        }
     }
 }

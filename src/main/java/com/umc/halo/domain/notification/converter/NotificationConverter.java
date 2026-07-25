@@ -2,6 +2,7 @@ package com.umc.halo.domain.notification.converter;
 
 import com.umc.halo.domain.notification.entity.Anniversary;
 import com.umc.halo.domain.notification.entity.Notification;
+import com.umc.halo.domain.notification.enums.NotificationStatus;
 import com.umc.halo.domain.notification.enums.NotificationType;
 
 import java.time.LocalDateTime;
@@ -20,6 +21,7 @@ public class NotificationConverter {
                 .title(title)
                 .message(message)
                 .scheduledAt(scheduledAt)
+                .status(NotificationStatus.SCHEDULED)
                 .build();
     }
 }

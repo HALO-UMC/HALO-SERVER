@@ -12,6 +12,15 @@ ALTER TABLE notification
     MODIFY COLUMN scheduled_at DATETIME NOT NULL;
 
 ALTER TABLE notification
+    ADD COLUMN status VARCHAR(20);
+
+UPDATE notification
+SET status = 'SCHEDULED';
+
+ALTER TABLE notification
+    MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'SCHEDULED';
+
+ALTER TABLE notification
     ADD COLUMN anniversary_id BIGINT NULL;
 
 ALTER TABLE notification
