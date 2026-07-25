@@ -20,7 +20,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,7 +47,7 @@ services:
     expose:
       - "8080"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -66,8 +66,8 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      - DOMAIN=${DOMAIN}
-      - DEV_DOMAIN=${DEV_DOMAIN}
+      - DOMAIN=${DOMAIN:?DOMAIN is required}
+      - DEV_DOMAIN=${DEV_DOMAIN:?DEV_DOMAIN is required}
     volumes:
       - ./nginx/templates:/etc/nginx/templates:ro
       - ./.htpasswd:/etc/nginx/.htpasswd:ro

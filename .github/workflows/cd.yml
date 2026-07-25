@@ -65,6 +65,15 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: dev Basic Auth 해시 생성
+        id: htpasswd
+        env:
+          DEV_BASIC_AUTH_PASSWORD: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
+        run: |
+          # 원격 서버로는 원문 비밀번호 대신 해시만 전달
+          HASH=$(printf '%s' "$DEV_BASIC_AUTH_PASSWORD" | openssl passwd -apr1 -stdin)
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+
       - name: known_hosts 등록
         run: |
           mkdir -p ~/.ssh
@@ -92,15 +101,16 @@ jobs:
 
       - name: .env 생성 및 재배포
         run: |
-          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+          # github.actor를 원격 셸의 $GITHUB_ACTOR로 전달
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "GITHUB_ACTOR='$GITHUB_ACTOR' bash -s" << 'EOF'
             set -euo pipefail
             cd ${{ secrets.EC2_APP_DIR }}
 
             install -m 600 /dev/null .env
             cat > .env << 'ENVEOF'
             SPRING_PROFILES_ACTIVE=prod
-            DOMAIN=${{ secrets.DOMAIN }}
             DEV_DOMAIN=${{ secrets.DEV_DOMAIN }}
+            DOMAIN=${{ secrets.DOMAIN }}
             DB_URL=${{ secrets.DB_URL }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PW=${{ secrets.DB_PW }}
@@ -113,13 +123,12 @@ jobs:
             S3_BUCKET_SECRET_KEY=${{ secrets.S3_BUCKET_SECRET_KEY }}
             ENVEOF
 
-            # dev 서브도메인 접근 제한용 basic auth 계정 파일 (nginx가 참조)
-            # 비밀번호를 CLI 인자로 넘기면 프로세스 목록에 노출될 수 있어 표준입력으로 전달
-            install -m 600 /dev/null .htpasswd
-            HTPASSWD_HASH=$(printf '%s' '${{ secrets.DEV_BASIC_AUTH_PASSWORD }}' | openssl passwd -apr1 -stdin)
+            # 644: nginx 워커(uid 101)가 읽을 수 있어야 함
+            install -m 644 /dev/null .htpasswd
+            HTPASSWD_HASH='${{ steps.htpasswd.outputs.hash }}'
             echo "${{ secrets.DEV_BASIC_AUTH_USER }}:$HTPASSWD_HASH" > .htpasswd
 
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
             # 롤백 대비, 직전에 성공적으로 배포된 이미지의 SHA 태그 기록 (최초 배포면 빈 값)
             PREV_SHA=$(cat .deployed_sha 2>/dev/null || true)
@@ -235,7 +244,8 @@ jobs:
 
       - name: .env.dev 생성 및 dev 재배포
         run: |
-          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+          # github.actor를 원격 셸의 $GITHUB_ACTOR로 전달
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "GITHUB_ACTOR='$GITHUB_ACTOR' bash -s" << 'EOF'
             set -euo pipefail
             cd ${{ secrets.EC2_APP_DIR }}
 
@@ -245,7 +255,7 @@ jobs:
             DB_URL=${{ secrets.DEV_DB_URL }}
             DB_USER=${{ secrets.DEV_DB_USER }}
             DB_PW=${{ secrets.DEV_DB_PW }}
-            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            JWT_SECRET_KEY=${{ secrets.DEV_JWT_SECRET_KEY }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             KAKAO_NATIVE_APP_KEY=${{ secrets.KAKAO_NATIVE_APP_KEY }}
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
@@ -254,7 +264,7 @@ jobs:
             S3_BUCKET_SECRET_KEY=${{ secrets.S3_BUCKET_SECRET_KEY }}
             ENVEOF
 
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
             export DEV_IMAGE_TAG="${{ github.sha }}"
             docker compose config >/dev/null
