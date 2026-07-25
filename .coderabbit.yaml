@@ -27,6 +27,7 @@ reviews:
     - "Dockerfile"
     - "docker-compose.yml"
     - "nginx/**"
+    - ".github/workflows/**"
     - ".env.example"
     - "*.sh"
     - "!**/build/**"
