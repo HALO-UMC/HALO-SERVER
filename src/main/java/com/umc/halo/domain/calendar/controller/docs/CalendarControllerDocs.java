@@ -50,7 +50,7 @@ public interface CalendarControllerDocs {
                                   { "storybookId": 2 },
                                   { "storybookId": 3 }
                                 ]
-                                ]
+                               
                               }
                             }
                             """))
