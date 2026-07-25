@@ -5,7 +5,7 @@ on:
     branches: [ main, develop ]
 
 concurrency:
-  group: deploy-${{ github.ref_name }}
+  group: deploy-shared-ec2
   cancel-in-progress: false
 
 env:
@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: JDK 21 설정
         uses: actions/setup-java@v5
@@ -60,6 +62,8 @@ jobs:
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: known_hosts 등록
         run: |
@@ -110,8 +114,10 @@ jobs:
             ENVEOF
 
             # dev 서브도메인 접근 제한용 basic auth 계정 파일 (nginx가 참조)
+            # 비밀번호를 CLI 인자로 넘기면 프로세스 목록에 노출될 수 있어 표준입력으로 전달
             install -m 600 /dev/null .htpasswd
-            echo "${{ secrets.DEV_BASIC_AUTH_USER }}:$(openssl passwd -apr1 '${{ secrets.DEV_BASIC_AUTH_PASSWORD }}')" > .htpasswd
+            HTPASSWD_HASH=$(printf '%s' '${{ secrets.DEV_BASIC_AUTH_PASSWORD }}' | openssl passwd -apr1 -stdin)
+            echo "${{ secrets.DEV_BASIC_AUTH_USER }}:$HTPASSWD_HASH" > .htpasswd
 
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
@@ -210,6 +216,8 @@ jobs:
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: known_hosts 등록
         run: |

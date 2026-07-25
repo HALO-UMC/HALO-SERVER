@@ -5,13 +5,19 @@
 # 2) certbot으로 진짜 인증서를 발급받은 뒤
 # 3) nginx를 재시작해서 진짜 인증서를 적용한다.
 #
-# 사용법: DOMAIN=popit.co.kr EMAIL=me@example.com ./init-letsencrypt.sh
+# 사용법: DOMAIN=your.domain EMAIL=you@example.com [DEV_DOMAIN=dev.your.domain] ./init-letsencrypt.sh
 
 set -e
 
 if [ -z "$DOMAIN" ] || [ -z "$EMAIL" ]; then
-  echo "사용법: DOMAIN=your.domain EMAIL=you@example.com ./init-letsencrypt.sh"
+  echo "사용법: DOMAIN=your.domain EMAIL=you@example.com [DEV_DOMAIN=dev.your.domain] ./init-letsencrypt.sh"
   exit 1
+fi
+
+# DEV_DOMAIN이 있으면 같은 인증서의 SAN에 함께 포함해서 발급
+DOMAIN_ARGS="-d $DOMAIN"
+if [ -n "$DEV_DOMAIN" ]; then
+  DOMAIN_ARGS="$DOMAIN_ARGS -d $DEV_DOMAIN"
 fi
 
 echo "### 0. 기존 인증서/갱신 설정 확인 ###"
@@ -46,7 +52,7 @@ docker compose run --rm --entrypoint /bin/sh certbot -ec "
 echo "### 4. 실제 인증서 발급 ###"
 docker compose run --rm --entrypoint /bin/sh certbot -ec "
   certbot certonly --webroot -w /var/www/certbot \
-    -d $DOMAIN \
+    $DOMAIN_ARGS \
     --email $EMAIL --agree-tos --no-eff-email
 "
 
