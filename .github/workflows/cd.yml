@@ -89,10 +89,12 @@ jobs:
             ENVEOF
 
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker compose config >/dev/null
 
-            # 롤백 대비, 교체되기 전 현재 실행 중인 이미지 ID 기록 (최초 배포면 빈 값)
-            PREV_IMAGE_ID=$(docker inspect --format='{{.Image}}' halo-app 2>/dev/null || true)
+            # 롤백 대비, 직전에 성공적으로 배포된 이미지의 SHA 태그 기록 (최초 배포면 빈 값)
+            PREV_SHA=$(cat .deployed_sha 2>/dev/null || true)
+
+            export IMAGE_TAG="${{ github.sha }}"
+            docker compose config >/dev/null
 
             docker compose pull app certbot
             docker compose build nginx
@@ -101,6 +103,7 @@ jobs:
             for i in $(seq 1 15); do
               if curl -sf http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
                 echo "헬스체크 통과"
+                echo "$IMAGE_TAG" > .deployed_sha
                 docker image prune -f
                 exit 0
               fi
@@ -111,14 +114,15 @@ jobs:
             echo "헬스체크 실패" >&2
             docker compose logs --tail=100 app
 
-            if [ -z "$PREV_IMAGE_ID" ]; then
+            if [ -z "$PREV_SHA" ]; then
               echo "이전 이미지 정보 없음, 롤백 불가" >&2
               exit 1
             fi
 
-            echo "이전 이미지로 롤백 시도" >&2
-            docker tag "$PREV_IMAGE_ID" ${{ env.IMAGE_NAME }}:latest
-            docker compose up -d --force-recreate --pull never app
+            echo "이전 이미지(SHA: $PREV_SHA)로 롤백 시도" >&2
+            export IMAGE_TAG="$PREV_SHA"
+            docker compose pull app
+            docker compose up -d --force-recreate app
 
             for i in $(seq 1 15); do
               if curl -sf http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then

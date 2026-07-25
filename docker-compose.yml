@@ -1,7 +1,7 @@
 services:
   app:
     build: .
-    image: ghcr.io/halo-umc/halo-server:latest
+    image: ghcr.io/halo-umc/halo-server:${IMAGE_TAG:-latest}
     pull_policy: always
     container_name: halo-app
     restart: unless-stopped
