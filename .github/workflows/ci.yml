@@ -13,7 +13,7 @@ jobs:
 
     services:
       mysql:
-        image: mysql:8
+        image: mysql@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
           MYSQL_DATABASE: halo
