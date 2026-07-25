@@ -25,6 +25,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -46,22 +47,29 @@ public class AnniversaryNotificationListener {
         MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId())
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
+        String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
+        String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
+        String message;
+
         try {
-            String title = createNotificationTitle(anniversary);
-            String message = createNotificationMessage(anniversary);
-
-            LocalTime notifyTime = memberSetting.getRegularNotificationTime();
-            LocalDateTime d7 = anniversary.getAnniversaryDate().minusDays(7).atTime(notifyTime);
-            LocalDateTime dday = anniversary.getAnniversaryDate().atTime(notifyTime);
-
-            Notification d7Notification = NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, title, message, d7);
-            Notification ddayNotification = NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, title, message, dday);
-
-            notificationRepository.saveAll(List.of(d7Notification, ddayNotification));
-
+            message = createNotificationMessage(anniversary);
         } catch (AiException e) {
             log.warn("기념일 알림 문구 생성 실패. anniversaryId={}", event.anniversaryId(), e);
+            message = "오늘의 따뜻한 안녕을 전해보세요.";
         }
+
+        LocalTime notifyTime = memberSetting.getRegularNotificationTime();
+        LocalDateTime d7 = anniversary.getAnniversaryDate().minusDays(7).atTime(notifyTime);
+        LocalDateTime dday = anniversary.getAnniversaryDate().atTime(notifyTime);
+
+        List<Notification> notifications = new ArrayList<>();
+
+        if (d7.isAfter(LocalDateTime.now())) {
+            notifications.add(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, message, d7));
+        }
+        notifications.add(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, message, dday));
+
+        notificationRepository.saveAll(notifications);
     }
 
     @Async
@@ -82,7 +90,9 @@ public class AnniversaryNotificationListener {
         if (!event.titleChanged() && !event.memoChanged()) {
             notifications.forEach(notification -> {
                 if (notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
-                    notification.updateScheduledAt(d7);
+                    if (d7.isAfter(LocalDateTime.now())) {
+                        notification.updateScheduledAt(d7);
+                    }
                 } else {
                     notification.updateScheduledAt(dday);
                 }
@@ -91,14 +101,17 @@ public class AnniversaryNotificationListener {
         }
 
         try {
-            String title = createNotificationTitle(anniversary);
+            String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
+            String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
             String message = createNotificationMessage(anniversary);
 
             notifications.forEach(notification -> {
                 if (notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
-                    notification.update(title, message, d7);
+                    if (d7.isAfter(LocalDateTime.now())) {
+                        notification.update(d7Title, message, d7);
+                    }
                 } else {
-                    notification.update(title, message, dday);
+                    notification.update(ddayTitle, message, dday);
                 }
 
             });
@@ -108,7 +121,9 @@ public class AnniversaryNotificationListener {
 
             notifications.forEach(notification -> {
                 if (notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
-                    notification.updateScheduledAt(d7);
+                    if (d7.isAfter(LocalDateTime.now())) {
+                        notification.updateScheduledAt(d7);
+                    }
                 } else {
                     notification.updateScheduledAt(dday);
                 }
@@ -117,7 +132,11 @@ public class AnniversaryNotificationListener {
         }
     }
 
-    private String createNotificationTitle(Anniversary anniversary) {
+    private String createNotificationTitle(Anniversary anniversary, NotificationType notificationType) {
+        if (notificationType == NotificationType.ANNIVERSARY_D7) {
+            return "7일 뒤는 " + anniversary.getTitle() + "입니다.";
+        }
+
         return "오늘은 " + anniversary.getTitle() + "입니다.";
     }
 
