@@ -12,6 +12,5 @@ import java.util.Optional;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     void deleteByMemberId(Long memberId);
     Optional<Notification> findByAnniversaryIdAndNotificationType(Long anniversaryId, NotificationType notificationType);
-    List<Notification> findAllByAnniversaryId(Long anniversaryId);
     void deleteAllByAnniversaryIdIn(List<Long> distinctIds);
 }
