@@ -25,8 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,13 +54,16 @@ public class AnniversaryNotificationListener {
 
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
-        String message;
+        String d7Message;
+        String ddayMessage;
 
         try {
-            message = createNotificationMessage(anniversary);
+            d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
+            ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
         } catch (AiException e) {
             log.warn("기념일 알림 문구 생성 실패. anniversaryId={}", event.anniversaryId(), e);
-            message = "오늘의 따뜻한 안녕을 전해보세요.";
+            d7Message = "오늘부터 조금씩 마음을 준비해 보세요.";
+            ddayMessage = "소중한 마음을 전하는 하루가 되어보세요.";
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -69,11 +74,11 @@ public class AnniversaryNotificationListener {
         List<Notification> notifications = new ArrayList<>();
 
         if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
-            notifications.add(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, message, d7));
+            notifications.add(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7));
         }
 
         if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
-            notifications.add(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, message, dday));
+            notifications.add(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday));
         }
 
         notificationRepository.saveAll(notifications);
@@ -117,21 +122,24 @@ public class AnniversaryNotificationListener {
 
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
-        String message;
+        String d7Message;
+        String ddayMessage;
 
         try {
-            message = createNotificationMessage(anniversary);
+            d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
+            ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
         } catch (AiException e) {
             log.warn("기념일 알림 재생성 실패. anniversaryId={}", anniversary.getId(), e);
-            message = "오늘의 따뜻한 안녕을 전해보세요.";
+            d7Message = "오늘부터 조금씩 마음을 준비해 보세요.";
+            ddayMessage = "소중한 마음을 전하는 하루가 되어보세요.";
         }
 
         if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
 
             if (d7Notification == null) {
-                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, message, d7));
+                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7));
             } else {
-                d7Notification.update(d7Title, message, d7);
+                d7Notification.update(d7Title, d7Message, d7);
             }
 
         } else if (d7Notification != null) {
@@ -140,9 +148,9 @@ public class AnniversaryNotificationListener {
 
         if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
             if (ddayNotification == null) {
-                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, message, dday));
+                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday));
             } else {
-                ddayNotification.update(ddayTitle, message, dday);
+                ddayNotification.update(ddayTitle, ddayMessage, dday);
             }
 
         } else if (ddayNotification != null) {
@@ -152,16 +160,20 @@ public class AnniversaryNotificationListener {
 
     private String createNotificationTitle(Anniversary anniversary, NotificationType notificationType) {
         if (notificationType == NotificationType.ANNIVERSARY_D7) {
-            return "7일 뒤는 " + anniversary.getTitle() + "입니다.";
+            long days = ChronoUnit.DAYS.between(LocalDate.now(), anniversary.getAnniversaryDate());
+            return anniversary.getTitle() + "까지 " + days + "일 남았어요.";
         }
 
         return "오늘은 " + anniversary.getTitle() + "입니다.";
     }
 
-    private String createNotificationMessage(Anniversary anniversary) {
+    private String createNotificationMessage(Anniversary anniversary, NotificationType notificationType) {
 
         if (anniversary.getMemo() == null || anniversary.getMemo().isBlank()) {
-            return "오늘의 따뜻한 안녕을 전해보세요.";
+            if (notificationType == NotificationType.ANNIVERSARY_D7) {
+                return "오늘부터 조금씩 마음을 준비해 보세요.";
+            }
+            return "소중한 마음을 전하는 하루가 되어보세요.";
         }
 
         return aiService.generateAnniversaryNotificationMessage(anniversary.getTitle(), anniversary.getMemo());
