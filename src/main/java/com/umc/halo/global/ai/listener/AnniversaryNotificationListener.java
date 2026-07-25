@@ -47,14 +47,15 @@ public class AnniversaryNotificationListener {
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
         try {
-            String message = aiService.generateAnniversaryNotificationMessage(anniversary.getTitle(), anniversary.getMemo());
+            String title = createNotificationTitle(anniversary);
+            String message = createNotificationMessage(anniversary);
 
             LocalTime notifyTime = memberSetting.getRegularNotificationTime();
             LocalDateTime d7 = anniversary.getAnniversaryDate().minusDays(7).atTime(notifyTime);
             LocalDateTime dday = anniversary.getAnniversaryDate().atTime(notifyTime);
 
-            Notification d7Notification = NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, message, d7);
-            Notification ddayNotification = NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, message, dday);
+            Notification d7Notification = NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, title, message, d7);
+            Notification ddayNotification = NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, title, message, dday);
 
             notificationRepository.saveAll(List.of(d7Notification, ddayNotification));
 
@@ -90,13 +91,14 @@ public class AnniversaryNotificationListener {
         }
 
         try {
-            String message = aiService.generateAnniversaryNotificationMessage(anniversary.getTitle(), anniversary.getMemo());
+            String title = createNotificationTitle(anniversary);
+            String message = createNotificationMessage(anniversary);
 
             notifications.forEach(notification -> {
                 if (notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
-                    notification.update(anniversary.getTitle(), message, d7);
+                    notification.update(title, message, d7);
                 } else {
-                    notification.update(anniversary.getTitle(), message, dday);
+                    notification.update(title, message, dday);
                 }
 
             });
@@ -113,5 +115,18 @@ public class AnniversaryNotificationListener {
 
             });
         }
+    }
+
+    private String createNotificationTitle(Anniversary anniversary) {
+        return "오늘은 " + anniversary.getTitle() + "입니다.";
+    }
+
+    private String createNotificationMessage(Anniversary anniversary) {
+
+        if (anniversary.getMemo() == null || anniversary.getMemo().isBlank()) {
+            return "오늘의 따뜻한 안녕을 전해보세요.";
+        }
+
+        return aiService.generateAnniversaryNotificationMessage(anniversary.getTitle(), anniversary.getMemo());
     }
 }
