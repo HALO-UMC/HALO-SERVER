@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: 소스 체크아웃
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: JDK 21 설정
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: corretto
           java-version: "21"
@@ -52,7 +52,7 @@ jobs:
 
     steps:
       - name: 소스 체크아웃
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: known_hosts 등록
         run: |
