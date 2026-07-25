@@ -24,6 +24,9 @@ jobs:
           distribution: corretto
           java-version: "21"
 
+      - name: gradlew 실행 권한 부여
+        run: chmod +x gradlew
+
       - name: bootJar 빌드
         run: ./gradlew bootJar
 

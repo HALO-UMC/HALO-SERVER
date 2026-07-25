@@ -47,5 +47,8 @@ jobs:
       - name: Gradle 캐시
         uses: gradle/actions/setup-gradle@v4
 
+      - name: gradlew 실행 권한 부여
+        run: chmod +x gradlew
+
       - name: 빌드 및 테스트
         run: ./gradlew build
