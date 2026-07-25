@@ -37,6 +37,13 @@ logging:
     root: info
     org.hibernate.SQL: !!str debug
 
+# 프로필별로 명시적으로 켜는 곳(dev/local)에서만 노출, 그 외엔 기본 차단
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 jwt:
   token:
     secretKey: ${JWT_SECRET_KEY}

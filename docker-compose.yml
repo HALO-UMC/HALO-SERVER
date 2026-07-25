@@ -28,6 +28,33 @@ services:
     networks:
       - internal
 
+  dev-app:
+    build: .
+    image: ghcr.io/halo-umc/halo-server:${DEV_IMAGE_TAG:-latest}
+    pull_policy: always
+    container_name: halo-dev-app
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 40s
+    mem_limit: 1024m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    env_file:
+      - .env.dev
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks:
+      - internal
+
   nginx:
     build: ./nginx
     container_name: halo-nginx
@@ -40,8 +67,10 @@ services:
       - "443:443"
     environment:
       - DOMAIN=${DOMAIN}
+      - DEV_DOMAIN=${DEV_DOMAIN}
     volumes:
       - ./nginx/templates:/etc/nginx/templates:ro
+      - ./.htpasswd:/etc/nginx/.htpasswd:ro
       - certbot-webroot:/var/www/certbot
       - certbot-certs:/etc/letsencrypt
     networks:

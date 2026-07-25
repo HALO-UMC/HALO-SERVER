@@ -2,10 +2,10 @@ name: CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 concurrency:
-  group: deploy-main
+  group: deploy-${{ github.ref_name }}
   cancel-in-progress: false
 
 env:
@@ -50,7 +50,8 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-  deploy:
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
     needs: build-and-push
     runs-on: ubuntu-latest
     permissions:
@@ -93,7 +94,9 @@ jobs:
 
             install -m 600 /dev/null .env
             cat > .env << 'ENVEOF'
+            SPRING_PROFILES_ACTIVE=prod
             DOMAIN=${{ secrets.DOMAIN }}
+            DEV_DOMAIN=${{ secrets.DEV_DOMAIN }}
             DB_URL=${{ secrets.DB_URL }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PW=${{ secrets.DB_PW }}
@@ -105,6 +108,10 @@ jobs:
             S3_BUCKET_ACCESS_KEY=${{ secrets.S3_BUCKET_ACCESS_KEY }}
             S3_BUCKET_SECRET_KEY=${{ secrets.S3_BUCKET_SECRET_KEY }}
             ENVEOF
+
+            # dev 서브도메인 접근 제한용 basic auth 계정 파일 (nginx가 참조)
+            install -m 600 /dev/null .htpasswd
+            echo "${{ secrets.DEV_BASIC_AUTH_USER }}:$(openssl passwd -apr1 '${{ secrets.DEV_BASIC_AUTH_PASSWORD }}')" > .htpasswd
 
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
@@ -124,7 +131,7 @@ jobs:
               echo "nginx 빌드 실패" >&2
               DEPLOY_OK=false
             fi
-            if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --remove-orphans --force-recreate; then
+            if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --remove-orphans --force-recreate app nginx certbot; then
               echo "compose up 실패" >&2
               DEPLOY_OK=false
             fi
@@ -190,5 +197,74 @@ jobs:
 
             echo "롤백도 실패" >&2
             docker compose logs --tail=100 app nginx || true
+            exit 1
+          EOF
+
+  deploy-dev:
+    if: github.ref == 'refs/heads/develop'
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: 소스 체크아웃
+        uses: actions/checkout@v5
+
+      - name: known_hosts 등록
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+
+      - name: SSH 키 설정
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: docker-compose.yml / nginx 설정 EC2로 복사
+        run: |
+          scp -r docker-compose.yml nginx ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_APP_DIR }}/
+
+      - name: .env.dev 생성 및 dev 재배포
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -euo pipefail
+            cd ${{ secrets.EC2_APP_DIR }}
+
+            install -m 600 /dev/null .env.dev
+            cat > .env.dev << 'ENVEOF'
+            SPRING_PROFILES_ACTIVE=dev
+            DB_URL=${{ secrets.DEV_DB_URL }}
+            DB_USER=${{ secrets.DEV_DB_USER }}
+            DB_PW=${{ secrets.DEV_DB_PW }}
+            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            KAKAO_NATIVE_APP_KEY=${{ secrets.KAKAO_NATIVE_APP_KEY }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            S3_BUCKET_NAME=${{ secrets.DEV_S3_BUCKET_NAME }}
+            S3_BUCKET_ACCESS_KEY=${{ secrets.S3_BUCKET_ACCESS_KEY }}
+            S3_BUCKET_SECRET_KEY=${{ secrets.S3_BUCKET_SECRET_KEY }}
+            ENVEOF
+
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            export DEV_IMAGE_TAG="${{ github.sha }}"
+            docker compose config >/dev/null
+
+            docker compose pull dev-app
+            docker compose up -d --force-recreate dev-app
+
+            for i in $(seq 1 15); do
+              if docker compose exec -T dev-app curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
+                echo "dev 헬스체크 통과"
+                docker image prune -f || true
+                exit 0
+              fi
+              echo "dev 헬스체크 대기 중... ($i/15)"
+              sleep 4
+            done
+
+            echo "dev 헬스체크 실패" >&2
+            docker compose logs --tail=100 dev-app || true
             exit 1
           EOF

@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name ${DOMAIN};
+    server_name ${DOMAIN} ${DEV_DOMAIN};
 
     # Let's Encrypt 인증서 발급/갱신 시 사용하는 challenge 파일 경로
     location /.well-known/acme-challenge/ {
@@ -8,14 +8,18 @@ server {
     }
 
     # 그 외 모든 요청은 HTTPS로 리다이렉트
-    # $host를 그대로 쓰면 조작된 Host 헤더로 open redirect가 가능해지므로 고정 도메인을 사용
+    # 이 server 블록은 server_name에 명시된 두 도메인만 매칭되므로($host가 임의 값일 수 없음) open redirect 위험 없이 $host 사용 가능
     location / {
-        return 301 https://${DOMAIN}$request_uri;
+        return 301 https://$host$request_uri;
     }
 }
 
 upstream app_upstream {
     server app:8080 max_fails=3 fail_timeout=5s;
+}
+
+upstream dev_app_upstream {
+    server dev-app:8080 max_fails=3 fail_timeout=5s;
 }
 
 server {
@@ -40,6 +44,37 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
 
         # 배포 중 app 컨테이너가 잠깐 교체되는 구간의 502를 흡수하기 위한 재시도
+        proxy_connect_timeout 2s;
+        proxy_next_upstream error timeout http_502 http_503 http_504;
+        proxy_next_upstream_tries 3;
+    }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${DEV_DOMAIN};
+
+    # 인증서는 DOMAIN 발급 시 --expand로 DEV_DOMAIN을 SAN에 포함시켜 공유
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # 개발 환경은 팀 외 접근 차단
+    auth_basic "Restricted";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+
+    location /actuator {
+        return 404;
+    }
+
+    location / {
+        proxy_pass http://dev_app_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
         proxy_connect_timeout 2s;
         proxy_next_upstream error timeout http_502 http_503 http_504;
         proxy_next_upstream_tries 3;

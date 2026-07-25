@@ -4,7 +4,7 @@
 set -e
 
 # 직접 치환
-envsubst '${DOMAIN}' < /etc/nginx/templates/app.conf.template > /etc/nginx/conf.d/app.conf
+envsubst '${DOMAIN} ${DEV_DOMAIN}' < /etc/nginx/templates/app.conf.template > /etc/nginx/conf.d/app.conf
 
 nginx -g "daemon off;" &
 NGINX_PID=$!
