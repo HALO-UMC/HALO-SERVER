@@ -65,14 +65,28 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: dev Basic Auth 해시 생성
+      - name: dev Basic Auth 자격증명 준비
         id: htpasswd
         env:
+          DEV_BASIC_AUTH_USER: ${{ secrets.DEV_BASIC_AUTH_USER }}
           DEV_BASIC_AUTH_PASSWORD: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
         run: |
+          if [ -z "$DEV_BASIC_AUTH_USER" ] || [ -z "$DEV_BASIC_AUTH_PASSWORD" ]; then
+            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. 배포를 중단합니다." >&2
+            exit 1
+          fi
+
           # 원격 서버로는 원문 비밀번호 대신 해시만 전달
           HASH=$(printf '%s' "$DEV_BASIC_AUTH_PASSWORD" | openssl passwd -apr1 -stdin)
-          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$HASH"
+
+          # 원격 heredoc에 셸 인젝션 없이 안전하게 전달하기 위해 base64로 인코딩
+          USER_B64=$(printf '%s' "$DEV_BASIC_AUTH_USER" | base64 -w0)
+          HASH_B64=$(printf '%s' "$HASH" | base64 -w0)
+          echo "::add-mask::$USER_B64"
+          echo "::add-mask::$HASH_B64"
+          echo "user_b64=$USER_B64" >> "$GITHUB_OUTPUT"
+          echo "hash_b64=$HASH_B64" >> "$GITHUB_OUTPUT"
 
       - name: known_hosts 등록
         run: |
@@ -102,7 +116,7 @@ jobs:
       - name: .env 생성 및 재배포
         run: |
           # github.actor를 원격 셸의 $GITHUB_ACTOR로 전달
-          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "GITHUB_ACTOR='$GITHUB_ACTOR' bash -s" << 'EOF'
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "GITHUB_ACTOR='$GITHUB_ACTOR' HTPASSWD_USER_B64='${{ steps.htpasswd.outputs.user_b64 }}' HTPASSWD_HASH_B64='${{ steps.htpasswd.outputs.hash_b64 }}' bash -s" << 'EOF'
             set -euo pipefail
             cd ${{ secrets.EC2_APP_DIR }}
 
@@ -123,10 +137,13 @@ jobs:
             S3_BUCKET_SECRET_KEY=${{ secrets.S3_BUCKET_SECRET_KEY }}
             ENVEOF
 
-            # 644: nginx 워커(uid 101)가 읽을 수 있어야 함
-            install -m 644 /dev/null .htpasswd
-            HTPASSWD_HASH='${{ steps.htpasswd.outputs.hash }}'
-            echo "${{ secrets.DEV_BASIC_AUTH_USER }}:$HTPASSWD_HASH" > .htpasswd
+            HTPASSWD_USER=$(printf '%s' "$HTPASSWD_USER_B64" | base64 -d)
+            HTPASSWD_HASH=$(printf '%s' "$HTPASSWD_HASH_B64" | base64 -d)
+            install -m 600 /dev/null .htpasswd
+            printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd
+            # nginx 워커(uid/gid 101)만 읽을 수 있도록 소유권을 맞추고 640 이하로 제한
+            sudo chown 101:101 .htpasswd
+            chmod 600 .htpasswd
 
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
