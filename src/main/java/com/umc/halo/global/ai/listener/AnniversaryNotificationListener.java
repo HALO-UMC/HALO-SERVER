@@ -4,6 +4,8 @@ import com.umc.halo.domain.notification.converter.NotificationConverter;
 import com.umc.halo.domain.notification.entity.Anniversary;
 import com.umc.halo.domain.notification.entity.Notification;
 import com.umc.halo.domain.notification.enums.NotificationType;
+import com.umc.halo.domain.notification.exception.AnniversaryErrorCode;
+import com.umc.halo.domain.notification.exception.AnniversaryException;
 import com.umc.halo.domain.notification.repository.AnniversaryRepository;
 import com.umc.halo.domain.notification.repository.NotificationRepository;
 import com.umc.halo.domain.setting.entity.MemberSetting;
@@ -43,7 +45,8 @@ public class AnniversaryNotificationListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void generateNotificationMessage(AnniversaryCreatedEvent event) {
 
-        Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId()).orElseThrow();
+        Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId())
+                .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
         MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId())
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
@@ -58,16 +61,20 @@ public class AnniversaryNotificationListener {
             message = "오늘의 따뜻한 안녕을 전해보세요.";
         }
 
+        LocalDateTime now = LocalDateTime.now();
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
         LocalDateTime d7 = anniversary.getAnniversaryDate().minusDays(7).atTime(notifyTime);
         LocalDateTime dday = anniversary.getAnniversaryDate().atTime(notifyTime);
 
         List<Notification> notifications = new ArrayList<>();
 
-        if (d7.isAfter(LocalDateTime.now())) {
+        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
             notifications.add(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, message, d7));
         }
-        notifications.add(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, message, dday));
+
+        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
+            notifications.add(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, message, dday));
+        }
 
         notificationRepository.saveAll(notifications);
     }
@@ -77,58 +84,69 @@ public class AnniversaryNotificationListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateNotificationMessage(AnniversaryUpdatedEvent event) {
 
-        Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId()).orElseThrow();
+        Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId())
+                .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
         MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId())
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
+        LocalDateTime now = LocalDateTime.now();
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
         LocalDateTime d7 = anniversary.getAnniversaryDate().minusDays(7).atTime(notifyTime);
         LocalDateTime dday = anniversary.getAnniversaryDate().atTime(notifyTime);
 
-        List<Notification> notifications = notificationRepository.findAllByAnniversaryId(anniversary.getId());
+        Notification d7Notification = notificationRepository.findByAnniversaryIdAndNotificationType(anniversary.getId(), NotificationType.ANNIVERSARY_D7).orElse(null);
+        Notification ddayNotification = notificationRepository.findByAnniversaryIdAndNotificationType(anniversary.getId(), NotificationType.ANNIVERSARY_DDAY).orElse(null);
 
         if (!event.titleChanged() && !event.memoChanged()) {
-            notifications.forEach(notification -> {
-                if (notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
-                    if (d7.isAfter(LocalDateTime.now())) {
-                        notification.updateScheduledAt(d7);
-                    }
+            if (d7Notification != null) {
+                if (d7.isAfter(now)) {
+                    d7Notification.updateScheduledAt(d7);
                 } else {
-                    notification.updateScheduledAt(dday);
+                    notificationRepository.delete(d7Notification);
                 }
-            });
+            }
+            if (ddayNotification != null) {
+                if (dday.isAfter(now)) {
+                    ddayNotification.updateScheduledAt(dday);
+                } else {
+                    notificationRepository.delete(ddayNotification);
+                }
+            }
             return;
         }
 
+        String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
+        String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
+        String message;
+
         try {
-            String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
-            String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
-            String message = createNotificationMessage(anniversary);
-
-            notifications.forEach(notification -> {
-                if (notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
-                    if (d7.isAfter(LocalDateTime.now())) {
-                        notification.update(d7Title, message, d7);
-                    }
-                } else {
-                    notification.update(ddayTitle, message, dday);
-                }
-
-            });
-
+            message = createNotificationMessage(anniversary);
         } catch (AiException e) {
             log.warn("기념일 알림 재생성 실패. anniversaryId={}", anniversary.getId(), e);
+            message = "오늘의 따뜻한 안녕을 전해보세요.";
+        }
 
-            notifications.forEach(notification -> {
-                if (notification.getNotificationType() == NotificationType.ANNIVERSARY_D7) {
-                    if (d7.isAfter(LocalDateTime.now())) {
-                        notification.updateScheduledAt(d7);
-                    }
-                } else {
-                    notification.updateScheduledAt(dday);
-                }
+        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
 
-            });
+            if (d7Notification == null) {
+                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, message, d7));
+            } else {
+                d7Notification.update(d7Title, message, d7);
+            }
+
+        } else if (d7Notification != null) {
+            notificationRepository.delete(d7Notification);
+        }
+
+        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
+            if (ddayNotification == null) {
+                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, message, dday));
+            } else {
+                ddayNotification.update(ddayTitle, message, dday);
+            }
+
+        } else if (ddayNotification != null) {
+            notificationRepository.delete(ddayNotification);
         }
     }
 
