@@ -214,8 +214,15 @@ jobs:
               echo "배포 명령 실패로 헬스체크 생략, 롤백 절차로 진행" >&2
             fi
 
-            if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --force-recreate nginx; then
-              echo "nginx 재생성 실패" >&2
+            # --force-recreate 대신 up -d: nginx 이미지가 바뀐 경우(Dockerfile/entrypoint 수정)에만
+            # compose가 알아서 컨테이너를 재생성하고, 그 외(대부분의 배포)에는 기존 컨테이너를 그대로 두고
+            # SIGHUP으로 설정만 재로드한다 -> dev 배포 때문에 이 nginx가 같이 처리하는 prod까지 끊기지 않음
+            if [ "$DEPLOY_OK" = true ] && ! docker compose up -d nginx; then
+              echo "nginx 기동 실패" >&2
+              DEPLOY_OK=false
+            fi
+            if [ "$DEPLOY_OK" = true ] && ! docker compose kill -s HUP nginx; then
+              echo "nginx 설정 재로드 신호 전송 실패" >&2
               DEPLOY_OK=false
             fi
 
@@ -456,14 +463,18 @@ jobs:
             fi
 
             # nginx는 fragments/*.template을 컨테이너 기동 시점에만 렌더링하므로,
-            # 이미 떠 있는 nginx는 재생성해야 새 DEV_DOMAIN 서버 블록이 반영
-            # 재생성에 실패하면 prod 라우팅까지 깨질 수 있음 -> 실패 시 배포 전 스냅샷으로 복구
-            if docker compose build nginx && docker compose up -d --force-recreate nginx; then
+            # 이미 떠 있는 nginx는 재생성 없이 SIGHUP으로 재렌더링+reload해서 새 DEV_DOMAIN
+            # 서버 블록을 반영(watch-and-reload.sh의 reconfigure_and_reload)
+            # up -d는 --force-recreate 없이: nginx 이미지 자체가 바뀐 경우(Dockerfile/entrypoint
+            # 수정)에만 compose가 알아서 재생성하고, 그 외에는 컨테이너를 그대로 둬서 같은
+            # 컨테이너가 처리하는 prod 트래픽이 dev 배포 때문에 끊기지 않게 함
+            # 실패하면 prod 라우팅까지 깨질 수 있음 -> 실패 시 배포 전 스냅샷으로 복구
+            if docker compose build nginx && docker compose up -d nginx && docker compose kill -s HUP nginx; then
               docker image prune -f || true
               exit 0
             fi
 
-            echo "nginx 재생성 실패" >&2
+            echo "nginx 설정 반영 실패" >&2
             docker compose logs --tail=50 nginx || true
 
             if [ ! -f .prev_release/docker-compose.yml ]; then

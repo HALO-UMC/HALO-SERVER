@@ -74,10 +74,32 @@ if [ "$NGINX_OK" != true ]; then
   nginx -t
 fi
 
+# CD가 fragments/.env 변경만으로 컨테이너를 통째로 재생성하지 않고도 반영
+# SIGHUP을 받으면 설정을 다시 렌더링하고 reload
+reconfigure_and_reload() {
+  render_full_conf
+  if nginx -t >/tmp/nginx-t.log 2>&1; then
+    nginx -s reload
+    echo "[watch-and-reload] 설정 재로드 완료"
+    return
+  fi
+  echo "[watch-and-reload] 전체 설정 테스트 실패, 존재하는 백엔드만으로 재구성 시도" >&2
+  cat /tmp/nginx-t.log >&2 || true
+  render_partial_conf
+  if nginx -t >/tmp/nginx-t.log 2>&1; then
+    nginx -s reload
+    echo "[watch-and-reload] 부분 설정으로 재로드 완료"
+  else
+    echo "[watch-and-reload] 설정 재구성 실패, 기존 설정 유지" >&2
+    cat /tmp/nginx-t.log >&2 || true
+  fi
+}
+
 nginx -g "daemon off;" &
 NGINX_PID=$!
 
 trap 'kill -TERM "$NGINX_PID" 2>/dev/null' TERM INT
+trap 'reconfigure_and_reload' HUP
 
 watch_and_reload() {
   while true; do
@@ -95,5 +117,9 @@ watch_and_reload() {
 watch_and_reload &
 WATCH_PID=$!
 
-wait "$NGINX_PID"
+# HUP 트랩 처리로 wait가 조기 반환돼도
+# nginx가 실제로 죽은 게 아니면 다시 wait
+while kill -0 "$NGINX_PID" 2>/dev/null; do
+  wait "$NGINX_PID" 2>/dev/null || true
+done
 kill "$WATCH_PID" 2>/dev/null || true
