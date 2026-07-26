@@ -59,12 +59,31 @@ jobs:
     permissions:
       contents: read
       packages: read
+      id-token: write
 
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v5
         with:
           persist-credentials: false
+
+      # OIDC로 단기 자격증명 발급 -> 이후 스텝들의 job 환경에 자동으로 노출되므로
+      # 아래 "러너 IP 허용"과 job 끝의 "러너 IP 제거" 둘 다 별도 자격증명 설정 없이 aws 호출 가능
+      - name: AWS 자격증명 설정 (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 배포 시작 시에만 이번 러너 IP를 22번 포트에 임시로 열고 끝나면 반드시 제거
+      - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
+        id: allow-runner-ip
+        run: |
+          RUNNER_IP="$(curl -sf https://checkip.amazonaws.com)/32"
+          echo "ip=$RUNNER_IP" >> "$GITHUB_OUTPUT"
+          aws ec2 authorize-security-group-ingress \
+            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 --cidr "$RUNNER_IP"
 
       - name: dev Basic Auth 자격증명 준비
         id: htpasswd
@@ -304,6 +323,14 @@ jobs:
             exit 1
           EOF
 
+      - name: 보안그룹에서 러너 IP 제거
+        if: always()
+        continue-on-error: true
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 --cidr "${{ steps.allow-runner-ip.outputs.ip }}"
+
   deploy-dev:
     if: github.ref == 'refs/heads/develop'
     needs: build-and-push
@@ -311,12 +338,29 @@ jobs:
     permissions:
       contents: read
       packages: read
+      id-token: write
 
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v5
         with:
           persist-credentials: false
+
+      - name: AWS 자격증명 설정 (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 배포 시작 시에만 이번 러너 IP를 22번 포트에 임시로 열고 끝나면 반드시 제거
+      - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
+        id: allow-runner-ip
+        run: |
+          RUNNER_IP="$(curl -sf https://checkip.amazonaws.com)/32"
+          echo "ip=$RUNNER_IP" >> "$GITHUB_OUTPUT"
+          aws ec2 authorize-security-group-ingress \
+            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 --cidr "$RUNNER_IP"
 
       - name: dev Basic Auth 자격증명 준비
         id: htpasswd
@@ -503,3 +547,11 @@ jobs:
 
             exit 1
           EOF
+
+      - name: 보안그룹에서 러너 IP 제거
+        if: always()
+        continue-on-error: true
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 --cidr "${{ steps.allow-runner-ip.outputs.ip }}"
