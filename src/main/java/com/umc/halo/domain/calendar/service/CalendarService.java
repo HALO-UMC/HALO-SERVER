@@ -107,6 +107,9 @@ public class CalendarService {
                 .findAllByMemberWithStorybook(member).stream()
                 .collect(Collectors.toMap(ms -> ms.getStorybook().getId(), Function.identity()));
 
+        Map<Long, List<MemberChapter>> chaptersByStorybook = memberChapterRepository
+                .findAllByMemberWithStorybookChapter(member).stream()
+                .collect(Collectors.groupingBy(mc -> mc.getStorybookChapter().getStorybook().getId()));
         List<CalendarDailyResDTO.StorybookInfo> storybooks = new ArrayList<>();
         List<CalendarDailyResDTO.ChapterInfo> chapters = new ArrayList<>();
 
@@ -118,12 +121,22 @@ public class CalendarService {
                 storybooks.add(CalendarConverter.toStorybookInfo(storybook));
             } else {
                 MemberStorybook ms = progressByStorybookId.get(storybook.getId());
-                int lastOrder = (ms != null) ? ms.getLastChapterOrder() : chapterOrderOfDay;
-                int nextChapterOrder = Math.min(lastOrder + 1, TOTAL_CHAPTER_COUNT);
+                List<MemberChapter> myChapters = chaptersByStorybook.getOrDefault(storybook.getId(), List.of());
+                Integer nextChapterOrder = resolveNextChapterOrder(ms, myChapters, chapterOrderOfDay);
                 chapters.add(CalendarConverter.toChapterInfo(storybook, nextChapterOrder));
             }
         }
 
         return CalendarConverter.toDailyInfo(date.toString(), storybooks, chapters);
+    }
+    private Integer resolveNextChapterOrder(MemberStorybook ms, List<MemberChapter> myChapters, int fallbackOrder) {
+        Integer lastChapterOrder = (ms != null) ? ms.getLastChapterOrder() : fallbackOrder;
+
+        boolean lastCompleted = myChapters.stream()
+                .anyMatch(mc -> lastChapterOrder.equals(mc.getStorybookChapter().getChapterOrder())
+                        && mc.getStatus() == Status.COMPLETED);
+
+        int next = lastCompleted ? lastChapterOrder + 1 : lastChapterOrder;
+        return Math.min(next, TOTAL_CHAPTER_COUNT);
     }
 }
