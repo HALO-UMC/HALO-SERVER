@@ -4,6 +4,12 @@ server {
     listen 80 default_server;
     server_name _;
 
+    # app/dev-app 둘 다 없어서 10-app/20-dev-app이 렌더링 안 된 부트스트랩 상태에서도
+    # certbot의 HTTP-01 challenge는 이 블록으로 들어옴
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
     location / {
         return 444;
     }
