@@ -53,13 +53,15 @@ public class Notification extends BaseEntity {
     @Builder.Default
     private NotificationStatus status = NotificationStatus.SCHEDULED;
 
-    public void update(String title, String message, LocalDateTime scheduledAt) {
+    @Column(name = "setting_enabled", nullable = false)
+    private Boolean settingEnabled;
+
+    @Column(name = "anniversary_enabled", nullable = false)
+    private Boolean anniversaryEnabled;
+
+    public void updateContent(String title, String message) {
         this.title = title;
         this.message = message;
-        this.scheduledAt = scheduledAt;
-        if (this.status != NotificationStatus.SENT) {
-            this.status = NotificationStatus.SCHEDULED;
-        }
     }
 
     public void reserve(LocalDateTime scheduledAt) {
@@ -70,18 +72,6 @@ public class Notification extends BaseEntity {
         this.status = NotificationStatus.SCHEDULED;
     }
 
-    public void cancelBySetting() {
-        if (this.status != NotificationStatus.SENT) {
-            this.status = NotificationStatus.CANCELED_BY_SETTING;
-        }
-    }
-
-    public void cancelByAnniversary() {
-        if (this.status != NotificationStatus.SENT) {
-            this.status = NotificationStatus.CANCELED_BY_ANNIVERSARY;
-        }
-    }
-
     public void updateScheduledAt(LocalDateTime scheduledAt) {
         if (this.status == NotificationStatus.SENT) {
             return;
@@ -89,4 +79,17 @@ public class Notification extends BaseEntity {
         this.scheduledAt = scheduledAt;
     }
 
+    public void updateSettingEnabled(boolean enabled) {
+        this.settingEnabled = enabled;
+    }
+
+    public void updateAnniversaryEnabled(boolean enabled) {
+        this.anniversaryEnabled = enabled;
+    }
+
+    public void expire() {
+        if (this.status != NotificationStatus.SENT) {
+            this.status = NotificationStatus.EXPIRED;
+        }
+    }
 }

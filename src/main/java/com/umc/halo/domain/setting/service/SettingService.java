@@ -111,17 +111,18 @@ public class SettingService {
 
     private void updateNotificationScheduledTime(Long memberId, LocalTime notifyTime) {
 
-        List<Notification> notifications = notificationRepository.findAllWithAnniversary(memberId, List.of(NotificationType.ANNIVERSARY_D7, NotificationType.ANNIVERSARY_DDAY), List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED_BY_SETTING));
+        List<Notification> notifications = notificationRepository.findAllWithAnniversary(memberId, List.of(NotificationType.ANNIVERSARY_D7, NotificationType.ANNIVERSARY_DDAY), List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
 
         for(Notification notification : notifications) {
 
-            if (notification.getAnniversary() == null) {
+            Anniversary anniversary = notification.getAnniversary();
+
+            if (anniversary == null) {
                 continue;
             }
 
-            Anniversary anniversary = notification.getAnniversary();
             LocalDate nextOccurrence = resolveNextOccurrence(anniversary, today);
 
             if(nextOccurrence == null) {
@@ -139,32 +140,37 @@ public class SettingService {
             }
 
             if (!scheduledAt.isAfter(now)) {
-                notification.cancelBySetting();
+                notification.expire();
                 continue;
             }
 
-            notification.updateScheduledAt(scheduledAt);
+            if (notification.getStatus() == NotificationStatus.EXPIRED) {
+                notification.reserve(scheduledAt);
+            } else {
+                notification.updateScheduledAt(scheduledAt);
+            }
         }
     }
 
     private void updateAnniversaryNotifications(Long memberId, boolean enabled, MemberSetting memberSetting) {
 
-        List<Notification> notifications = notificationRepository.findAllWithAnniversary(memberId, List.of(NotificationType.ANNIVERSARY_D7, NotificationType.ANNIVERSARY_DDAY), List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED_BY_SETTING));
+        List<Notification> notifications = notificationRepository.findAllWithAnniversary(memberId, List.of(NotificationType.ANNIVERSARY_D7, NotificationType.ANNIVERSARY_DDAY), List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
 
         for(Notification notification : notifications) {
 
             if(!enabled) {
-                notification.cancelBySetting();
-                continue;
-            }
-
-            if (notification.getAnniversary() == null) {
+                notification.updateSettingEnabled(false);
                 continue;
             }
 
             Anniversary anniversary = notification.getAnniversary();
+
+            if (anniversary == null) {
+                continue;
+            }
+
             LocalDate nextOccurrence = resolveNextOccurrence(anniversary, today);
 
             if(nextOccurrence == null) {
@@ -180,11 +186,17 @@ public class SettingService {
             }
 
             if (!scheduledAt.isAfter(now)) {
-                notification.cancelBySetting();
+                notification.expire();
                 continue;
             }
 
-            notification.reserve(scheduledAt);
+            notification.updateSettingEnabled(true);
+
+            if (notification.getStatus() == NotificationStatus.EXPIRED) {
+                notification.reserve(scheduledAt);
+            } else {
+                notification.updateScheduledAt(scheduledAt);
+            }
         }
     }
 

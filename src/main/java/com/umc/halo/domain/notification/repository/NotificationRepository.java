@@ -18,7 +18,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Query("""
         select n
         from Notification n
-        left join fetch n.anniversary
+        join fetch n.anniversary
         where n.member.id = :memberId
         and n.notificationType in :notificationTypes
         and n.status in :statuses

@@ -68,11 +68,11 @@ public class AnniversaryNotificationListener {
 
 
         if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
-            saveOrUpdateNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
+            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
         }
 
         if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
-            saveOrUpdateNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
+            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
         }
 
     }
@@ -109,8 +109,8 @@ public class AnniversaryNotificationListener {
             ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
         }
 
-        updateOrCancel(anniversary, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7, now, anniversary.getSevenDaysAlarmEnabled());;
-        updateOrCancel(anniversary, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday, now, anniversary.getDayAlarmEnabled());
+        updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7, now, anniversary.getSevenDaysAlarmEnabled());
+        updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday, now, anniversary.getDayAlarmEnabled());
 
     }
 
@@ -148,44 +148,56 @@ public class AnniversaryNotificationListener {
 
 
 
-    private void saveOrUpdateNotification(Anniversary anniversary, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt) {
+    private void saveOrUpdateNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt) {
 
-        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED_BY_ANNIVERSARY)).orElse(null);
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
+
+        boolean anniversaryEnabled = notificationType == NotificationType.ANNIVERSARY_D7 ? anniversary.getSevenDaysAlarmEnabled() : anniversary.getDayAlarmEnabled();
 
         if(notification == null) {
-            notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, notificationType, title, message, scheduledAt));
-        } else {
-            notification.update(title, message, scheduledAt);
+            notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, notificationType, title, message, scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), anniversaryEnabled));
+            return;
         }
+
+        notification.updateSettingEnabled(memberSetting.getAnniversaryNotificationEnabled());
+        notification.updateAnniversaryEnabled(anniversaryEnabled);
+        notification.updateContent(title, message);
+        notification.reserve(scheduledAt);
     }
 
-    private void updateOrCancel(Anniversary anniversary, NotificationType type, String title, String message, LocalDateTime scheduledAt, LocalDateTime now, boolean enabled) {
+    private void updateOrCancelNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt, LocalDateTime now, boolean enabled) {
 
-        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), type, List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED_BY_ANNIVERSARY)).orElse(null);
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
 
-        if(enabled && scheduledAt.isAfter(now)) {
-            if(notification == null) {
-                notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, type, title, message != null ? message : createDefaultNotificationMessage(type), scheduledAt));
-            } else {
-                if(message != null) {
-                    notification.update(title, message, scheduledAt);
-                } else {
-                    notification.reserve(scheduledAt);
-                }
+        if (notification == null) {
+            if (!enabled || !scheduledAt.isAfter(now)) {
+                return;
             }
-        } else {
-            if(notification != null) {
-                notification.cancelByAnniversary();
-            }
+            notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, notificationType, title, message != null ? message : createDefaultNotificationMessage(notificationType), scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), enabled));
+            return;
         }
+
+        notification.updateSettingEnabled(memberSetting.getAnniversaryNotificationEnabled());
+        notification.updateAnniversaryEnabled(enabled);
+
+        if (!scheduledAt.isAfter(now)) {
+            notification.expire();
+            return;
+        }
+
+        if (message != null) {
+            notification.updateContent(title, message);
+        }
+
+        notification.reserve(scheduledAt);
     }
 
-    private void cancelNotification(Anniversary anniversary, NotificationType type) {
+    private void cancelNotification(Anniversary anniversary, NotificationType notificationType) {
 
-        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), type, List.of(NotificationStatus.SCHEDULED, NotificationStatus.CANCELED_BY_ANNIVERSARY)).orElse(null);
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
 
         if(notification != null) {
-            notification.cancelByAnniversary();
+            notification.updateAnniversaryEnabled(false);
         }
     }
 
