@@ -1,15 +1,10 @@
+# 명시적 default_server: 없으면 첫 server 블록이 암묵적 default가 되어
+# 위조된 Host 헤더로 open redirect가 생길 수 있음 -> 알 수 없는 Host는 바로 끊음
 server {
-    listen 80;
-    server_name ${DOMAIN} ${DEV_DOMAIN};
+    listen 80 default_server;
+    server_name _;
 
-    # Let's Encrypt 인증서 발급/갱신 시 사용하는 challenge 파일 경로
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
-
-    # 그 외 모든 요청은 HTTPS로 리다이렉트
-    # 이 server 블록은 server_name에 명시된 두 도메인만 매칭되므로($host가 임의 값일 수 없음) open redirect 위험 없이 $host 사용 가능
     location / {
-        return 301 https://$host$request_uri;
+        return 444;
     }
 }

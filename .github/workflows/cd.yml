@@ -148,7 +148,9 @@ jobs:
               # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근하게 함
               install -m 640 /dev/null .htpasswd
               printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd
-              sudo chgrp 101 .htpasswd
+              # sudo 권한 없는 계정 대비 폴백, 실패해도 배포는 계속 진행
+              chgrp 101 .htpasswd 2>/dev/null || sudo -n chgrp 101 .htpasswd 2>/dev/null || \
+                echo "경고: .htpasswd 그룹을 101로 변경하지 못했습니다(sudo 권한 없음). nginx가 파일을 못 읽을 수 있습니다." >&2
             else
               echo ".htpasswd 갱신 건너뜀 (DEV_BASIC_AUTH 시크릿 미설정, 기존 파일 유지)"
             fi
@@ -177,25 +179,40 @@ jobs:
             fi
             # --remove-orphans는 쓰지 않음: dev-app이 profiles: [dev]로 분리된 뒤에는
             # prod 배포 시 활성 프로필(prod)에 없는 dev-app 컨테이너까지 orphan으로 간주해 삭제할 위험이 있음
-            if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --force-recreate app nginx certbot; then
+            # nginx는 app 헬스체크 통과 후 따로 재생성(동시 recreate 시 옛 IP 캐시 위험)
+            if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --force-recreate app certbot; then
               echo "compose up 실패" >&2
               DEPLOY_OK=false
             fi
 
             if [ "$DEPLOY_OK" = true ]; then
+              APP_HEALTHY=false
               for i in $(seq 1 15); do
                 if curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
-                  echo "헬스체크 통과"
-                  echo "$IMAGE_TAG" > .deployed_sha
-                  docker image prune -f || true
-                  exit 0
+                  echo "app 헬스체크 통과"
+                  APP_HEALTHY=true
+                  break
                 fi
-                echo "헬스체크 대기 중... ($i/15)"
+                echo "app 헬스체크 대기 중... ($i/15)"
                 sleep 4
               done
-              echo "헬스체크 실패" >&2
+              if [ "$APP_HEALTHY" != true ]; then
+                echo "app 헬스체크 실패" >&2
+                DEPLOY_OK=false
+              fi
             else
               echo "배포 명령 실패로 헬스체크 생략, 롤백 절차로 진행" >&2
+            fi
+
+            if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --force-recreate nginx; then
+              echo "nginx 재생성 실패" >&2
+              DEPLOY_OK=false
+            fi
+
+            if [ "$DEPLOY_OK" = true ]; then
+              echo "$IMAGE_TAG" > .deployed_sha
+              docker image prune -f || true
+              exit 0
             fi
 
             docker compose logs --tail=100 app || true
@@ -224,8 +241,27 @@ jobs:
               echo "롤백용 nginx 빌드 실패" >&2
               ROLLBACK_OK=false
             fi
-            if [ "$ROLLBACK_OK" = true ] && ! docker compose up -d --force-recreate app nginx; then
+            # app을 먼저 확실히 되돌린 뒤에만 nginx를 재생성
+            if [ "$ROLLBACK_OK" = true ] && ! docker compose up -d --force-recreate app; then
               echo "롤백용 compose up 실패" >&2
+              ROLLBACK_OK=false
+            fi
+
+            if [ "$ROLLBACK_OK" = true ]; then
+              ROLLBACK_APP_HEALTHY=false
+              for i in $(seq 1 15); do
+                if curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
+                  ROLLBACK_APP_HEALTHY=true
+                  break
+                fi
+                echo "롤백 app 헬스체크 대기 중... ($i/15)"
+                sleep 4
+              done
+              [ "$ROLLBACK_APP_HEALTHY" = true ] || ROLLBACK_OK=false
+            fi
+
+            if [ "$ROLLBACK_OK" = true ] && ! docker compose up -d --force-recreate nginx; then
+              echo "롤백용 nginx 재생성 실패" >&2
               ROLLBACK_OK=false
             fi
 
@@ -307,6 +343,11 @@ jobs:
             set -euo pipefail
             cd ${{ secrets.EC2_APP_DIR }}
 
+            # 빈 값이 .env에 고착되면 이후 배포에서도 안 고쳐지므로 먼저 검증
+            for v in "${{ secrets.DOMAIN }}" "${{ secrets.DEV_DOMAIN }}"; do
+              [ -n "$v" ] || { echo "DOMAIN/DEV_DOMAIN 시크릿이 비어 있습니다." >&2; exit 1; }
+            done
+
             # nginx가 공용으로 참조하는 최상위 .env는 prod 배포가 먼저 실행되지 않은 호스트에도
             # DOMAIN/DEV_DOMAIN만은 존재하도록 보장, 이미 있으면(=prod .env) 손대지 않음
             [ -f .env ] || install -m 600 /dev/null .env
@@ -320,7 +361,9 @@ jobs:
               # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근하게 함
               install -m 640 /dev/null .htpasswd
               printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd
-              sudo chgrp 101 .htpasswd
+              # sudo 권한 없는 계정 대비 폴백, 실패해도 배포는 계속 진행
+              chgrp 101 .htpasswd 2>/dev/null || sudo -n chgrp 101 .htpasswd 2>/dev/null || \
+                echo "경고: .htpasswd 그룹을 101로 변경하지 못했습니다(sudo 권한 없음). nginx가 파일을 못 읽을 수 있습니다." >&2
             else
               echo ".htpasswd 갱신 건너뜀 (DEV_BASIC_AUTH 시크릿 미설정, 기존 파일 유지)"
             fi
@@ -379,7 +422,7 @@ jobs:
               exit 1
             fi
 
-            # nginx 템플릿(app.conf.template)은 컨테이너 기동 시점에만 렌더링되므로,
+            # nginx는 fragments/*.template을 컨테이너 기동 시점에만 렌더링하므로,
             # 이미 떠 있는 nginx는 재생성해야 새 DEV_DOMAIN 서버 블록이 반영된다
             docker compose build nginx
             docker compose up -d --force-recreate nginx

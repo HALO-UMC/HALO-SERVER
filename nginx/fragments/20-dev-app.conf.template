@@ -1,3 +1,18 @@
+server {
+    listen 80;
+    server_name ${DEV_DOMAIN};
+
+    # Let's Encrypt 인증서 발급/갱신 시 사용하는 challenge 파일 경로
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # server_name이 ${DEV_DOMAIN} 하나로 고정이라 $host 대신 리터럴 도메인으로 리다이렉트
+    location / {
+        return 301 https://${DEV_DOMAIN}$request_uri;
+    }
+}
+
 upstream dev_app_upstream {
     server dev-app:8080 max_fails=3 fail_timeout=5s;
 }
