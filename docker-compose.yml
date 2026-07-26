@@ -3,6 +3,7 @@ services:
     build: .
     image: ghcr.io/halo-umc/halo-server:${IMAGE_TAG:-latest}
     pull_policy: always
+    profiles: [ "prod" ]
     container_name: halo-app
     restart: unless-stopped
     init: true
@@ -32,6 +33,7 @@ services:
     build: .
     image: ghcr.io/halo-umc/halo-server:${DEV_IMAGE_TAG:-latest}
     pull_policy: always
+    profiles: [ "dev" ]
     container_name: halo-dev-app
     restart: unless-stopped
     init: true
@@ -59,9 +61,9 @@ services:
     build: ./nginx
     container_name: halo-nginx
     restart: unless-stopped
-    depends_on:
-      app:
-        condition: service_healthy
+    # app/dev-app은 각각 prod/dev 프로필이라 nginx가 depends_on으로 물면
+    # 배포 대상이 아닌 프로필까지 강제로 함께 기동됨
+    # 대신 nginx 자체 진입점(watch-and-reload.sh)이 기동 시 잠깐 재시도하므로 depends_on 없이도 안전
     ports:
       - "80:80"
       - "443:443"

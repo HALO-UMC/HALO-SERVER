@@ -6,6 +6,18 @@ set -e
 # 직접 치환
 envsubst '${DOMAIN} ${DEV_DOMAIN}' < /etc/nginx/templates/app.conf.template > /etc/nginx/conf.d/app.conf
 
+# upstream의 app/dev-app 호스트명은 nginx 기동 시점에 한 번만 DNS로 해석
+# prod/dev는 서로 다른 compose profile이라 항상 둘 다 떠 있지 않음
+# 늦게 뜨는 쪽을 잠깐 기다렸다가 기동, 없다고 nginx 전체가 기동 실패하는 것을 막음
+for i in $(seq 1 30); do
+  if nginx -t >/tmp/nginx-t.log 2>&1; then
+    break
+  fi
+  echo "[watch-and-reload] nginx 설정 테스트 실패, app/dev-app 기동 대기 중... ($i/30)"
+  sleep 2
+done
+cat /tmp/nginx-t.log >&2 || true
+
 nginx -g "daemon off;" &
 NGINX_PID=$!
 
