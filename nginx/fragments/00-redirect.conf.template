@@ -1,0 +1,15 @@
+server {
+    listen 80;
+    server_name ${DOMAIN} ${DEV_DOMAIN};
+
+    # Let's Encrypt 인증서 발급/갱신 시 사용하는 challenge 파일 경로
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # 그 외 모든 요청은 HTTPS로 리다이렉트
+    # 이 server 블록은 server_name에 명시된 두 도메인만 매칭되므로($host가 임의 값일 수 없음) open redirect 위험 없이 $host 사용 가능
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}

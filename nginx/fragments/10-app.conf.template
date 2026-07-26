@@ -1,0 +1,31 @@
+upstream app_upstream {
+    server app:8080 max_fails=3 fail_timeout=5s;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${DOMAIN};
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # actuator 외부 노출 차단
+    location /actuator {
+        return 404;
+    }
+
+    location / {
+        proxy_pass http://app_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # 배포 중 app 컨테이너가 잠깐 교체되는 구간의 502를 흡수하기 위한 재시도
+        proxy_connect_timeout 2s;
+        proxy_next_upstream error timeout http_502 http_503 http_504;
+        proxy_next_upstream_tries 3;
+    }
+}
