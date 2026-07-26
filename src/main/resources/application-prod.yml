@@ -1,10 +1,10 @@
 spring:
   config:
     activate:
-      on-profile: local
+      on-profile: prod
 
 springdoc:
   api-docs:
-    enabled: true
+    enabled: false
   swagger-ui:
-    enabled: true
+    enabled: false
