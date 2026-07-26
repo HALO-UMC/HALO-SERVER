@@ -58,12 +58,34 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: read
+      id-token: write
 
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v5
         with:
           persist-credentials: false
+
+      # OIDC로 단기 자격증명 발급 -> 이후 스텝들의 job 환경에 자동으로 노출되므로
+      # 아래 "러너 IP 허용"과 job 끝의 "러너 IP 제거" 둘 다 별도 자격증명 설정 없이 aws 호출 가능
+      - name: AWS 자격증명 설정 (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 배포 시작 시에만 이번 러너 IP를 22번 포트에 임시로 열고 끝나면 반드시 제거
+      # CIDR이 아니라 authorize가 만든 규칙의 rule ID로 추적
+      - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
+        id: allow-runner-ip
+        run: |
+          RUNNER_IP="$(curl -sf https://checkip.amazonaws.com)/32"
+          RULE_ID=$(aws ec2 authorize-security-group-ingress \
+            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 --cidr "$RUNNER_IP" \
+            --output json | jq -r '.SecurityGroupRules[0].SecurityGroupRuleId')
+          echo "rule-id=$RULE_ID" >> "$GITHUB_OUTPUT"
 
       - name: dev Basic Auth 자격증명 준비
         id: htpasswd
@@ -165,7 +187,9 @@ jobs:
               echo ".htpasswd 갱신 건너뜀 (DEV_BASIC_AUTH 시크릿 미설정, 기존 파일 유지)"
             fi
 
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+            # 같은 워크플로우 실행 안에서 build-and-push가 이미 이 패키지에 push
+            # 성공했으므로, 별도 PAT 없이 GITHUB_TOKEN으로도 pull 권한이 충분함
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
             # 롤백 대비, 직전에 성공적으로 배포된 이미지의 SHA 태그 기록 (최초 배포면 빈 값)
             PREV_SHA=$(cat .deployed_sha 2>/dev/null || true)
@@ -301,18 +325,56 @@ jobs:
             exit 1
           EOF
 
+      # rule-id가 없으면 revoke할 대상이 없으므로 건너뜀
+      # CIDR이 아닌 rule ID를 지정해 이 job이 만든 규칙만 정확히 제거
+      - name: 보안그룹에서 러너 IP 제거
+        if: always() && steps.allow-runner-ip.outputs.rule-id != ''
+        run: |
+          RULE_ID="${{ steps.allow-runner-ip.outputs.rule-id }}"
+          for i in 1 2 3; do
+            if aws ec2 revoke-security-group-ingress \
+              --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+              --security-group-rule-ids "$RULE_ID"; then
+              exit 0
+            fi
+            echo "보안그룹 규칙 제거 실패, 재시도 ($i/3)" >&2
+            sleep 5
+          done
+          echo "보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요" >&2
+          exit 1
+
   deploy-dev:
     if: github.ref == 'refs/heads/develop'
     needs: build-and-push
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: read
+      id-token: write
 
     steps:
       - name: 소스 체크아웃
         uses: actions/checkout@v5
         with:
           persist-credentials: false
+
+      - name: AWS 자격증명 설정 (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 배포 시작 시에만 이번 러너 IP를 22번 포트에 임시로 열고 끝나면 반드시 제거
+      # CIDR이 아니라 authorize가 만든 규칙의 rule ID로 추적
+      - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
+        id: allow-runner-ip
+        run: |
+          RUNNER_IP="$(curl -sf https://checkip.amazonaws.com)/32"
+          RULE_ID=$(aws ec2 authorize-security-group-ingress \
+            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 --cidr "$RUNNER_IP" \
+            --output json | jq -r '.SecurityGroupRules[0].SecurityGroupRuleId')
+          echo "rule-id=$RULE_ID" >> "$GITHUB_OUTPUT"
 
       - name: dev Basic Auth 자격증명 준비
         id: htpasswd
@@ -425,7 +487,7 @@ jobs:
           S3_BUCKET_SECRET_KEY=${{ secrets.DEV_S3_BUCKET_SECRET_KEY }}
           ENVEOF
 
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
             export DEV_IMAGE_TAG="${{ github.sha }}"
             # dev-app이 profiles: [dev]라 COMPOSE_PROFILES 없이는 config 검증에서 빠짐 ->
@@ -499,3 +561,21 @@ jobs:
 
             exit 1
           EOF
+
+      # rule-id가 없으면 revoke할 대상이 없으므로 건너뜀
+      # CIDR이 아닌 rule ID를 지정해 이 job이 만든 규칙만 정확히 제거
+      - name: 보안그룹에서 러너 IP 제거
+        if: always() && steps.allow-runner-ip.outputs.rule-id != ''
+        run: |
+          RULE_ID="${{ steps.allow-runner-ip.outputs.rule-id }}"
+          for i in 1 2 3; do
+            if aws ec2 revoke-security-group-ingress \
+              --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+              --security-group-rule-ids "$RULE_ID"; then
+              exit 0
+            fi
+            echo "보안그룹 규칙 제거 실패, 재시도 ($i/3)" >&2
+            sleep 5
+          done
+          echo "보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요" >&2
+          exit 1
