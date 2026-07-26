@@ -70,9 +70,15 @@ public class Notification extends BaseEntity {
         this.status = NotificationStatus.SCHEDULED;
     }
 
-    public void cancel() {
+    public void cancelBySetting() {
         if (this.status != NotificationStatus.SENT) {
-            this.status = NotificationStatus.CANCELED;
+            this.status = NotificationStatus.CANCELED_BY_SETTING;
+        }
+    }
+
+    public void cancelByAnniversary() {
+        if (this.status != NotificationStatus.SENT) {
+            this.status = NotificationStatus.CANCELED_BY_ANNIVERSARY;
         }
     }
 
