@@ -76,14 +76,16 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       # 배포 시작 시에만 이번 러너 IP를 22번 포트에 임시로 열고 끝나면 반드시 제거
+      # CIDR이 아니라 authorize가 만든 규칙의 rule ID로 추적
       - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
         id: allow-runner-ip
         run: |
           RUNNER_IP="$(curl -sf https://checkip.amazonaws.com)/32"
-          echo "ip=$RUNNER_IP" >> "$GITHUB_OUTPUT"
-          aws ec2 authorize-security-group-ingress \
+          RULE_ID=$(aws ec2 authorize-security-group-ingress \
             --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
-            --protocol tcp --port 22 --cidr "$RUNNER_IP"
+            --protocol tcp --port 22 --cidr "$RUNNER_IP" \
+            --output json | jq -r '.SecurityGroupRules[0].SecurityGroupRuleId')
+          echo "rule-id=$RULE_ID" >> "$GITHUB_OUTPUT"
 
       - name: dev Basic Auth 자격증명 준비
         id: htpasswd
@@ -323,13 +325,23 @@ jobs:
             exit 1
           EOF
 
+      # rule-id가 없으면 revoke할 대상이 없으므로 건너뜀
+      # CIDR이 아닌 rule ID를 지정해 이 job이 만든 규칙만 정확히 제거
       - name: 보안그룹에서 러너 IP 제거
-        if: always()
-        continue-on-error: true
+        if: always() && steps.allow-runner-ip.outputs.rule-id != ''
         run: |
-          aws ec2 revoke-security-group-ingress \
-            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
-            --protocol tcp --port 22 --cidr "${{ steps.allow-runner-ip.outputs.ip }}"
+          RULE_ID="${{ steps.allow-runner-ip.outputs.rule-id }}"
+          for i in 1 2 3; do
+            if aws ec2 revoke-security-group-ingress \
+              --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+              --security-group-rule-ids "$RULE_ID"; then
+              exit 0
+            fi
+            echo "보안그룹 규칙 제거 실패, 재시도 ($i/3)" >&2
+            sleep 5
+          done
+          echo "보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요" >&2
+          exit 1
 
   deploy-dev:
     if: github.ref == 'refs/heads/develop'
@@ -353,14 +365,16 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       # 배포 시작 시에만 이번 러너 IP를 22번 포트에 임시로 열고 끝나면 반드시 제거
+      # CIDR이 아니라 authorize가 만든 규칙의 rule ID로 추적
       - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
         id: allow-runner-ip
         run: |
           RUNNER_IP="$(curl -sf https://checkip.amazonaws.com)/32"
-          echo "ip=$RUNNER_IP" >> "$GITHUB_OUTPUT"
-          aws ec2 authorize-security-group-ingress \
+          RULE_ID=$(aws ec2 authorize-security-group-ingress \
             --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
-            --protocol tcp --port 22 --cidr "$RUNNER_IP"
+            --protocol tcp --port 22 --cidr "$RUNNER_IP" \
+            --output json | jq -r '.SecurityGroupRules[0].SecurityGroupRuleId')
+          echo "rule-id=$RULE_ID" >> "$GITHUB_OUTPUT"
 
       - name: dev Basic Auth 자격증명 준비
         id: htpasswd
@@ -548,10 +562,20 @@ jobs:
             exit 1
           EOF
 
+      # rule-id가 없으면 revoke할 대상이 없으므로 건너뜀
+      # CIDR이 아닌 rule ID를 지정해 이 job이 만든 규칙만 정확히 제거
       - name: 보안그룹에서 러너 IP 제거
-        if: always()
-        continue-on-error: true
+        if: always() && steps.allow-runner-ip.outputs.rule-id != ''
         run: |
-          aws ec2 revoke-security-group-ingress \
-            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
-            --protocol tcp --port 22 --cidr "${{ steps.allow-runner-ip.outputs.ip }}"
+          RULE_ID="${{ steps.allow-runner-ip.outputs.rule-id }}"
+          for i in 1 2 3; do
+            if aws ec2 revoke-security-group-ingress \
+              --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+              --security-group-rule-ids "$RULE_ID"; then
+              exit 0
+            fi
+            echo "보안그룹 규칙 제거 실패, 재시도 ($i/3)" >&2
+            sleep 5
+          done
+          echo "보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요" >&2
+          exit 1
