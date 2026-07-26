@@ -146,11 +146,16 @@ jobs:
               HTPASSWD_HASH=$(printf '%s' "$HTPASSWD_HASH_B64" | base64 -d)
               # 소유자는 배포 계정으로 유지(재배포 시 chmod가 소유자 아닌 파일에 걸려 EPERM 나는 것 방지),
               # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근하게 함
-              install -m 640 /dev/null .htpasswd
-              printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd
-              # sudo 권한 없는 계정 대비 폴백, 실패해도 배포는 계속 진행
-              chgrp 101 .htpasswd 2>/dev/null || sudo -n chgrp 101 .htpasswd 2>/dev/null || \
-                echo "경고: .htpasswd 그룹을 101로 변경하지 못했습니다(sudo 권한 없음). nginx가 파일을 못 읽을 수 있습니다." >&2
+              # 임시 파일에서 권한까지 맞춘 뒤 원자적으로 교체 -> 그룹 변경 실패 시
+              # nginx가 못 읽는 파일이 실제 .htpasswd 자리에 노출되는 일이 없음
+              install -m 640 /dev/null .htpasswd.new
+              printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd.new
+              if chgrp 101 .htpasswd.new 2>/dev/null || sudo -n chgrp 101 .htpasswd.new 2>/dev/null; then
+                mv .htpasswd.new .htpasswd
+              else
+                rm -f .htpasswd.new
+                echo "경고: .htpasswd 그룹을 101로 변경하지 못했습니다(sudo 권한 없음). 기존 .htpasswd를 유지합니다." >&2
+              fi
             else
               echo ".htpasswd 갱신 건너뜀 (DEV_BASIC_AUTH 시크릿 미설정, 기존 파일 유지)"
             fi
@@ -301,13 +306,11 @@ jobs:
           DEV_BASIC_AUTH_USER: ${{ secrets.DEV_BASIC_AUTH_USER }}
           DEV_BASIC_AUTH_PASSWORD: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
         run: |
-          # dev Basic Auth는 dev 라우팅 전용 값이라, 미설정/회전 실패로 운영 배포까지
-          # 막히면 안 됨 -> .htpasswd 갱신만 건너뛰고 기존 파일을 그대로 둠
+          # prod와 달리 dev nginx는 이 파일에 항상 의존하므로(자체 도메인 Basic Auth),
+          # 미설정을 건너뛰지 않고 배포 실패로 처리한다
           if [ -z "$DEV_BASIC_AUTH_USER" ] || [ -z "$DEV_BASIC_AUTH_PASSWORD" ]; then
-            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. .htpasswd 갱신을 건너뜁니다." >&2
-            echo "user_b64=" >> "$GITHUB_OUTPUT"
-            echo "hash_b64=" >> "$GITHUB_OUTPUT"
-            exit 0
+            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. dev 배포를 중단합니다." >&2
+            exit 1
           fi
 
           # 원격 서버로는 원문 비밀번호 대신 해시만 전달
@@ -358,14 +361,23 @@ jobs:
               HTPASSWD_USER=$(printf '%s' "$HTPASSWD_USER_B64" | base64 -d)
               HTPASSWD_HASH=$(printf '%s' "$HTPASSWD_HASH_B64" | base64 -d)
               # 소유자는 배포 계정으로 유지(재배포 시 chmod가 소유자 아닌 파일에 걸려 EPERM 나는 것 방지),
-              # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근하게 함
-              install -m 640 /dev/null .htpasswd
-              printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd
-              # sudo 권한 없는 계정 대비 폴백, 실패해도 배포는 계속 진행
-              chgrp 101 .htpasswd 2>/dev/null || sudo -n chgrp 101 .htpasswd 2>/dev/null || \
-                echo "경고: .htpasswd 그룹을 101로 변경하지 못했습니다(sudo 권한 없음). nginx가 파일을 못 읽을 수 있습니다." >&2
+              # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근하게 함.
+              # 임시 파일에서 권한까지 맞춘 뒤 원자적으로 교체 -> 그룹 변경 실패 시
+              # nginx가 못 읽는 파일이 실제 .htpasswd 자리에 노출되는 일이 없음
+              install -m 640 /dev/null .htpasswd.new
+              printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd.new
+              # dev nginx는 이 파일에 항상 의존하므로, prod와 달리 그룹 변경 실패를
+              # 경고로 넘기지 않고 nginx 재생성 전에 배포 자체를 중단시킨다
+              if chgrp 101 .htpasswd.new 2>/dev/null || sudo -n chgrp 101 .htpasswd.new 2>/dev/null; then
+                mv .htpasswd.new .htpasswd
+              else
+                rm -f .htpasswd.new
+                echo ".htpasswd 그룹을 101로 변경하지 못했습니다(sudo 권한 없음). dev nginx의 Basic Auth가 깨지므로 배포를 중단합니다." >&2
+                exit 1
+              fi
             else
-              echo ".htpasswd 갱신 건너뜀 (DEV_BASIC_AUTH 시크릿 미설정, 기존 파일 유지)"
+              echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 비어 있습니다." >&2
+              exit 1
             fi
 
             install -m 600 /dev/null .env.dev
