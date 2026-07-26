@@ -3,8 +3,10 @@ FROM nginx:alpine
 
 RUN apk add --no-cache inotify-tools
 
+COPY lib.sh /usr/local/bin/nginx-lib.sh
 COPY watch-and-reload.sh /usr/local/bin/watch-and-reload.sh
-RUN chmod +x /usr/local/bin/watch-and-reload.sh
+COPY reload.sh /usr/local/bin/reload.sh
+RUN chmod +x /usr/local/bin/watch-and-reload.sh /usr/local/bin/reload.sh
 
 # nginx 기본 docker-entrypoint.sh가 템플릿(envsubst) 처리를 끝낸 뒤 이 CMD를 실행한다
 CMD ["/usr/local/bin/watch-and-reload.sh"]
