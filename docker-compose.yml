@@ -63,7 +63,8 @@ services:
     restart: unless-stopped
     # app/dev-app은 각각 prod/dev 프로필이라 nginx가 depends_on으로 물면
     # 배포 대상이 아닌 프로필까지 강제로 함께 기동됨
-    # 대신 nginx 자체 진입점(watch-and-reload.sh)이 기동 시 잠깐 재시도하므로 depends_on 없이도 안전
+    # 대신 nginx 자체 진입점(watch-and-reload.sh)이 기동 시 없는 쪽의 server 블록을
+    # 자체적으로 제외하고 뜨므로 depends_on 없이도 안전
     ports:
       - "80:80"
       - "443:443"
@@ -71,7 +72,7 @@ services:
       - DOMAIN=${DOMAIN:?DOMAIN is required}
       - DEV_DOMAIN=${DEV_DOMAIN:?DEV_DOMAIN is required}
     volumes:
-      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./nginx/fragments:/etc/nginx/fragments:ro
       - ./.htpasswd:/etc/nginx/.htpasswd:ro
       - certbot-webroot:/var/www/certbot
       - certbot-certs:/etc/letsencrypt
