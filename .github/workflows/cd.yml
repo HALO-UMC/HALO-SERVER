@@ -71,9 +71,13 @@ jobs:
           DEV_BASIC_AUTH_USER: ${{ secrets.DEV_BASIC_AUTH_USER }}
           DEV_BASIC_AUTH_PASSWORD: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
         run: |
+          # dev Basic Auth는 dev 라우팅 전용 값
+          # .htpasswd 갱신만 건너뛰고 기존 파일을 그대로 둠
           if [ -z "$DEV_BASIC_AUTH_USER" ] || [ -z "$DEV_BASIC_AUTH_PASSWORD" ]; then
-            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. 배포를 중단합니다." >&2
-            exit 1
+            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. .htpasswd 갱신을 건너뜁니다." >&2
+            echo "user_b64=" >> "$GITHUB_OUTPUT"
+            echo "hash_b64=" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           # 원격 서버로는 원문 비밀번호 대신 해시만 전달
@@ -137,13 +141,17 @@ jobs:
           S3_BUCKET_SECRET_KEY=${{ secrets.S3_BUCKET_SECRET_KEY }}
           ENVEOF
 
-            HTPASSWD_USER=$(printf '%s' "$HTPASSWD_USER_B64" | base64 -d)
-            HTPASSWD_HASH=$(printf '%s' "$HTPASSWD_HASH_B64" | base64 -d)
-            install -m 600 /dev/null .htpasswd
-            printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd
-            # nginx 워커(uid/gid 101)만 읽을 수 있도록 소유권을 맞추고 640 이하로 제한
-            sudo chown 101:101 .htpasswd
-            chmod 600 .htpasswd
+            if [ -n "$HTPASSWD_USER_B64" ] && [ -n "$HTPASSWD_HASH_B64" ]; then
+              HTPASSWD_USER=$(printf '%s' "$HTPASSWD_USER_B64" | base64 -d)
+              HTPASSWD_HASH=$(printf '%s' "$HTPASSWD_HASH_B64" | base64 -d)
+              # 소유자는 배포 계정으로 유지(재배포 시 chmod가 소유자 아닌 파일에 걸려 EPERM 나는 것 방지),
+              # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근하게 함
+              install -m 640 /dev/null .htpasswd
+              printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd
+              sudo chgrp 101 .htpasswd
+            else
+              echo ".htpasswd 갱신 건너뜀 (DEV_BASIC_AUTH 시크릿 미설정, 기존 파일 유지)"
+            fi
 
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
@@ -151,6 +159,10 @@ jobs:
             PREV_SHA=$(cat .deployed_sha 2>/dev/null || true)
 
             export IMAGE_TAG="${{ github.sha }}"
+            # dev-app은 profiles: [dev]라 COMPOSE_PROFILES 없이는 config 검증에서 빠짐 ->
+            # app 서비스 정의 오류를 여기서 못 잡고 넘어갈 수 있어 명시적으로 활성화
+            # (up/pull은 서비스명을 직접 지정해서 --remove-orphans만 없으면 이 값과 무관하게 안전)
+            export COMPOSE_PROFILES=prod
             docker compose config >/dev/null
 
             # elif 대신 개별 if: 앞 단계 실패 시 up을 건너뛰면 구버전이 헬스체크를 통과해 잘못된 SHA가 기록될 수 있음
@@ -253,9 +265,13 @@ jobs:
           DEV_BASIC_AUTH_USER: ${{ secrets.DEV_BASIC_AUTH_USER }}
           DEV_BASIC_AUTH_PASSWORD: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
         run: |
+          # dev Basic Auth는 dev 라우팅 전용 값이라, 미설정/회전 실패로 운영 배포까지
+          # 막히면 안 됨 -> .htpasswd 갱신만 건너뛰고 기존 파일을 그대로 둠
           if [ -z "$DEV_BASIC_AUTH_USER" ] || [ -z "$DEV_BASIC_AUTH_PASSWORD" ]; then
-            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. 배포를 중단합니다." >&2
-            exit 1
+            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. .htpasswd 갱신을 건너뜁니다." >&2
+            echo "user_b64=" >> "$GITHUB_OUTPUT"
+            echo "hash_b64=" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           # 원격 서버로는 원문 비밀번호 대신 해시만 전달
@@ -297,13 +313,17 @@ jobs:
             grep -q '^DOMAIN=' .env || echo "DOMAIN=${{ secrets.DOMAIN }}" >> .env
             grep -q '^DEV_DOMAIN=' .env || echo "DEV_DOMAIN=${{ secrets.DEV_DOMAIN }}" >> .env
 
-            HTPASSWD_USER=$(printf '%s' "$HTPASSWD_USER_B64" | base64 -d)
-            HTPASSWD_HASH=$(printf '%s' "$HTPASSWD_HASH_B64" | base64 -d)
-            install -m 600 /dev/null .htpasswd
-            printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd
-            # nginx 워커(uid/gid 101)만 읽을 수 있도록 소유권을 맞추고 640 이하로 제한
-            sudo chown 101:101 .htpasswd
-            chmod 600 .htpasswd
+            if [ -n "$HTPASSWD_USER_B64" ] && [ -n "$HTPASSWD_HASH_B64" ]; then
+              HTPASSWD_USER=$(printf '%s' "$HTPASSWD_USER_B64" | base64 -d)
+              HTPASSWD_HASH=$(printf '%s' "$HTPASSWD_HASH_B64" | base64 -d)
+              # 소유자는 배포 계정으로 유지(재배포 시 chmod가 소유자 아닌 파일에 걸려 EPERM 나는 것 방지),
+              # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근하게 함
+              install -m 640 /dev/null .htpasswd
+              printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd
+              sudo chgrp 101 .htpasswd
+            else
+              echo ".htpasswd 갱신 건너뜀 (DEV_BASIC_AUTH 시크릿 미설정, 기존 파일 유지)"
+            fi
 
             install -m 600 /dev/null .env.dev
             cat > .env.dev << 'ENVEOF'
@@ -323,6 +343,9 @@ jobs:
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
             export DEV_IMAGE_TAG="${{ github.sha }}"
+            # dev-app이 profiles: [dev]라 COMPOSE_PROFILES 없이는 config 검증에서 빠짐 ->
+            # dev-app 서비스 정의 오류를 여기서 못 잡고 넘어갈 수 있어 명시적으로 활성화
+            export COMPOSE_PROFILES=dev
             docker compose config >/dev/null
 
             # prod와 동일하게 실패를 즉시 죽이지 않고 플래그로 모아서,
