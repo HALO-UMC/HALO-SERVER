@@ -11,7 +11,7 @@ import java.time.*;
 @Entity
 @Table(
         name = "notification",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"anniversary_id", "notification_type"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"anniversary_id", "notification_type", "scheduled_at"})
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
