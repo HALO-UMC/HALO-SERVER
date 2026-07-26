@@ -58,6 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: read
 
     steps:
       - name: 소스 체크아웃
@@ -165,7 +166,9 @@ jobs:
               echo ".htpasswd 갱신 건너뜀 (DEV_BASIC_AUTH 시크릿 미설정, 기존 파일 유지)"
             fi
 
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+            # 같은 워크플로우 실행 안에서 build-and-push가 이미 이 패키지에 push
+            # 성공했으므로, 별도 PAT 없이 GITHUB_TOKEN으로도 pull 권한이 충분함
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
             # 롤백 대비, 직전에 성공적으로 배포된 이미지의 SHA 태그 기록 (최초 배포면 빈 값)
             PREV_SHA=$(cat .deployed_sha 2>/dev/null || true)
@@ -307,6 +310,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: read
 
     steps:
       - name: 소스 체크아웃
@@ -425,7 +429,7 @@ jobs:
           S3_BUCKET_SECRET_KEY=${{ secrets.DEV_S3_BUCKET_SECRET_KEY }}
           ENVEOF
 
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
             export DEV_IMAGE_TAG="${{ github.sha }}"
             # dev-app이 profiles: [dev]라 COMPOSE_PROFILES 없이는 config 검증에서 빠짐 ->
