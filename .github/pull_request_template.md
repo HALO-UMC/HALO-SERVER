@@ -1,6 +1,3 @@
-
-
-Pull request template · MD
 ## 📝 작업 내용
 
 이번 PR에서 구현한 내용을 간단히 설명해주세요.

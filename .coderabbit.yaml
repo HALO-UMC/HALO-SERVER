@@ -1,0 +1,49 @@
+language: "ko-KR"
+
+reviews:
+  profile: chill
+  high_level_summary: true
+  changed_files_summary: false
+  review_status: true
+  collapse_walkthrough: false
+
+  request_changes_workflow: false
+
+  poem: false
+  sequence_diagrams: false
+  assess_linked_issues: false
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  auto_apply_labels: false
+  suggested_reviewers: false
+  auto_assign_reviewers: false
+
+  path_filters:
+    - "src/**/*.java"
+    - "src/main/resources/**/*"
+    - "build.gradle"
+    - "settings.gradle"
+    - "Dockerfile"
+    - "docker-compose.yml"
+    - "nginx/**"
+    - ".github/workflows/**"
+    - ".env.example"
+    - "*.sh"
+    - "!**/build/**"
+    - "!**/out/**"
+    - "!**/node_modules/**"
+
+  auto_review:
+    enabled: true
+    drafts: false
+
+chat:
+  auto_reply: true
+
+issue_enrichment:
+  auto_enrich:
+    enabled: false
+
+  planning:
+    enabled: false

@@ -1,0 +1,10 @@
+build/*
+!build/libs/*.jar
+
+.gradle/
+.git/
+.idea/
+*.log
+
+.env
+.env.*

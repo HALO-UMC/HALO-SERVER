@@ -16,6 +16,7 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -31,8 +32,46 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // Swagger (springdoc-openapi) - Spring Boot 4 계열
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+
+    // Spring Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+
+    // OIDC ID Token
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.37.4'
+
+    // Korean Lunar Calendar
+    implementation 'com.github.usingsky:KoreanLunarCalendar:0.4.0'
+
+    // S3
+    implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:4.0.2")
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
+
+    // Flyway
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation 'org.flywaydb:flyway-mysql'
+
+    // Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Docker 빌드 시 plain.jar와의 COPY 충돌을 방지하기 위해 일반 JAR 생성 비활성화
+tasks.named('jar') {
+    enabled = false
+}
+
+// build/libs에 파일명이 고정된 jar 하나만 남도록 해서 Dockerfile의 COPY 매칭을 단수로 고정
+tasks.named('bootJar') {
+    archiveFileName = 'app.jar'
 }

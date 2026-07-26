@@ -13,13 +13,55 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
     hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
+      ddl-auto: validate
+
+  cloud:
+    aws:
+      s3:
+        bucket: ${S3_BUCKET_NAME}
+      credentials:
+        access-key: ${S3_BUCKET_ACCESS_KEY}
+        secret-key: ${S3_BUCKET_SECRET_KEY}
+      region:
+        static: ap-northeast-2
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
+    locations: classpath:db/migration
+    fail-on-missing-locations: true
 
 logging:
   level:
     root: info
     org.hibernate.SQL: !!str debug
-    org.hibernate.orm.jdbc.bind: trace
+
+# 프로필별로 명시적으로 켜는 곳(dev/local)에서만 노출, 그 외엔 기본 차단
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+jwt:
+  token:
+    secretKey: ${JWT_SECRET_KEY}
+    expiration:
+      access: 3600000   # 1시간
+      refresh: 1209600000 # 2주
+
+kakao:
+  client-id: ${KAKAO_NATIVE_APP_KEY}
+  jwks-uri: https://kauth.kakao.com/.well-known/jwks.json
+  issuer: https://kauth.kakao.com
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID}
+  jwks-uri: https://www.googleapis.com/oauth2/v3/certs
+  issuer: https://accounts.google.com
+
+gemini:
+  api-key: ${GEMINI_API_KEY}
+  model: gemini-flash-lite-latest
+

@@ -2,7 +2,7 @@
 name: "🐛 Fix"
 about: 버그 수정 이슈
 title: "[FIX] "
-labels: bug
+labels: [ "🐛 fix" ]
 assignees: ''
 ---
 

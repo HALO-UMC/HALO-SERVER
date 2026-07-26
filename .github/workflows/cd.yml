@@ -1,0 +1,581 @@
+name: CD
+
+on:
+  push:
+    branches: [ main, develop ]
+
+concurrency:
+  group: deploy-shared-ec2
+  cancel-in-progress: false
+
+env:
+  IMAGE_NAME: ghcr.io/halo-umc/halo-server
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: 소스 체크아웃
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: JDK 21 설정
+        uses: actions/setup-java@v5
+        with:
+          distribution: corretto
+          java-version: "21"
+
+      - name: gradlew 실행 권한 부여
+        run: chmod +x gradlew
+
+      - name: bootJar 빌드
+        run: ./gradlew bootJar
+
+      - name: GHCR 로그인
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+
+    steps:
+      - name: 소스 체크아웃
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      # OIDC로 단기 자격증명 발급 -> 이후 스텝들의 job 환경에 자동으로 노출되므로
+      # 아래 "러너 IP 허용"과 job 끝의 "러너 IP 제거" 둘 다 별도 자격증명 설정 없이 aws 호출 가능
+      - name: AWS 자격증명 설정 (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 배포 시작 시에만 이번 러너 IP를 22번 포트에 임시로 열고 끝나면 반드시 제거
+      # CIDR이 아니라 authorize가 만든 규칙의 rule ID로 추적
+      - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
+        id: allow-runner-ip
+        run: |
+          RUNNER_IP="$(curl -sf https://checkip.amazonaws.com)/32"
+          RULE_ID=$(aws ec2 authorize-security-group-ingress \
+            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 --cidr "$RUNNER_IP" \
+            --output json | jq -r '.SecurityGroupRules[0].SecurityGroupRuleId')
+          echo "rule-id=$RULE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: dev Basic Auth 자격증명 준비
+        id: htpasswd
+        env:
+          DEV_BASIC_AUTH_USER: ${{ secrets.DEV_BASIC_AUTH_USER }}
+          DEV_BASIC_AUTH_PASSWORD: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
+        run: |
+          # dev Basic Auth는 dev 라우팅 전용 값
+          # .htpasswd 갱신만 건너뛰고 기존 파일을 그대로 둠
+          if [ -z "$DEV_BASIC_AUTH_USER" ] || [ -z "$DEV_BASIC_AUTH_PASSWORD" ]; then
+            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. .htpasswd 갱신을 건너뜁니다." >&2
+            echo "user_b64=" >> "$GITHUB_OUTPUT"
+            echo "hash_b64=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 원격 서버로는 원문 비밀번호 대신 해시만 전달
+          HASH=$(printf '%s' "$DEV_BASIC_AUTH_PASSWORD" | openssl passwd -apr1 -stdin)
+          echo "::add-mask::$HASH"
+
+          # 원격 heredoc에 셸 인젝션 없이 안전하게 전달하기 위해 base64로 인코딩
+          USER_B64=$(printf '%s' "$DEV_BASIC_AUTH_USER" | base64 -w0)
+          HASH_B64=$(printf '%s' "$HASH" | base64 -w0)
+          echo "::add-mask::$USER_B64"
+          echo "::add-mask::$HASH_B64"
+          echo "user_b64=$USER_B64" >> "$GITHUB_OUTPUT"
+          echo "hash_b64=$HASH_B64" >> "$GITHUB_OUTPUT"
+
+      - name: known_hosts 등록
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+
+      - name: SSH 키 설정
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: 배포 전 현재 compose/nginx 설정 백업
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -euo pipefail
+            cd ${{ secrets.EC2_APP_DIR }}
+            rm -rf .prev_release
+            mkdir -p .prev_release
+            [ -f docker-compose.yml ] && cp docker-compose.yml .prev_release/ || true
+            [ -d nginx ] && cp -r nginx .prev_release/ || true
+          EOF
+
+      - name: docker-compose.yml / nginx 설정 EC2로 복사
+        run: |
+          scp -r docker-compose.yml nginx ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_APP_DIR }}/
+
+      - name: .env 생성 및 재배포
+        run: |
+          # github.actor를 원격 셸의 $GITHUB_ACTOR로 전달
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "GITHUB_ACTOR='$GITHUB_ACTOR' HTPASSWD_USER_B64='${{ steps.htpasswd.outputs.user_b64 }}' HTPASSWD_HASH_B64='${{ steps.htpasswd.outputs.hash_b64 }}' bash -s" << 'EOF'
+            set -euo pipefail
+            cd ${{ secrets.EC2_APP_DIR }}
+
+            # 파일이 없으면 Docker가 bind mount 시 디렉터리로 만들어버려서 nginx가
+            # auth_basic_user_file을 못 여는 상태가 됨 -> compose 기동 전에 파일로 보장
+            [ -d .htpasswd ] && rmdir .htpasswd 2>/dev/null
+            [ -f .htpasswd ] || install -m 640 /dev/null .htpasswd
+
+            install -m 600 /dev/null .env
+            cat > .env << 'ENVEOF'
+          SPRING_PROFILES_ACTIVE=prod
+          DEV_DOMAIN=${{ secrets.DEV_DOMAIN }}
+          DOMAIN=${{ secrets.DOMAIN }}
+          DB_URL=${{ secrets.DB_URL }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PW=${{ secrets.DB_PW }}
+          JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          KAKAO_NATIVE_APP_KEY=${{ secrets.KAKAO_NATIVE_APP_KEY }}
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
+          S3_BUCKET_ACCESS_KEY=${{ secrets.S3_BUCKET_ACCESS_KEY }}
+          S3_BUCKET_SECRET_KEY=${{ secrets.S3_BUCKET_SECRET_KEY }}
+          ENVEOF
+
+            if [ -n "$HTPASSWD_USER_B64" ] && [ -n "$HTPASSWD_HASH_B64" ]; then
+              HTPASSWD_USER=$(printf '%s' "$HTPASSWD_USER_B64" | base64 -d)
+              HTPASSWD_HASH=$(printf '%s' "$HTPASSWD_HASH_B64" | base64 -d)
+              # 소유자는 배포 계정으로 유지(재배포 시 chmod가 소유자 아닌 파일에 걸려 EPERM 나는 것 방지),
+              # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근하게 함
+              # 임시 파일에서 권한까지 맞춘 뒤 원자적으로 교체 -> 그룹 변경 실패 시
+              # nginx가 못 읽는 파일이 실제 .htpasswd 자리에 노출되는 일이 없음
+              install -m 640 /dev/null .htpasswd.new
+              printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd.new
+              if chgrp 101 .htpasswd.new 2>/dev/null || sudo -n chgrp 101 .htpasswd.new 2>/dev/null; then
+                mv .htpasswd.new .htpasswd
+              else
+                rm -f .htpasswd.new
+                echo "경고: .htpasswd 그룹을 101로 변경하지 못했습니다(sudo 권한 없음). 기존 .htpasswd를 유지합니다." >&2
+              fi
+            else
+              echo ".htpasswd 갱신 건너뜀 (DEV_BASIC_AUTH 시크릿 미설정, 기존 파일 유지)"
+            fi
+
+            # 같은 워크플로우 실행 안에서 build-and-push가 이미 이 패키지에 push
+            # 성공했으므로, 별도 PAT 없이 GITHUB_TOKEN으로도 pull 권한이 충분함
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+            # 롤백 대비, 직전에 성공적으로 배포된 이미지의 SHA 태그 기록 (최초 배포면 빈 값)
+            PREV_SHA=$(cat .deployed_sha 2>/dev/null || true)
+
+            export IMAGE_TAG="${{ github.sha }}"
+            # dev-app은 profiles: [dev]라 COMPOSE_PROFILES 없이는 config 검증에서 빠짐 ->
+            # app 서비스 정의 오류를 여기서 못 잡고 넘어갈 수 있어 명시적으로 활성화
+            # (up/pull은 서비스명을 직접 지정해서 --remove-orphans만 없으면 이 값과 무관하게 안전)
+            export COMPOSE_PROFILES=prod
+            docker compose config >/dev/null
+
+            # elif 대신 개별 if: 앞 단계 실패 시 up을 건너뛰면 구버전이 헬스체크를 통과해 잘못된 SHA가 기록될 수 있음
+            DEPLOY_OK=true
+            if ! docker compose pull app certbot; then
+              echo "이미지 pull 실패" >&2
+              DEPLOY_OK=false
+            fi
+            if [ "$DEPLOY_OK" = true ] && ! docker compose build nginx; then
+              echo "nginx 빌드 실패" >&2
+              DEPLOY_OK=false
+            fi
+            # --remove-orphans는 쓰지 않음: dev-app이 profiles: [dev]로 분리된 뒤에는
+            # prod 배포 시 활성 프로필(prod)에 없는 dev-app 컨테이너까지 orphan으로 간주해 삭제할 위험이 있음
+            # nginx는 app 헬스체크 통과 후 따로 재생성(동시 recreate 시 옛 IP 캐시 위험)
+            if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --force-recreate app certbot; then
+              echo "compose up 실패" >&2
+              DEPLOY_OK=false
+            fi
+
+            if [ "$DEPLOY_OK" = true ]; then
+              APP_HEALTHY=false
+              for i in $(seq 1 15); do
+                if curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
+                  echo "app 헬스체크 통과"
+                  APP_HEALTHY=true
+                  break
+                fi
+                echo "app 헬스체크 대기 중... ($i/15)"
+                sleep 4
+              done
+              if [ "$APP_HEALTHY" != true ]; then
+                echo "app 헬스체크 실패" >&2
+                DEPLOY_OK=false
+              fi
+            else
+              echo "배포 명령 실패로 헬스체크 생략, 롤백 절차로 진행" >&2
+            fi
+
+            # --force-recreate 대신 up -d: nginx 이미지가 바뀐 경우(Dockerfile/entrypoint 수정)에만
+            # compose가 알아서 컨테이너를 재생성하고, 그 외(대부분의 배포)에는 기존 컨테이너를 그대로 두고
+            # reload.sh로 설정만 재로드한다 -> dev 배포 때문에 이 nginx가 같이 처리하는 prod까지 끊기지 않음
+            # exec는 동기 호출이라 컨테이너 안에서 nginx -t가 실패하면(=재구성 실패) 그 종료 코드가
+            # 그대로 여기로 전달되어 DEPLOY_OK=false로 이어짐 (신호만 보내고 끝나는 방식이 아님)
+            if [ "$DEPLOY_OK" = true ] && ! docker compose up -d nginx; then
+              echo "nginx 기동 실패" >&2
+              DEPLOY_OK=false
+            fi
+            if [ "$DEPLOY_OK" = true ] && ! docker compose exec -T nginx /usr/local/bin/reload.sh; then
+              echo "nginx 설정 재로드 실패" >&2
+              DEPLOY_OK=false
+            fi
+
+            if [ "$DEPLOY_OK" = true ]; then
+              echo "$IMAGE_TAG" > .deployed_sha
+              docker image prune -f || true
+              exit 0
+            fi
+
+            docker compose logs --tail=100 app || true
+
+            if [ -z "$PREV_SHA" ]; then
+              echo "이전 이미지 정보 없음, 롤백 불가" >&2
+              exit 1
+            fi
+
+            echo "이전 이미지(SHA: $PREV_SHA)로 롤백 시도" >&2
+
+            # app 이미지뿐 아니라 새로 배포된 compose/nginx 설정도 함께 되돌림
+            cp .prev_release/docker-compose.yml docker-compose.yml
+            rm -rf nginx
+            cp -r .prev_release/nginx nginx
+
+            export IMAGE_TAG="$PREV_SHA"
+            docker compose config >/dev/null
+
+            ROLLBACK_OK=true
+            if ! docker compose pull app; then
+              echo "롤백용 이미지 pull 실패" >&2
+              ROLLBACK_OK=false
+            fi
+            if [ "$ROLLBACK_OK" = true ] && ! docker compose build nginx; then
+              echo "롤백용 nginx 빌드 실패" >&2
+              ROLLBACK_OK=false
+            fi
+            # app을 먼저 확실히 되돌린 뒤에만 nginx를 재생성
+            if [ "$ROLLBACK_OK" = true ] && ! docker compose up -d --force-recreate app; then
+              echo "롤백용 compose up 실패" >&2
+              ROLLBACK_OK=false
+            fi
+
+            if [ "$ROLLBACK_OK" = true ]; then
+              ROLLBACK_APP_HEALTHY=false
+              for i in $(seq 1 15); do
+                if curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
+                  ROLLBACK_APP_HEALTHY=true
+                  break
+                fi
+                echo "롤백 app 헬스체크 대기 중... ($i/15)"
+                sleep 4
+              done
+              [ "$ROLLBACK_APP_HEALTHY" = true ] || ROLLBACK_OK=false
+            fi
+
+            if [ "$ROLLBACK_OK" = true ] && ! docker compose up -d --force-recreate nginx; then
+              echo "롤백용 nginx 재생성 실패" >&2
+              ROLLBACK_OK=false
+            fi
+
+            if [ "$ROLLBACK_OK" = true ]; then
+              for i in $(seq 1 15); do
+                if curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"' \
+                  && [ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://127.0.0.1/)" = "301" ]; then
+                  echo "롤백 완료, 이전 버전으로 정상 기동"
+                  exit 1
+                fi
+                echo "롤백 헬스체크 대기 중... ($i/15)"
+                sleep 4
+              done
+            fi
+
+            echo "롤백도 실패" >&2
+            docker compose logs --tail=100 app nginx || true
+            exit 1
+          EOF
+
+      # rule-id가 없으면 revoke할 대상이 없으므로 건너뜀
+      # CIDR이 아닌 rule ID를 지정해 이 job이 만든 규칙만 정확히 제거
+      - name: 보안그룹에서 러너 IP 제거
+        if: always() && steps.allow-runner-ip.outputs.rule-id != ''
+        run: |
+          RULE_ID="${{ steps.allow-runner-ip.outputs.rule-id }}"
+          for i in 1 2 3; do
+            if aws ec2 revoke-security-group-ingress \
+              --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+              --security-group-rule-ids "$RULE_ID"; then
+              exit 0
+            fi
+            echo "보안그룹 규칙 제거 실패, 재시도 ($i/3)" >&2
+            sleep 5
+          done
+          echo "보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요" >&2
+          exit 1
+
+  deploy-dev:
+    if: github.ref == 'refs/heads/develop'
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+
+    steps:
+      - name: 소스 체크아웃
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: AWS 자격증명 설정 (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 배포 시작 시에만 이번 러너 IP를 22번 포트에 임시로 열고 끝나면 반드시 제거
+      # CIDR이 아니라 authorize가 만든 규칙의 rule ID로 추적
+      - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
+        id: allow-runner-ip
+        run: |
+          RUNNER_IP="$(curl -sf https://checkip.amazonaws.com)/32"
+          RULE_ID=$(aws ec2 authorize-security-group-ingress \
+            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 --cidr "$RUNNER_IP" \
+            --output json | jq -r '.SecurityGroupRules[0].SecurityGroupRuleId')
+          echo "rule-id=$RULE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: dev Basic Auth 자격증명 준비
+        id: htpasswd
+        env:
+          DEV_BASIC_AUTH_USER: ${{ secrets.DEV_BASIC_AUTH_USER }}
+          DEV_BASIC_AUTH_PASSWORD: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
+        run: |
+          # prod와 달리 dev nginx는 이 파일에 항상 의존하므로(자체 도메인 Basic Auth),
+          # 미설정을 건너뛰지 않고 배포 실패로 처리한다
+          if [ -z "$DEV_BASIC_AUTH_USER" ] || [ -z "$DEV_BASIC_AUTH_PASSWORD" ]; then
+            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. dev 배포를 중단합니다." >&2
+            exit 1
+          fi
+
+          # 원격 서버로는 원문 비밀번호 대신 해시만 전달
+          HASH=$(printf '%s' "$DEV_BASIC_AUTH_PASSWORD" | openssl passwd -apr1 -stdin)
+          echo "::add-mask::$HASH"
+
+          # 원격 heredoc에 셸 인젝션 없이 안전하게 전달하기 위해 base64로 인코딩
+          USER_B64=$(printf '%s' "$DEV_BASIC_AUTH_USER" | base64 -w0)
+          HASH_B64=$(printf '%s' "$HASH" | base64 -w0)
+          echo "::add-mask::$USER_B64"
+          echo "::add-mask::$HASH_B64"
+          echo "user_b64=$USER_B64" >> "$GITHUB_OUTPUT"
+          echo "hash_b64=$HASH_B64" >> "$GITHUB_OUTPUT"
+
+      - name: known_hosts 등록
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+
+      - name: SSH 키 설정
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: 배포 전 현재 compose/nginx 설정 백업
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -euo pipefail
+            cd ${{ secrets.EC2_APP_DIR }}
+            rm -rf .prev_release
+            mkdir -p .prev_release
+            [ -f docker-compose.yml ] && cp docker-compose.yml .prev_release/ || true
+            [ -d nginx ] && cp -r nginx .prev_release/ || true
+          EOF
+
+      - name: docker-compose.yml / nginx 설정 EC2로 복사
+        run: |
+          scp -r docker-compose.yml nginx ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_APP_DIR }}/
+
+      - name: .env.dev 생성 및 dev 재배포
+        run: |
+          # github.actor를 원격 셸의 $GITHUB_ACTOR로 전달
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "GITHUB_ACTOR='$GITHUB_ACTOR' HTPASSWD_USER_B64='${{ steps.htpasswd.outputs.user_b64 }}' HTPASSWD_HASH_B64='${{ steps.htpasswd.outputs.hash_b64 }}' bash -s" << 'EOF'
+            set -euo pipefail
+            cd ${{ secrets.EC2_APP_DIR }}
+
+            # 파일이 없으면 Docker가 bind mount 시 디렉터리로 만들어버려서 nginx가
+            # auth_basic_user_file을 못 여는 상태가 됨 -> compose 기동 전에 파일로 보장
+            [ -d .htpasswd ] && rmdir .htpasswd 2>/dev/null
+            [ -f .htpasswd ] || install -m 640 /dev/null .htpasswd
+
+            # 빈 값이 .env에 고착되면 이후 배포에서도 안 고쳐지므로 먼저 검증
+            for v in "${{ secrets.DOMAIN }}" "${{ secrets.DEV_DOMAIN }}"; do
+              [ -n "$v" ] || { echo "DOMAIN/DEV_DOMAIN 시크릿이 비어 있습니다." >&2; exit 1; }
+            done
+
+            # nginx가 공용으로 참조하는 최상위 .env는 prod 배포가 먼저 실행되지 않은 호스트에도
+            # DOMAIN/DEV_DOMAIN만은 존재하도록 보장, 이미 있으면(=prod .env) 손대지 않음
+            [ -f .env ] || install -m 600 /dev/null .env
+            grep -q '^DOMAIN=' .env || echo "DOMAIN=${{ secrets.DOMAIN }}" >> .env
+            grep -q '^DEV_DOMAIN=' .env || echo "DEV_DOMAIN=${{ secrets.DEV_DOMAIN }}" >> .env
+
+            if [ -n "$HTPASSWD_USER_B64" ] && [ -n "$HTPASSWD_HASH_B64" ]; then
+              HTPASSWD_USER=$(printf '%s' "$HTPASSWD_USER_B64" | base64 -d)
+              HTPASSWD_HASH=$(printf '%s' "$HTPASSWD_HASH_B64" | base64 -d)
+              # 소유자는 배포 계정으로 유지(재배포 시 chmod가 소유자 아닌 파일에 걸려 EPERM 나는 것 방지),
+              # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근하게 함.
+              # 임시 파일에서 권한까지 맞춘 뒤 원자적으로 교체 -> 그룹 변경 실패 시
+              # nginx가 못 읽는 파일이 실제 .htpasswd 자리에 노출되는 일이 없음
+              install -m 640 /dev/null .htpasswd.new
+              printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd.new
+              # dev nginx는 이 파일에 항상 의존하므로, prod와 달리 그룹 변경 실패를
+              # 경고로 넘기지 않고 nginx 재생성 전에 배포 자체를 중단시킨다
+              if chgrp 101 .htpasswd.new 2>/dev/null || sudo -n chgrp 101 .htpasswd.new 2>/dev/null; then
+                mv .htpasswd.new .htpasswd
+              else
+                rm -f .htpasswd.new
+                echo ".htpasswd 그룹을 101로 변경하지 못했습니다(sudo 권한 없음). dev nginx의 Basic Auth가 깨지므로 배포를 중단합니다." >&2
+                exit 1
+              fi
+            else
+              echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 비어 있습니다." >&2
+              exit 1
+            fi
+
+            install -m 600 /dev/null .env.dev
+            cat > .env.dev << 'ENVEOF'
+          SPRING_PROFILES_ACTIVE=dev
+          DB_URL=${{ secrets.DEV_DB_URL }}
+          DB_USER=${{ secrets.DEV_DB_USER }}
+          DB_PW=${{ secrets.DEV_DB_PW }}
+          JWT_SECRET_KEY=${{ secrets.DEV_JWT_SECRET_KEY }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          KAKAO_NATIVE_APP_KEY=${{ secrets.KAKAO_NATIVE_APP_KEY }}
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          S3_BUCKET_NAME=${{ secrets.DEV_S3_BUCKET_NAME }}
+          S3_BUCKET_ACCESS_KEY=${{ secrets.DEV_S3_BUCKET_ACCESS_KEY }}
+          S3_BUCKET_SECRET_KEY=${{ secrets.DEV_S3_BUCKET_SECRET_KEY }}
+          ENVEOF
+
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+            export DEV_IMAGE_TAG="${{ github.sha }}"
+            # dev-app이 profiles: [dev]라 COMPOSE_PROFILES 없이는 config 검증에서 빠짐 ->
+            # dev-app 서비스 정의 오류를 여기서 못 잡고 넘어갈 수 있어 명시적으로 활성화
+            export COMPOSE_PROFILES=dev
+            docker compose config >/dev/null
+
+            # prod와 동일하게 실패를 즉시 죽이지 않고 플래그로 모아서,
+            # 실패해도 로그 덤프까지는 남기고 종료하도록 함
+            DEPLOY_OK=true
+            if ! docker compose pull dev-app; then
+              echo "dev 이미지 pull 실패" >&2
+              DEPLOY_OK=false
+            fi
+            if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --force-recreate dev-app; then
+              echo "dev compose up 실패" >&2
+              DEPLOY_OK=false
+            fi
+
+            DEV_HEALTHY=false
+            if [ "$DEPLOY_OK" = true ]; then
+              for i in $(seq 1 15); do
+                if docker compose exec -T dev-app curl -sf --max-time 5 http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
+                  echo "dev 헬스체크 통과"
+                  DEV_HEALTHY=true
+                  break
+                fi
+                echo "dev 헬스체크 대기 중... ($i/15)"
+                sleep 4
+              done
+            fi
+
+            if [ "$DEV_HEALTHY" != true ]; then
+              echo "dev 배포 실패" >&2
+              docker compose logs --tail=100 dev-app || true
+              exit 1
+            fi
+
+            # nginx는 fragments/*.template을 컨테이너 기동 시점에만 렌더링하므로,
+            # 이미 떠 있는 nginx는 재생성 없이 reload.sh로 재렌더링+reload해서 새 DEV_DOMAIN 서버 블록을 반영
+            # exec는 동기 호출이라 컨테이너 안에서 재구성이 실제로 실패하면(nginx -t 실패) 
+            # 아래 스냅샷 복구로 이어짐
+            # up -d는 --force-recreate 없이: nginx 이미지 자체가 바뀐 경우(Dockerfile/entrypoint
+            # 수정)에만 compose가 알아서 재생성하고, 그 외에는 컨테이너를 그대로 둬서 같은
+            # 컨테이너가 처리하는 prod 트래픽이 dev 배포 때문에 끊기지 않게 함
+            # 실패하면 prod 라우팅까지 깨질 수 있음 -> 실패 시 배포 전 스냅샷으로 복구
+            if docker compose build nginx && docker compose up -d nginx && docker compose exec -T nginx /usr/local/bin/reload.sh; then
+              docker image prune -f || true
+              exit 0
+            fi
+
+            echo "nginx 설정 반영 실패" >&2
+            docker compose logs --tail=50 nginx || true
+
+            if [ ! -f .prev_release/docker-compose.yml ]; then
+              echo "이전 설정 스냅샷 없음, 복구 불가" >&2
+              exit 1
+            fi
+
+            echo "이전 설정으로 복구 시도" >&2
+            cp .prev_release/docker-compose.yml docker-compose.yml
+            rm -rf nginx
+            cp -r .prev_release/nginx nginx
+
+            if docker compose build nginx && docker compose up -d --force-recreate nginx; then
+              echo "이전 nginx 설정으로 복구 완료" >&2
+            else
+              echo "nginx 복구도 실패, 수동 확인 필요" >&2
+              docker compose logs --tail=100 nginx || true
+            fi
+
+            exit 1
+          EOF
+
+      # rule-id가 없으면 revoke할 대상이 없으므로 건너뜀
+      # CIDR이 아닌 rule ID를 지정해 이 job이 만든 규칙만 정확히 제거
+      - name: 보안그룹에서 러너 IP 제거
+        if: always() && steps.allow-runner-ip.outputs.rule-id != ''
+        run: |
+          RULE_ID="${{ steps.allow-runner-ip.outputs.rule-id }}"
+          for i in 1 2 3; do
+            if aws ec2 revoke-security-group-ingress \
+              --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+              --security-group-rule-ids "$RULE_ID"; then
+              exit 0
+            fi
+            echo "보안그룹 규칙 제거 실패, 재시도 ($i/3)" >&2
+            sleep 5
+          done
+          echo "보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요" >&2
+          exit 1
