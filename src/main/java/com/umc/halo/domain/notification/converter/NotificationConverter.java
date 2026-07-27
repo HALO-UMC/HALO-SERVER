@@ -13,7 +13,7 @@ public class NotificationConverter {
         throw new IllegalStateException("Utility class");
     }
 
-    public static Notification toAnniversaryNotification(Anniversary anniversary, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt) {
+    public static Notification toAnniversaryNotification(Anniversary anniversary, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt, Boolean settingEnabled, Boolean anniversaryEnabled) {
         return Notification.builder()
                 .member(anniversary.getMember())
                 .anniversary(anniversary)
@@ -22,6 +22,8 @@ public class NotificationConverter {
                 .message(message)
                 .scheduledAt(scheduledAt)
                 .status(NotificationStatus.SCHEDULED)
+                .settingEnabled(settingEnabled)
+                .anniversaryEnabled(anniversaryEnabled)
                 .build();
     }
 }

@@ -11,13 +11,11 @@ public class SettingConverter {
 
     public static SettingResDTO.NotificationSettings toNotificationSettings(MemberSetting memberSetting) {
         boolean isAllNotificationEnabled =
-                memberSetting.getRegularNotificationEnabled()
-                && memberSetting.getTodayChapterNotificationEnabled()
+                memberSetting.getTodayChapterNotificationEnabled()
                 && memberSetting.getRetentionNotificationEnabled()
                 && memberSetting.getAnniversaryNotificationEnabled();
 
         return SettingResDTO.NotificationSettings.builder()
-                .regularNotificationEnabled(memberSetting.getRegularNotificationEnabled())
                 .regularNotificationTime(memberSetting.getRegularNotificationTime())
                 .todayChapterNotificationEnabled(memberSetting.getTodayChapterNotificationEnabled())
                 .retentionNotificationEnabled(memberSetting.getRetentionNotificationEnabled())

@@ -9,7 +9,6 @@ public class SettingResDTO {
 
     @Builder
     public record NotificationSettings(
-            Boolean regularNotificationEnabled,
             LocalTime regularNotificationTime,
             Boolean todayChapterNotificationEnabled,
             Boolean retentionNotificationEnabled,

@@ -12,9 +12,6 @@ public class SettingReqDTO {
     @Builder
     public record UpdateNotificationSettings(
             @NotNull
-            Boolean regularNotificationEnabled,
-
-            @NotNull
             LocalTime regularNotificationTime,
 
             @NotNull
