@@ -185,12 +185,12 @@ public class SettingService {
                 scheduledAt = nextOccurrence.atTime(memberSetting.getRegularNotificationTime());
             }
 
+            notification.updateSettingEnabled(true);
+
             if (!scheduledAt.isAfter(now)) {
                 notification.expire();
                 continue;
             }
-
-            notification.updateSettingEnabled(true);
 
             if (notification.getStatus() == NotificationStatus.EXPIRED) {
                 notification.reserve(scheduledAt);
