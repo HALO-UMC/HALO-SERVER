@@ -2,7 +2,7 @@ package com.umc.halo.domain.record.controller;
 
 import com.umc.halo.domain.record.controller.docs.*;
 import com.umc.halo.domain.record.dto.*;
-import com.umc.halo.domain.record.excption.code.*;
+import com.umc.halo.domain.record.exception.code.*;
 import com.umc.halo.domain.record.service.*;
 import com.umc.halo.global.apiPayload.*;
 import jakarta.validation.*;
