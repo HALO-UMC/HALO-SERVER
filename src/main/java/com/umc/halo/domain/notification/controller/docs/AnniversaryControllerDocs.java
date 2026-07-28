@@ -82,6 +82,8 @@ public interface AnniversaryControllerDocs {
                     - **Body**
                         - title : 기념일명 (필수, 20자 이하)
                         - anniversaryDate : 날짜 (필수)
+                        - isLunar : 음력 여부 (필수)
+                        - isRepeated : 반복 여부 (필수)
                         - sevenDaysAlarmEnabled : D-7 알림 여부 (필수)
                         - dayAlarmEnabled : 당일 알림 여부 (필수)
                         - memo : 메모 (선택, 255자 이하)
@@ -161,6 +163,8 @@ public interface AnniversaryControllerDocs {
                     - **Body**
                         - title : 기념일명 (필수, 20자 이하)
                         - anniversaryDate : 날짜 (필수)
+                        - isLunar : 음력 여부 (필수)
+                        - isRepeated : 반복 여부 (필수)
                         - sevenDaysAlarmEnabled : D-7 알림 여부 (필수)
                         - dayAlarmEnabled : 당일 알림 여부 (필수)
                         - memo : 메모 (선택, 255자 이하)
