@@ -1,13 +1,10 @@
 package com.umc.halo.domain.content.storybook.dto;
 
-import com.umc.halo.domain.content.storybook.enums.BookshelfStatus;
-import com.umc.halo.domain.content.storybook.enums.ChapterViewStatus;
-import com.umc.halo.domain.content.storybook.enums.HomeStatus;
-import com.umc.halo.domain.content.storybook.enums.StorybookStatus;
-import lombok.Builder;
+import com.umc.halo.domain.content.storybook.enums.*;
+import lombok.*;
 
-import java.time.LocalDate;
-import java.util.List;
+import java.time.*;
+import java.util.*;
 
 public class StorybookResDTO {
 
@@ -22,7 +19,8 @@ public class StorybookResDTO {
             List<InProgressStorybook> inProgressStorybooks,
             List<BookshelfItem> bookshelf,
             List<RecommendedStorybook> recommendedStorybooks
-    ) {}
+    ) {
+    }
 
     @Builder
     public record InProgressStorybook(
@@ -31,22 +29,24 @@ public class StorybookResDTO {
             Integer currentChapterOrder,
             int totalChapterCount,
             boolean todayAvailable
-    ) {}
+    ) {
+    }
 
     @Builder
     public record BookshelfItem(
             Long storybookId,
             String title,
             int themeOrder,
-            String spineColor,
             BookshelfStatus status
-    ) {}
+    ) {
+    }
 
     @Builder
     public record GetStorybookList(
             List<StorybookSummary> storybooks,
             List<SituationalRecommendation> situationalRecommendations
-    ) {}
+    ) {
+    }
 
     @Builder
     public record StorybookSummary(
@@ -58,13 +58,15 @@ public class StorybookResDTO {
             StorybookStatus status,
             Integer lastChapterOrder,
             LocalDate lastCompletedDate
-    ) {}
+    ) {
+    }
 
     @Builder
     public record SituationalRecommendation(
             String tag,
             List<SituationalStorybook> storybooks
-    ) {}
+    ) {
+    }
 
     @Builder
     public record SituationalStorybook(
@@ -72,7 +74,8 @@ public class StorybookResDTO {
             String title,
             String imageUrl,
             String recommendationReasonText
-    ) {}
+    ) {
+    }
 
     @Builder
     public record GetStorybookDetail(
@@ -83,7 +86,8 @@ public class StorybookResDTO {
             int completedChapterCount,
             int progressPercentage,
             List<ChapterInfo> chapters
-    ) {}
+    ) {
+    }
 
     @Builder
     public record ChapterInfo(
@@ -93,19 +97,22 @@ public class StorybookResDTO {
             String shortDescription,
             String description,
             ChapterViewStatus status
-    ) {}
+    ) {
+    }
 
     @Builder
     public record StartStorybook(
             Long memberStorybookId,
             Long storybookId,
             StorybookStatus status
-    ) {}
+    ) {
+    }
 
     @Builder
     public record GetRecommendedStorybooks(
             List<RecommendedStorybook> storybooks
-    ) {}
+    ) {
+    }
 
     @Builder
     public record RecommendedStorybook(
@@ -114,5 +121,6 @@ public class StorybookResDTO {
             String shortDescription,
             String imageUrl,
             String recommendationReasonText
-    ) {}
+    ) {
+    }
 }
