@@ -95,12 +95,31 @@ public class AnniversaryService {
     }
 
     private LocalDate resolveNextOccurrence(Anniversary anniversary, LocalDate today) {
+        if (Boolean.TRUE.equals(anniversary.getIsLunar())) {
+            return resolveNextOccurrenceLunar(anniversary, today);
+        }
         if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
             LocalDate date = anniversary.getAnniversaryDate();
             return date.isBefore(today) ? null : date;
         }
         LocalDate thisYear = anniversary.getAnniversaryDate().withYear(today.getYear());
         return thisYear.isBefore(today) ? anniversary.getAnniversaryDate().withYear(today.getYear() + 1) : thisYear;
+    }
+
+    private LocalDate resolveNextOccurrenceLunar(Anniversary anniversary, LocalDate today) {
+        int lunarMonth = anniversary.getAnniversaryDate().getMonthValue();
+        int lunarDay = anniversary.getAnniversaryDate().getDayOfMonth();
+
+        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
+            LocalDate solarDate = convertLunarToSolar(anniversary.getAnniversaryDate().getYear(), lunarMonth, lunarDay);
+            return (solarDate != null && !solarDate.isBefore(today)) ? solarDate : null;
+        }
+
+        LocalDate thisYearSolar = convertLunarToSolar(today.getYear(), lunarMonth, lunarDay);
+        if (thisYearSolar != null && !thisYearSolar.isBefore(today)) {
+            return thisYearSolar;
+        }
+        return convertLunarToSolar(today.getYear() + 1, lunarMonth, lunarDay);
     }
 
     private LocalDate resolveNextOccurrence(CommonAnniversary commonAnniversary, LocalDate today) {
