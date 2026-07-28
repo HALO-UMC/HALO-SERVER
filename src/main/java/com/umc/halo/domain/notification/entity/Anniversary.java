@@ -34,6 +34,10 @@ public class Anniversary extends BaseEntity {
     @Builder.Default
     private Boolean isRepeated = true;
 
+    @Column(name = "is_lunar", nullable = false)
+    @Builder.Default
+    private Boolean isLunar = false;
+
     @Column(name = "seven_days_alarm_enabled", nullable = false)
     @Builder.Default
     private Boolean sevenDaysAlarmEnabled = true;
