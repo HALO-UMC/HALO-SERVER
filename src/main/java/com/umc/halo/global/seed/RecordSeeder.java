@@ -52,7 +52,6 @@ public class RecordSeeder {
                         .storybook(storybook.get(scenario.storybookTitle()))
                         .lastChapterOrder(scenario.lastChapterOrder())
                         .lastCompletedDate(scenario.completedDate())
-                        .emotion(scenario.emotion())
                         .build())
                 .toList();
 

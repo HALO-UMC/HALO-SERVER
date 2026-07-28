@@ -1,16 +1,12 @@
 package com.umc.halo.domain.content.storybook.converter;
 
-import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
-import com.umc.halo.domain.content.storybook.entity.Storybook;
-import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
-import com.umc.halo.domain.content.storybook.enums.BookshelfStatus;
-import com.umc.halo.domain.content.storybook.enums.ChapterViewStatus;
-import com.umc.halo.domain.content.storybook.enums.HomeStatus;
-import com.umc.halo.domain.content.storybook.enums.StorybookStatus;
-import com.umc.halo.domain.record.entity.MemberStorybook;
-import com.umc.halo.domain.tag.entity.StorybookTag;
+import com.umc.halo.domain.content.storybook.dto.*;
+import com.umc.halo.domain.content.storybook.entity.*;
+import com.umc.halo.domain.content.storybook.enums.*;
+import com.umc.halo.domain.record.entity.*;
+import com.umc.halo.domain.tag.entity.*;
 
-import java.util.List;
+import java.util.*;
 
 public class StorybookConverter {
 
@@ -145,7 +141,6 @@ public class StorybookConverter {
                 .storybookId(sb.getId())
                 .title(sb.getTitle())
                 .themeOrder(sb.getThemeOrder())
-                .spineColor(sb.getSpineColor())
                 .status(status)
                 .build();
     }

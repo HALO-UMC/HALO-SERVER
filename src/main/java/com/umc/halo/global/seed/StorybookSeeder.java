@@ -33,7 +33,6 @@ public class StorybookSeeder {
                                 "청춘의 순간, 지나온 시간을 차근차근 들어보는 이야기입니다. \n" +
                                 "지금의 부모님을 이해하고, 더 가까워지는 시간을 선물해보세요.")
                         .imageUrl("https://example.com/storybook1.png")
-                        .spineColor("#E4B7A0")
                         .build(),
 
                 Storybook.builder()
@@ -43,7 +42,6 @@ public class StorybookSeeder {
                         .description("좋아하는 것과 싫어하는 것, 습관과 취향을 하나씩 들여다보며 \n" +
                                 "스스로를 정리해보는 이야기입니다.")
                         .imageUrl("https://example.com/storybook2.png")
-                        .spineColor("#A0C4E4")
                         .build(),
 
                 Storybook.builder()
@@ -53,7 +51,6 @@ public class StorybookSeeder {
                         .description("무심코 지나쳤던 가족의 온기를 다시 느껴보는 이야기입니다. \n" +
                                 "서로에게 전하지 못했던 마음을 꺼내어 가족 사이의 거리를 좁혀봅니다.")
                         .imageUrl("https://example.com/storybook3.png")
-                        .spineColor("#B7E4A0")
                         .build(),
 
                 Storybook.builder()
@@ -63,7 +60,6 @@ public class StorybookSeeder {
                         .description("좋아하는 것과 싫어하는 것을 하나씩 나누며, \n" +
                                 "서로의 취향이 닿는 순간들을 발견하는 이야기입니다.")
                         .imageUrl("https://example.com/storybook4.png")
-                        .spineColor("#E4D4A0")
                         .build(),
 
                 Storybook.builder()
@@ -73,7 +69,6 @@ public class StorybookSeeder {
                         .description("누군가와 나란히 걸어온 시간들을 돌아보며, \n" +
                                 "곁에 있어준 존재의 의미를 다시 새겨보는 이야기입니다.")
                         .imageUrl("https://example.com/storybook5.png")
-                        .spineColor("#C4A0E4")
                         .build(),
 
                 Storybook.builder()
@@ -83,7 +78,6 @@ public class StorybookSeeder {
                         .description("망설이던 마음을 내려놓고 오늘만큼은 내가 먼저 다가서 보는 이야기입니다. \n" +
                                 "작은 용기가 만들어내는 변화를 기록해보세요.")
                         .imageUrl("https://example.com/storybook6.png")
-                        .spineColor("#E4A0C4")
                         .build()
         );
 

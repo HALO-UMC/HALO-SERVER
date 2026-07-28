@@ -1,15 +1,12 @@
 package com.umc.halo.domain.content.storybook.controller.docs;
 
-import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
+import com.umc.halo.domain.content.storybook.dto.*;
 import com.umc.halo.global.apiPayload.ApiResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.media.*;
+import io.swagger.v3.oas.annotations.responses.*;
+import io.swagger.v3.oas.annotations.tags.*;
+import org.springframework.security.core.annotation.*;
 
 @Tag(name = "스토리북 API")
 public interface StorybookControllerDocs {
@@ -19,13 +16,13 @@ public interface StorybookControllerDocs {
             summary = "홈 화면 조회 API",
             description = """
                     # 홈 화면 조회
-
+                    
                     로그인한 회원의 진행 중인 스토리북 현황, 책장 목록, 추천 스토리북과 홈 화면 상태를 조회합니다.
-
+                    
                     ## 요청 형식
                     - **Header**
                         - Authorization: Bearer {accessToken}
-
+                    
                     ## 동작 방식
                     1. 인증된 회원의 진행 중인 스토리북들을 조회합니다.
                     2. 진행 중인 스토리북 전체의 제목/진행 상황을 리스트로 계산합니다.
@@ -70,14 +67,12 @@ public interface StorybookControllerDocs {
                                             "storybookId": 1,
                                             "title": "오래 전 당신",
                                             "themeOrder": 1,
-                                            "spineColor": "#E4B7A0",
                                             "status": "COMPLETED"
                                           },
                                           {
                                             "storybookId": 3,
                                             "title": "가족의 온도",
                                             "themeOrder": 3,
-                                            "spineColor": "#B7E4A0",
                                             "status": "IN_PROGRESS"
                                           }
                                         ],
@@ -126,13 +121,13 @@ public interface StorybookControllerDocs {
             summary = "스토리북 목록 조회 API",
             description = """
                     # 스토리북 목록 조회
-
+                    
                     로그인한 회원의 스토리북 목록과 진행 상태, 상황별 추천 5개 카테고리를 조회합니다.
-
+                    
                     ## 요청 형식
                     - **Header**
                         - Authorization: Bearer {accessToken}
-
+                    
                     ## 동작 방식
                     1. 전체 스토리북을 테마 순서대로 조회합니다.
                     2. 회원별 진행 상태(NOT_STARTED/IN_PROGRESS/TODAY_DONE/COMPLETED)를 계산합니다.
@@ -232,15 +227,15 @@ public interface StorybookControllerDocs {
             summary = "스토리북 상세 조회 API",
             description = """
                     # 스토리북 상세 조회
-
+                    
                     스토리북 상세 정보와 10개 장 목록(진행 상태 포함)을 조회합니다.
-
+                    
                     ## 요청 형식
                     - **Header**
                         - Authorization: Bearer {accessToken}
                     - **Path Variable**
                         - storybookId : 조회할 스토리북 ID
-
+                    
                     ## 동작 방식
                     1. storybookId로 스토리북을 조회합니다. 존재하지 않으면 404(STORYBOOK404_1)를 반환합니다.
                     2. 회원의 장별 완료 여부를 조회합니다.
@@ -347,15 +342,15 @@ public interface StorybookControllerDocs {
             summary = "스토리북 시작하기 API",
             description = """
                     # 스토리북 시작하기
-
+                    
                     선택한 스토리북을 시작합니다.
-
+                    
                     ## 요청 형식
                     - **Header**
                         - Authorization: Bearer {accessToken}
                     - **Path Variable**
                         - storybookId : 시작할 스토리북 ID
-
+                    
                     ## 동작 방식
                     1. storybookId로 스토리북을 조회합니다. 존재하지 않으면 404(STORYBOOK404_1)를 반환합니다.
                     2. 이미 시작한 스토리북인지 확인합니다.
@@ -472,13 +467,13 @@ public interface StorybookControllerDocs {
             summary = "추천 스토리북 조회 API",
             description = """
                     # 추천 스토리북 조회
-
+                    
                     온보딩 시 선택한 목적 태그를 기반으로 추천 스토리북 2개를 조회합니다.
-
+                    
                     ## 요청 형식
                     - **Header**
                         - Authorization: Bearer {accessToken}
-
+                    
                     ## 동작 방식
                     1. 회원이 온보딩에서 선택한 목적 태그를 조회합니다.
                     2. 태그와 매칭되는 스토리북을 우선순위(PRIMARY > SECONDARY) 순으로 정렬합니다.
