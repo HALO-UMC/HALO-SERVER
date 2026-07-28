@@ -190,6 +190,18 @@ public class AnniversaryService {
         anniversaryRepository.deleteAll(anniversaries);
     }
 
+    @Transactional
+    public void deleteExpiredNonRepeatingAnniversaries() {
+        List<Anniversary> expiredAnniversaries =
+                anniversaryRepository.findAllByIsRepeatedFalseAndAnniversaryDateBefore(LocalDate.now());
+        if (expiredAnniversaries.isEmpty()) {
+            return;
+        }
+        List<Long> expiredIds = expiredAnniversaries.stream().map(Anniversary::getId).toList();
+        notificationRepository.deleteAllByAnniversaryIdIn(expiredIds);
+        anniversaryRepository.deleteAll(expiredAnniversaries);
+    }
+
     private Anniversary getOwnedAnniversary(Long memberId, Long anniversaryId) {
         Anniversary anniversary = anniversaryRepository.findById(anniversaryId)
                 .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
