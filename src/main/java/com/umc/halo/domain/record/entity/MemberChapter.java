@@ -1,7 +1,6 @@
 package com.umc.halo.domain.record.entity;
 
 import com.umc.halo.domain.content.chapter.entity.*;
-import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.record.enums.*;
 import com.umc.halo.global.entity.*;
@@ -32,8 +31,8 @@ public class MemberChapter extends BaseEntity {
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "storybook_chapter_id", nullable = false)
-    private StorybookChapter storybookChapter;
+    @JoinColumn(name = "chapter_id", nullable = false)
+    private Chapter chapter;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scene_card_id")
@@ -59,10 +58,10 @@ public class MemberChapter extends BaseEntity {
     @Column(nullable = false)
     private Status status;
 
-    public void updateRecord(StorybookChapter storybookChapter, SceneCard sceneCard, Emotion emotion,
+    public void updateRecord(Chapter chapter, SceneCard sceneCard, Emotion emotion,
                              CoverType coverType, String imageKey, Status status) {
 
-        this.storybookChapter = storybookChapter;
+        this.chapter = chapter;
         this.sceneCard = sceneCard;
         this.emotion = emotion;
         this.coverType = coverType;
