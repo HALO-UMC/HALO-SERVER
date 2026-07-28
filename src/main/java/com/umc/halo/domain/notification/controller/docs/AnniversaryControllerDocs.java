@@ -231,7 +231,7 @@ public interface AnniversaryControllerDocs {
                                                     {
                                                       "isSuccess": false,
                                                       "code": "ANNIVERSARY404_1",
-                                                      "message": "존재하지 않는 일정입니다.",
+                                                      "message": "존재하지 않는 기념일입니다.",
                                                       "result": null
                                                     }
                                                     """
@@ -334,7 +334,7 @@ public interface AnniversaryControllerDocs {
                                                     {
                                                       "isSuccess": false,
                                                       "code": "ANNIVERSARY404_1",
-                                                      "message": "존재하지 않는 일정입니다.",
+                                                      "message": "존재하지 않는 기념일입니다.",
                                                       "result": null
                                                     }
                                                     """

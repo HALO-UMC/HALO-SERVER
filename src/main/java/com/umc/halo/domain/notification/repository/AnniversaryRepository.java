@@ -13,5 +13,6 @@ public interface AnniversaryRepository extends JpaRepository<Anniversary, Long> 
 
     void deleteByMemberId(Long memberId);
 
-    List<Anniversary> findAllByIsRepeatedFalseAndAnniversaryDateBefore(LocalDate date);
+    List<Anniversary> findAllByIsRepeatedFalseAndIsLunarFalseAndAnniversaryDateBefore(LocalDate date);
+    List<Anniversary> findAllByIsRepeatedFalseAndIsLunarTrue();
 }
