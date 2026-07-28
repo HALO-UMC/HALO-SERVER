@@ -32,7 +32,4 @@ public class Storybook extends BaseEntity {
     @Column(name = "image_url", length = 255, nullable = false)
     private String imageUrl;
 
-    @Column(name = "spine_color", length = 7, nullable = false)
-    private String spineColor;
-
 }
