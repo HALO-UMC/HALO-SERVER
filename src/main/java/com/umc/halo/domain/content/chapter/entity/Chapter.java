@@ -1,5 +1,6 @@
 package com.umc.halo.domain.content.chapter.entity;
 
+import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,8 +18,15 @@ public class Chapter extends BaseEntity {
     @Column(name = "chapter_id")
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "storybook_id", nullable = false)
+    private Storybook storybook;
+
     @Column(length = 50, nullable = false)
     private String title;
+
+    @Column(name = "chapter_order", nullable = false)
+    private Integer chapterOrder;
 
     @Column(name = "image_url", length = 255, nullable = false)
     private String imageUrl;
