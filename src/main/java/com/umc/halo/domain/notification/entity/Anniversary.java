@@ -49,10 +49,12 @@ public class Anniversary extends BaseEntity {
     @Column(length = 255)
     private String memo;
 
-    public void update(String title, LocalDate anniversaryDate, Boolean sevenDaysAlarmEnabled,
-                        Boolean dayAlarmEnabled, String memo) {
+    public void update(String title, LocalDate anniversaryDate, Boolean isLunar, Boolean isRepeated,
+                       Boolean sevenDaysAlarmEnabled, Boolean dayAlarmEnabled, String memo) {
         this.title = title;
         this.anniversaryDate = anniversaryDate;
+        this.isLunar = isLunar;
+        this.isRepeated = isRepeated;
         this.sevenDaysAlarmEnabled = sevenDaysAlarmEnabled;
         this.dayAlarmEnabled = dayAlarmEnabled;
         this.memo = memo;

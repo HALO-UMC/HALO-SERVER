@@ -156,6 +156,8 @@ public class AnniversaryService {
         anniversary.update(
                 request.title(),
                 request.anniversaryDate(),
+                request.isLunar(),
+                request.isRepeated(),
                 request.sevenDaysAlarmEnabled(),
                 request.dayAlarmEnabled(),
                 request.memo()
