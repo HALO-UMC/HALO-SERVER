@@ -96,6 +96,7 @@ public class ChapterService {
 
 
         return ChapterConverter.toTodayChapter(
+                chapter,
                 originalCharacter,
                 imageChoiceCharacter,
                 questions,
