@@ -1,15 +1,12 @@
 package com.umc.halo.domain.exhibition.converter;
 
-import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
-import com.umc.halo.domain.content.storybook.entity.Storybook;
-import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
-import com.umc.halo.domain.content.storybook.entity.StorybookCharacter;
-import com.umc.halo.domain.exhibition.dto.ExhibitionChapterResDTO;
-import com.umc.halo.domain.exhibition.dto.ExhibitionResDTO;
-import com.umc.halo.domain.record.entity.MemberChapter;
-import com.umc.halo.domain.record.entity.MemberStorybook;
+import com.umc.halo.domain.content.chapter.entity.*;
+import com.umc.halo.domain.content.storybook.dto.*;
+import com.umc.halo.domain.content.storybook.entity.*;
+import com.umc.halo.domain.exhibition.dto.*;
+import com.umc.halo.domain.record.entity.*;
 
-import java.util.List;
+import java.util.*;
 
 public class ExhibitionConverter {
 
@@ -30,6 +27,7 @@ public class ExhibitionConverter {
                 recommendedStorybooks
         );
     }
+
     public static ExhibitionResDTO.CompletedStorybook toCompletedStorybook(
             MemberStorybook ms, StorybookCharacter character) {
         Storybook sb = ms.getStorybook();
@@ -73,11 +71,11 @@ public class ExhibitionConverter {
     }
 
     public static ExhibitionChapterResDTO.ChapterInfo toChapterInfo(
-            StorybookChapter sc, MemberChapter mc, String chapterImageUrl) {
+            Chapter chapter, MemberChapter mc, String chapterImageUrl) {
         return new ExhibitionChapterResDTO.ChapterInfo(
-                sc.getChapterOrder(),
+                chapter.getChapterOrder(),
                 chapterImageUrl,
-                sc.getChapter().getTitle(),
+                chapter.getTitle(),
                 mc.getSummary(),
                 mc.getCompletedDate(),
                 mc.getEmotion()
