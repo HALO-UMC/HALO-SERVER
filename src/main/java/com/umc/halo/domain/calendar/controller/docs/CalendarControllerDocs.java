@@ -136,7 +136,7 @@ public interface CalendarControllerDocs {
                                   { "storybookId": 1, "title": "오래전 당신", "storybookImageUrl": "https://image1" }
                                 ],
                                 "chapters": [
-                                  { "storybookId": 101, "title": "오래 전 당신", "nextChapterOrder": 5 }
+                                  { "storybookId": 101, "title": "오래 전 당신", "completedChapterOrder": 5 }
                                 ]
                               }
                             }

@@ -23,6 +23,6 @@ public class CalendarDailyResDTO {
     public record ChapterInfo(
             Long storybookId,
             String title,
-            Integer nextChapterOrder
+            Integer completedChapterOrder
     ) {}
 }
