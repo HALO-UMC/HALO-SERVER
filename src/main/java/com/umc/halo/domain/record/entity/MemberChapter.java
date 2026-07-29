@@ -13,7 +13,7 @@ import java.time.*;
 @Entity
 @Table(
         name = "member_chapter",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"member_id", "storybook_chapter_id"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"member_id", "chapter_id"})
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
