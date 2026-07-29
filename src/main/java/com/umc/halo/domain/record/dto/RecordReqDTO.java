@@ -11,8 +11,8 @@ public class RecordReqDTO {
 
     // 장 기록 작성
     public record WriteChapterRecord(
-            @NotNull(message = "storybookChapterId는 필수입니다.")
-            Long storybookChapterId,
+            @NotNull(message = "chapterId는 필수입니다.")
+            Long chapterId,
             Emotion emotion,
             CoverType coverType,
             String imageUrl,

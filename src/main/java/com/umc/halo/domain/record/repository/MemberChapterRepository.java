@@ -1,31 +1,33 @@
 package com.umc.halo.domain.record.repository;
 
-import com.umc.halo.domain.content.storybook.entity.*;
-import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.domain.content.chapter.entity.*;
+import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.record.entity.*;
+import com.umc.halo.domain.record.enums.*;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.*;
 import org.springframework.stereotype.*;
-import com.umc.halo.domain.record.enums.Status;
-import org.springframework.data.repository.query.Param;
-import java.time.LocalDate;
-import java.util.List;
+
+import java.time.*;
+import java.util.*;
 
 @Repository
 public interface MemberChapterRepository extends JpaRepository<MemberChapter, Long> {
 
-    List<MemberChapter> findByMemberAndStorybookChapter_Storybook_Id(Member member, Long storybookId);
+    List<MemberChapter> findByMemberAndChapter_Storybook_Id(Member member, Long storybookId);
 
-    MemberChapter findByMemberAndStorybookChapter(Member member, StorybookChapter storybookChapter);
+    MemberChapter findByMemberAndChapter(Member member, Chapter chapter);
 
     void deleteByMemberId(Long memberId);
 
     //월별 입니다!
     List<MemberChapter> findByMemberAndStatusAndCompletedDateBetween(
             Member member, Status status, LocalDate startDate, LocalDate endDate);
+
     //일별 입니다
     @Query("select mc from MemberChapter mc " +
-            "join fetch mc.storybookChapter sc " +
-            "join fetch sc.storybook " +
+            "join fetch mc.chapter chapter " +
+            "join fetch chapter.storybook " +
             "where mc.member = :member and mc.status = :status and mc.completedDate = :date")
     List<MemberChapter> findDailyWithStorybook(
             @Param("member") Member member,
@@ -33,15 +35,15 @@ public interface MemberChapterRepository extends JpaRepository<MemberChapter, Lo
             @Param("date") LocalDate date);
 
     @Query("select mc from MemberChapter mc " +
-            "join fetch mc.storybookChapter sc " +
-            "join fetch sc.storybook " +
+            "join fetch mc.chapter chapter " +
+            "join fetch chapter.storybook " +
             "where mc.member = :member")
-    List<MemberChapter> findAllByMemberWithStorybookChapter(@Param("member") Member member);
+    List<MemberChapter> findAllByMemberWithChapter(@Param("member") Member member);
 
     @Query("select mc from MemberChapter mc " +
-            "join fetch mc.storybookChapter sc " +
+            "join fetch mc.chapter chapter " +
             "left join fetch mc.sceneCard " +
-            "where mc.member = :member and sc.storybook.id = :storybookId")
+            "where mc.member = :member and chapter.storybook.id = :storybookId")
     List<MemberChapter> findAllByMemberAndStorybookIdWithSceneCard(
             @Param("member") Member member, @Param("storybookId") Long storybookId);
 }

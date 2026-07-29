@@ -5,6 +5,12 @@ import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.content.storybook.enums.*;
 import com.umc.halo.domain.record.entity.*;
 import com.umc.halo.domain.tag.entity.*;
+import com.umc.halo.domain.content.chapter.entity.*;
+import com.umc.halo.domain.content.storybook.dto.*;
+import com.umc.halo.domain.content.storybook.entity.*;
+import com.umc.halo.domain.content.storybook.enums.*;
+import com.umc.halo.domain.record.entity.*;
+import com.umc.halo.domain.tag.entity.*;
 
 import java.util.*;
 
@@ -14,13 +20,13 @@ public class StorybookConverter {
         throw new IllegalStateException("유틸리티 클래스는 인스턴스화할 수 없습니다.");
     }
 
-    public static StorybookResDTO.ChapterInfo toChapterInfo(StorybookChapter sc, ChapterViewStatus status) {
+    public static StorybookResDTO.ChapterInfo toChapterInfo(Chapter chapter, ChapterViewStatus status) {
         return StorybookResDTO.ChapterInfo.builder()
-                .chapterOrder(sc.getChapterOrder())
-                .title(sc.getChapter().getTitle())
-                .imageUrl(sc.getChapter().getImageUrl())
-                .shortDescription(sc.getChapter().getShortDescription())
-                .description(sc.getChapter().getDescription())
+                .chapterOrder(chapter.getChapterOrder())
+                .title(chapter.getTitle())
+                .imageUrl(chapter.getImageUrl())
+                .shortDescription(chapter.getShortDescription())
+                .description(chapter.getDescription())
                 .status(status)
                 .build();
     }

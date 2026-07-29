@@ -2,6 +2,7 @@ package com.umc.halo.global.seed;
 
 import com.umc.halo.domain.content.chapter.entity.*;
 import com.umc.halo.domain.content.chapter.repository.*;
+import com.umc.halo.domain.content.storybook.entity.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.stereotype.*;
@@ -19,9 +20,11 @@ public class ChapterSeeder {
     private final SceneCardRepository sceneCardRepository;
 
     @Transactional
-    public List<Chapter> seedChapter() {
+    public List<Chapter> seedChapter(Storybook storybook) {
         List<Chapter> chapters = List.of(
                 Chapter.builder()
+                        .storybook(storybook)
+                        .chapterOrder(1)
                         .title("집 앞 한 바퀴")
                         .imageUrl("https://example.com/chapter1.png")
                         .guide("오늘은 집 앞을 가볍게 걸어볼까요? 많은 말을 하지 않아도, 부모님의 걸음에 맞춰보는 것부터 시작해봐요.")
@@ -30,6 +33,8 @@ public class ChapterSeeder {
                         .imageDescription("부모님이 내 나이였던 시절을 보여주는 사진이나 장면카드로 남겨보세요.")
                         .build(),
                 Chapter.builder()
+                        .storybook(storybook)
+                        .chapterOrder(2)
                         .title("자주 가던 길")
                         .imageUrl("https://example.com/chapter2.png")
                         .guide("부모님이 자주 가는 길을 함께 가볼까요? 익숙한 길 안에도 내가 몰랐던 하루가 숨어 있을지 몰라요.")
@@ -38,6 +43,8 @@ public class ChapterSeeder {
                         .imageDescription("부모님이 자주 가던 길을 보여주는 사진이나 장면카드로 남겨보세요.")
                         .build(),
                 Chapter.builder()
+                        .storybook(storybook)
+                        .chapterOrder(3)
                         .title("부모님의 속도")
                         .imageUrl("https://example.com/chapter3.png")
                         .guide("오늘은 부모님의 속도에 맞춰 걸어봐요. 어디서 천천히 걷고, 어디서 잠깐 쉬는지도 조용히 살펴봐요.")
@@ -46,6 +53,8 @@ public class ChapterSeeder {
                         .imageDescription("부모님의 걸음 속도가 느껴지는 사진이나 장면카드로 남겨보세요.")
                         .build(),
                 Chapter.builder()
+                        .storybook(storybook)
+                        .chapterOrder(4)
                         .title("함께 장보기")
                         .imageUrl("https://example.com/chapter4.png")
                         .guide("부모님과 장을 보러 가볼까요? 어떤 걸 고르시는지 보고, 무거운 건 내가 먼저 들어드려봐요.")
@@ -54,6 +63,8 @@ public class ChapterSeeder {
                         .imageDescription("부모님과 함께 고른 물건을 보여주는 사진이나 장면카드로 남겨보세요.")
                         .build(),
                 Chapter.builder()
+                        .storybook(storybook)
+                        .chapterOrder(5)
                         .title("가까운 외출")
                         .imageUrl("https://example.com/chapter5.png")
                         .guide("멀리 가지 않아도 괜찮아요. 부모님이 편하게 다녀올 수 있는 곳으로 작은 외출을 해봐요.")
@@ -62,6 +73,8 @@ public class ChapterSeeder {
                         .imageDescription("부모님과 다녀온 가까운 외출을 보여주는 사진이나 장면카드로 남겨보세요.")
                         .build(),
                 Chapter.builder()
+                        .storybook(storybook)
+                        .chapterOrder(6)
                         .title("오래된 장소")
                         .imageUrl("https://example.com/chapter6.png")
                         .guide("부모님에게 의미 있는 장소가 있을까요? 가능하다면 함께 가보고, 그곳에 담긴 이야기를 천천히 들어봐요.")
@@ -70,6 +83,8 @@ public class ChapterSeeder {
                         .imageDescription("부모님의 기억이 머문 장소를 보여주는 사진이나 장면카드로 남겨보세요.")
                         .build(),
                 Chapter.builder()
+                        .storybook(storybook)
+                        .chapterOrder(7)
                         .title("오늘의 사진 한 장")
                         .imageUrl("https://example.com/chapter7.png")
                         .guide("오늘 부모님의 모습이 좋아 보인다면 사진 한 장 남겨볼까요? ‘찍어도 돼요?’ 하고 물어보면 더 자연스러워요.")
@@ -78,6 +93,8 @@ public class ChapterSeeder {
                         .imageDescription("오늘의 부모님 모습이 담긴 사진이나 장면카드로 남겨보세요.")
                         .build(),
                 Chapter.builder()
+                        .storybook(storybook)
+                        .chapterOrder(8)
                         .title("조금 먼 곳")
                         .imageUrl("https://example.com/chapter8.png")
                         .guide("평소보다 조금 먼 곳에 함께 가볼까요? 부모님이 힘들지 않도록 이동 시간과 쉬는 시간을 먼저 챙겨봐요.")
@@ -86,6 +103,8 @@ public class ChapterSeeder {
                         .imageDescription("부모님과 조금 멀리 다녀온 곳을 보여주는 사진이나 장면카드로 남겨보세요.")
                         .build(),
                 Chapter.builder()
+                        .storybook(storybook)
+                        .chapterOrder(9)
                         .title("돌아오는 길")
                         .imageUrl("https://example.com/chapter9.png")
                         .guide("돌아오는 길에 오늘 어땠는지 살짝 물어볼까요? 그 한마디가 다음 외출의 시작이 될 수 있어요.")
@@ -94,6 +113,8 @@ public class ChapterSeeder {
                         .imageDescription("하루를 마치고 돌아오는 길의 분위기를 보여주는 사진이나 장면카드로 남겨보세요.")
                         .build(),
                 Chapter.builder()
+                        .storybook(storybook)
+                        .chapterOrder(10)
                         .title("나란히 걷는 우리")
                         .imageUrl("https://example.com/chapter10.png")
                         .guide("함께 걸었던 길들을 떠올려볼까요? 가장 좋았던 길과 다음에 또 걷고 싶은 곳도 남겨봐요.")
@@ -203,8 +224,8 @@ public class ChapterSeeder {
     }
 
     @Transactional
-    public void seed() {
-        List<Chapter> chapters = seedChapter();
+    public void seed(Storybook storybook) {
+        List<Chapter> chapters = seedChapter(storybook);
         IntStream.range(0, chapters.size()).forEach(i -> {
             Chapter chapter = chapters.get(i);
             seedChapterQuestion(chapter, CHAPTER_QUESTIONS.get(i));
