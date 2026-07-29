@@ -1,7 +1,5 @@
 package com.umc.halo.global.seed;
 
-import com.umc.halo.domain.content.chapter.entity.*;
-import com.umc.halo.domain.content.chapter.repository.*;
 import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.content.storybook.enums.*;
 import com.umc.halo.domain.content.storybook.repository.*;
@@ -11,16 +9,14 @@ import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
 
 import java.util.*;
-import java.util.stream.*;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class StorybookSeeder {
     private final StorybookRepository storybookRepository;
-    private final StorybookChapterRepository storybookChapterRepository;
     private final StorybookCharacterRepository storybookCharacterRepository;
-    private final ChapterRepository chapterRepository;
+    private final ChapterSeeder chapterSeeder;
 
     @Transactional
     public List<Storybook> seedStorybooks() {
@@ -87,22 +83,6 @@ public class StorybookSeeder {
         return savedStorybooks;
     }
 
-    @Transactional
-    public List<StorybookChapter> seedStorybookChapter(Storybook storybook, List<Chapter> chapters) {
-        List<StorybookChapter> storybookChapters = IntStream.range(0, chapters.size())
-                .mapToObj(i -> StorybookChapter.builder()
-                        .storybook(storybook)
-                        .chapter(chapters.get(i))
-                        .chapterOrder(i + 1)
-                        .build())
-                .toList();
-
-        List<StorybookChapter> savedStorybookChapters = storybookChapterRepository.saveAll(storybookChapters);
-        log.info("StorybookChapters {}건 시딩 완료", savedStorybookChapters.size());
-
-        return savedStorybookChapters;
-    }
-
     private static final List<String> CHARACTER_NAMES = List.of("하로", "온이", "다솜", "결", "다온", "가온");
 
     @Transactional
@@ -134,12 +114,11 @@ public class StorybookSeeder {
 
     @Transactional
     public void seed() {
-        List<Chapter> chapters = chapterRepository.findAllByOrderByIdAsc();
         List<Storybook> storybooks = seedStorybooks();
 
         for (int i = 0; i < storybooks.size(); i++) {
             Storybook storybook = storybooks.get(i);
-            seedStorybookChapter(storybook, chapters);
+            chapterSeeder.seed(storybook);
             seedStorybookCharacter(storybook, CHARACTER_NAMES.get(i));
         }
     }
