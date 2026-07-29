@@ -1,12 +1,15 @@
 package com.umc.halo.domain.exhibition.converter;
 
-import com.umc.halo.domain.content.chapter.entity.*;
-import com.umc.halo.domain.content.storybook.dto.*;
-import com.umc.halo.domain.content.storybook.entity.*;
-import com.umc.halo.domain.exhibition.dto.*;
-import com.umc.halo.domain.record.entity.*;
+import com.umc.halo.domain.content.chapter.entity.Chapter;
+import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
+import com.umc.halo.domain.content.storybook.entity.Storybook;
+import com.umc.halo.domain.content.storybook.entity.StorybookCharacter;
+import com.umc.halo.domain.exhibition.dto.ExhibitionChapterResDTO;
+import com.umc.halo.domain.exhibition.dto.ExhibitionResDTO;
+import com.umc.halo.domain.record.entity.MemberChapter;
+import com.umc.halo.domain.record.entity.MemberStorybook;
 
-import java.util.*;
+import java.util.List;
 
 public class ExhibitionConverter {
 

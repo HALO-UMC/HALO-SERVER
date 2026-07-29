@@ -1,32 +1,41 @@
 package com.umc.halo.domain.exhibition.service;
 
-import com.umc.halo.domain.content.chapter.entity.*;
-import com.umc.halo.domain.content.chapter.repository.*;
-import com.umc.halo.domain.content.storybook.entity.*;
-import com.umc.halo.domain.content.storybook.enums.*;
-import com.umc.halo.domain.content.storybook.exception.*;
-import com.umc.halo.domain.content.storybook.exception.code.*;
-import com.umc.halo.domain.content.storybook.repository.*;
-import com.umc.halo.domain.content.storybook.service.*;
-import com.umc.halo.domain.exhibition.converter.*;
-import com.umc.halo.domain.exhibition.dto.*;
-import com.umc.halo.domain.exhibition.exception.*;
-import com.umc.halo.domain.exhibition.exception.code.*;
-import com.umc.halo.domain.image.service.*;
-import com.umc.halo.domain.member.entity.*;
-import com.umc.halo.domain.member.exception.*;
-import com.umc.halo.domain.member.exception.code.*;
-import com.umc.halo.domain.member.repository.*;
-import com.umc.halo.domain.record.entity.*;
-import com.umc.halo.domain.record.enums.*;
-import com.umc.halo.domain.record.repository.*;
-import lombok.*;
-import org.springframework.stereotype.*;
-import org.springframework.transaction.annotation.*;
+import com.umc.halo.domain.content.chapter.entity.Chapter;
+import com.umc.halo.domain.content.chapter.entity.SceneCard;
+import com.umc.halo.domain.content.chapter.repository.ChapterRepository;
+import com.umc.halo.domain.content.storybook.entity.Storybook;
+import com.umc.halo.domain.content.storybook.entity.StorybookCharacter;
+import com.umc.halo.domain.content.storybook.enums.Variant;
+import com.umc.halo.domain.content.storybook.exception.StorybookException;
+import com.umc.halo.domain.content.storybook.exception.code.StorybookErrorCode;
+import com.umc.halo.domain.content.storybook.repository.StorybookCharacterRepository;
+import com.umc.halo.domain.content.storybook.service.StorybookService;
+import com.umc.halo.domain.exhibition.converter.ExhibitionConverter;
+import com.umc.halo.domain.exhibition.dto.ExhibitionChapterResDTO;
+import com.umc.halo.domain.exhibition.dto.ExhibitionResDTO;
+import com.umc.halo.domain.exhibition.exception.ExhibitionException;
+import com.umc.halo.domain.exhibition.exception.code.ExhibitionErrorCode;
+import com.umc.halo.domain.image.service.ImageService;
+import com.umc.halo.domain.member.entity.Member;
+import com.umc.halo.domain.member.exception.MemberException;
+import com.umc.halo.domain.member.exception.code.MemberErrorCode;
+import com.umc.halo.domain.member.repository.MemberRepository;
+import com.umc.halo.domain.record.entity.MemberChapter;
+import com.umc.halo.domain.record.entity.MemberStorybook;
+import com.umc.halo.domain.record.enums.CoverType;
+import com.umc.halo.domain.record.enums.Status;
+import com.umc.halo.domain.record.repository.MemberChapterRepository;
+import com.umc.halo.domain.record.repository.MemberStorybookRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
