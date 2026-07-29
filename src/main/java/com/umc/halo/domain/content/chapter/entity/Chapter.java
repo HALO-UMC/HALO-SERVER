@@ -6,7 +6,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "chapter")
+@Table(
+        name = "chapter",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"storybook_id", "chapter_order"})
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder

@@ -27,6 +27,9 @@ ALTER TABLE chapter
 ALTER TABLE chapter
     ADD CONSTRAINT FK_CHAPTER_ON_STORYBOOK FOREIGN KEY (storybook_id) REFERENCES storybook (storybook_id);
 
+ALTER TABLE chapter
+    ADD CONSTRAINT UK_CHAPTER_STORYBOOK_ORDER UNIQUE (storybook_id, chapter_order);
+
 ALTER TABLE member_chapter
     CHANGE storybook_chapter_id chapter_id BIGINT NOT NULL;
 
