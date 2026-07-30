@@ -52,8 +52,8 @@ public interface MemberControllerDocs {
                                             "accessToken": "eyJ...",
                                             "refreshToken": "eyJ...",
                                             "isNewUser": true,
-                                            "onboardingCompleted": true,
-                                            "termsAgreed": true
+                                            "onboardingCompleted": false,
+                                            "termsAgreed": false
                                         }
                                     }
                                     """
