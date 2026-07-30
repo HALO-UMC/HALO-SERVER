@@ -84,7 +84,9 @@ public class MemberService {
         String refreshToken = jwtUtil.createRefreshToken(member.getId());
         member.updateRefreshTokenToHash(hashUtil.hash(refreshToken));
 
-        return MemberConverter.toLoginResponse(accessToken, refreshToken, isNewUser, member.getOnboardingCompleted());
+        boolean termsAgreed = memberTermRepository.areAllRequiredTermsAgreed(member.getId());
+
+        return MemberConverter.toLoginResponse(accessToken, refreshToken, isNewUser, member.getOnboardingCompleted(), termsAgreed);
     }
 
     @Transactional
@@ -108,7 +110,9 @@ public class MemberService {
         String newRefreshToken = jwtUtil.createRefreshToken(memberId);
         member.updateRefreshTokenToHash(hashUtil.hash(newRefreshToken));
 
-        return MemberConverter.toTokenReissueResponse(newAccessToken, newRefreshToken);
+        boolean termsAgreed = memberTermRepository.areAllRequiredTermsAgreed(member.getId());
+
+        return MemberConverter.toTokenReissueResponse(newAccessToken, newRefreshToken, member.getOnboardingCompleted(), termsAgreed);
     }
 
     @Transactional
