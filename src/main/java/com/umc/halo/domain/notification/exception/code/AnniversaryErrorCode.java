@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum AnniversaryErrorCode implements BaseErrorCode {
 
-    ANNIVERSARY_NOT_FOUND(HttpStatus.NOT_FOUND, "ANNIVERSARY404_1", "존재하지 않는 일정입니다."),
+    ANNIVERSARY_NOT_FOUND(HttpStatus.NOT_FOUND, "ANNIVERSARY404_1", "존재하지 않는 기념일입니다."),
     ANNIVERSARY_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ANNIVERSARY403_1", "해당 기념일에 대한 권한이 없습니다.");
 
     private final HttpStatus status;

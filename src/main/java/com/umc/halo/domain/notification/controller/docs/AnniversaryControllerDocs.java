@@ -30,7 +30,7 @@ public interface AnniversaryControllerDocs {
                     ## 동작 방식
                     1. 로그인한 회원이 등록한 기념일 목록을 조회합니다.
                     2. 반복 여부(isRepeated)를 기준으로 다가오는 기념일의 D-day를 계산합니다.
-                    3. 음력 기반 기본 기념일(추석, 설날 등)은 KASI(한국천문연구원) 표준 기반 음력-양력 변환 라이브러리로 실제 양력 날짜를 계산하여 D-day에 반영합니다.
+                    3. 음력 기반 기념일(개인 기념일 및 추석, 설날 등 기본 기념일)은 KASI(한국천문연구원) 표준 기반 음력-양력 변환 라이브러리로 실제 양력 날짜를 계산하여 D-day에 반영합니다.
                     4. 다가오는 기념일(upcomingAnniversaries), 내가 추가한 기념일(myAnniversaries), 기본 기념일(commonAnniversaries) 세 목록을 함께 반환합니다.
                     """)
     @ApiResponses(value = {
@@ -82,6 +82,8 @@ public interface AnniversaryControllerDocs {
                     - **Body**
                         - title : 기념일명 (필수, 20자 이하)
                         - anniversaryDate : 날짜 (필수)
+                        - isLunar : 음력 여부 (필수)
+                        - isRepeated : 반복 여부 (필수)
                         - sevenDaysAlarmEnabled : D-7 알림 여부 (필수)
                         - dayAlarmEnabled : 당일 알림 여부 (필수)
                         - memo : 메모 (선택, 255자 이하)
@@ -161,6 +163,8 @@ public interface AnniversaryControllerDocs {
                     - **Body**
                         - title : 기념일명 (필수, 20자 이하)
                         - anniversaryDate : 날짜 (필수)
+                        - isLunar : 음력 여부 (필수)
+                        - isRepeated : 반복 여부 (필수)
                         - sevenDaysAlarmEnabled : D-7 알림 여부 (필수)
                         - dayAlarmEnabled : 당일 알림 여부 (필수)
                         - memo : 메모 (선택, 255자 이하)
@@ -227,7 +231,7 @@ public interface AnniversaryControllerDocs {
                                                     {
                                                       "isSuccess": false,
                                                       "code": "ANNIVERSARY404_1",
-                                                      "message": "존재하지 않는 일정입니다.",
+                                                      "message": "존재하지 않는 기념일입니다.",
                                                       "result": null
                                                     }
                                                     """
@@ -330,7 +334,7 @@ public interface AnniversaryControllerDocs {
                                                     {
                                                       "isSuccess": false,
                                                       "code": "ANNIVERSARY404_1",
-                                                      "message": "존재하지 않는 일정입니다.",
+                                                      "message": "존재하지 않는 기념일입니다.",
                                                       "result": null
                                                     }
                                                     """
