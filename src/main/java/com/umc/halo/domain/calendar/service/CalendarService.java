@@ -24,7 +24,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -105,10 +104,6 @@ public class CalendarService {
                 .sorted(Comparator.comparing(MemberChapter::getUpdatedAt).reversed())
                 .toList();
 
-        Map<Long, MemberStorybook> progressByStorybookId = memberStorybookRepository
-                .findAllByMemberWithStorybook(member).stream()
-                .collect(Collectors.toMap(ms -> ms.getStorybook().getId(), Function.identity()));
-
         Map<Long, List<MemberChapter>> chaptersByStorybook = memberChapterRepository
                 .findAllByMemberWithChapter(member).stream()
                 .collect(Collectors.groupingBy(mc -> mc.getChapter().getStorybook().getId()));
@@ -133,8 +128,7 @@ public class CalendarService {
     private Integer resolveCompletedChapterOrder(List<MemberChapter> myChapters) {
         return myChapters.stream()
                 .filter(mc -> mc.getStatus() == Status.COMPLETED)
-                .map(mc -> mc.getStorybookChapter().getChapterOrder())
-                .max(Integer::compareTo)
+                .map(mc -> mc.getChapter().getChapterOrder())                .max(Integer::compareTo)
                 .orElse(0);
     }
 
