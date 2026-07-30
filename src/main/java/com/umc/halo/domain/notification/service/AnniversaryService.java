@@ -220,7 +220,7 @@ public class AnniversaryService {
 
         List<Anniversary> expiredLunarAnniversaries =
                 anniversaryRepository.findAllByIsRepeatedFalseAndIsLunarTrue().stream()
-                        .filter(anniversary -> resolveNextOccurrenceLunar(anniversary, today) == null)
+                        .filter(anniversary -> isExpiredNonRepeatingLunar(anniversary, today))
                         .toList();
 
         List<Anniversary> expiredAnniversaries = java.util.stream.Stream.concat(
@@ -242,5 +242,13 @@ public class AnniversaryService {
             throw new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_ACCESS_DENIED);
         }
         return anniversary;
+    }
+
+    private boolean isExpiredNonRepeatingLunar(Anniversary anniversary, LocalDate today) {
+        LocalDate solarDate = convertLunarToSolar(
+                anniversary.getAnniversaryDate().getYear(),
+                anniversary.getAnniversaryDate().getMonthValue(),
+                anniversary.getAnniversaryDate().getDayOfMonth());
+        return solarDate != null && solarDate.isBefore(today);
     }
 }
