@@ -1,4 +1,4 @@
-package com.umc.halo.domain.record.excption;
+package com.umc.halo.domain.record.exception;
 
 import com.umc.halo.global.apiPayload.code.*;
 import com.umc.halo.global.apiPayload.exception.*;
