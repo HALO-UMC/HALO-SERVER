@@ -14,13 +14,16 @@ public class MemberResDTO {
             String accessToken,
             String refreshToken,
             Boolean isNewUser,
-            Boolean onboardingCompleted
+            Boolean onboardingCompleted,
+            Boolean termsAgreed
     ) {}
 
     @Builder
     public record TokenReissue(
             String accessToken,
-            String refreshToken
+            String refreshToken,
+            Boolean onboardingCompleted,
+            Boolean termsAgreed
     ) {}
 
     @Builder
