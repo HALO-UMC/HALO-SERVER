@@ -31,7 +31,7 @@ import java.util.*;
 public class ChapterService {
 
     private final MemberChapterRepository memberChapterRepository;
-    private final StorybookChapterRepository storybookChapterRepository;
+    private final ChapterRepository chapterRepository;
     private final MemberRepository memberRepository;
     private final MemberStorybookRepository memberStorybookRepository;
     private final MemberChapterAnswerRepository memberChapterAnswerRepository;
@@ -47,18 +47,17 @@ public class ChapterService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
-        // storybookChapter 조회
-        StorybookChapter storybookChapter = storybookChapterRepository.findByStorybookIdAndChapterOrder(storybookId, chapterOrder)
+        // chapter 조회
+        Chapter chapter = chapterRepository.findByStorybook_IdAndChapterOrder(storybookId, chapterOrder)
                 .orElseThrow(() -> new ChapterException(ChapterErrorCode.NOT_FOUND_CHAPTER));
 
-        Storybook storybook = storybookChapter.getStorybook();
-        Chapter chapter = storybookChapter.getChapter();
+        Storybook storybook = chapter.getStorybook();
 
         // memberStorybook 조회
         Optional<MemberStorybook> memberStorybookOpt = memberStorybookRepository.findByStorybookAndMember(storybook, member);
 
         // memberChapter 조회
-        MemberChapter memberChapter = memberChapterRepository.findByMemberAndStorybookChapter(member, storybookChapter);
+        MemberChapter memberChapter = memberChapterRepository.findByMemberAndChapter(member, chapter);
 
         String imageUrl = null;
         // 사용자가 기록한 이미지 조회
@@ -97,7 +96,7 @@ public class ChapterService {
 
 
         return ChapterConverter.toTodayChapter(
-                storybookChapter,
+                chapter,
                 originalCharacter,
                 imageChoiceCharacter,
                 questions,
@@ -138,9 +137,9 @@ public class ChapterService {
         else if (lastChapterOrder.equals(chapterOrder - 1)) {
 
             // lastChapterOrder의 memberChapter
-            StorybookChapter prevStorybookChapter = storybookChapterRepository.findByStorybookIdAndChapterOrder(storybook.getId(), chapterOrder - 1)
+            Chapter prevChapter = chapterRepository.findByStorybook_IdAndChapterOrder(storybook.getId(), chapterOrder - 1)
                     .orElseThrow(() -> new ChapterException(ChapterErrorCode.NOT_FOUND_CHAPTER));
-            MemberChapter prevMemberChapter = memberChapterRepository.findByMemberAndStorybookChapter(member, prevStorybookChapter);
+            MemberChapter prevMemberChapter = memberChapterRepository.findByMemberAndChapter(member, prevChapter);
 
             // 아직 열리지 않은 장 (lastChapterOrder의 memberChapter가 completed가 아님)
             if ((prevMemberChapter == null) || (prevMemberChapter.getStatus() == Status.DRAFT)) {

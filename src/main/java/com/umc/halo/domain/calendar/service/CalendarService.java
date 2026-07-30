@@ -16,13 +16,14 @@ import com.umc.halo.domain.record.repository.MemberStorybookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Set;
+
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,7 @@ public class CalendarService {
     private final MemberRepository memberRepository;
     private final MemberChapterRepository memberChapterRepository;
     private final MemberStorybookRepository memberStorybookRepository;
+
     //월간
     @Transactional(readOnly = true)
     public CalendarMonthlyResDTO.MonthlyInfo getMonthly(Long memberId, int year, int month) {
@@ -108,14 +110,14 @@ public class CalendarService {
                 .collect(Collectors.toMap(ms -> ms.getStorybook().getId(), Function.identity()));
 
         Map<Long, List<MemberChapter>> chaptersByStorybook = memberChapterRepository
-                .findAllByMemberWithStorybookChapter(member).stream()
-                .collect(Collectors.groupingBy(mc -> mc.getStorybookChapter().getStorybook().getId()));
+                .findAllByMemberWithChapter(member).stream()
+                .collect(Collectors.groupingBy(mc -> mc.getChapter().getStorybook().getId()));
         List<CalendarDailyResDTO.StorybookInfo> storybooks = new ArrayList<>();
         List<CalendarDailyResDTO.ChapterInfo> chapters = new ArrayList<>();
 
         for (MemberChapter mc : dayChapters) {
-            Storybook storybook = mc.getStorybookChapter().getStorybook();
-            int chapterOrderOfDay = mc.getStorybookChapter().getChapterOrder();
+            Storybook storybook = mc.getChapter().getStorybook();
+            int chapterOrderOfDay = mc.getChapter().getChapterOrder();
 
             if (chapterOrderOfDay == TOTAL_CHAPTER_COUNT) {
                 storybooks.add(CalendarConverter.toStorybookInfo(storybook));

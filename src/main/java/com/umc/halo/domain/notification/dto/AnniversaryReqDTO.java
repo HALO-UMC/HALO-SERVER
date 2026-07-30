@@ -18,6 +18,12 @@ public class AnniversaryReqDTO {
             @NotNull(message = "날짜는 필수입니다.")
             LocalDate anniversaryDate,
 
+            @NotNull(message = "음력 여부는 필수입니다.")
+            Boolean isLunar,
+
+            @NotNull(message = "반복 여부는 필수입니다.")
+            Boolean isRepeated,
+
             @NotNull(message = "D-7 알림 여부는 필수입니다.")
             Boolean sevenDaysAlarmEnabled,
 
@@ -35,6 +41,12 @@ public class AnniversaryReqDTO {
 
             @NotNull(message = "날짜는 필수입니다.")
             LocalDate anniversaryDate,
+
+            @NotNull(message = "음력 여부는 필수입니다.")
+            Boolean isLunar,
+
+            @NotNull(message = "반복 여부는 필수입니다.")
+            Boolean isRepeated,
 
             @NotNull(message = "D-7 알림 여부는 필수입니다.")
             Boolean sevenDaysAlarmEnabled,

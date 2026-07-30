@@ -10,7 +10,7 @@ import java.util.*;
 public class ChapterConverter {
 
     public static ChapterResDTO.TodayChapter toTodayChapter(
-            StorybookChapter storybookChapter,
+            Chapter chapter,
             StorybookCharacter originalCharacter,
             StorybookCharacter imageChoiceCharacter,
             List<ChapterQuestion> questions,
@@ -19,11 +19,9 @@ public class ChapterConverter {
             List<MemberChapterAnswer> answers,
             String imageUrl) {
 
-        Chapter chapter = storybookChapter.getChapter();
-
         return ChapterResDTO.TodayChapter.builder()
                 .chapterId(chapter.getId())
-                .storybookTitle(storybookChapter.getStorybook().getTitle())
+                .storybookTitle(chapter.getStorybook().getTitle())
                 .guide(chapter.getGuide())
 
                 .character(

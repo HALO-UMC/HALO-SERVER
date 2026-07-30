@@ -95,12 +95,32 @@ public class AnniversaryService {
     }
 
     private LocalDate resolveNextOccurrence(Anniversary anniversary, LocalDate today) {
+        if (Boolean.TRUE.equals(anniversary.getIsLunar())) {
+            return resolveNextOccurrenceLunar(anniversary, today);
+        }
         if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
             LocalDate date = anniversary.getAnniversaryDate();
             return date.isBefore(today) ? null : date;
         }
         LocalDate thisYear = anniversary.getAnniversaryDate().withYear(today.getYear());
         return thisYear.isBefore(today) ? anniversary.getAnniversaryDate().withYear(today.getYear() + 1) : thisYear;
+    }
+
+    private LocalDate resolveNextOccurrenceLunar(Anniversary anniversary, LocalDate today) {
+        int lunarMonth = anniversary.getAnniversaryDate().getMonthValue();
+        int lunarDay = anniversary.getAnniversaryDate().getDayOfMonth();
+
+        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
+            LocalDate solarDate = convertLunarToSolar(anniversary.getAnniversaryDate().getYear(), lunarMonth, lunarDay);
+            return (solarDate != null && !solarDate.isBefore(today)) ? solarDate : null;
+        }
+
+        return java.util.stream.Stream.of(today.getYear() - 1, today.getYear(), today.getYear() + 1)
+                .map(year -> convertLunarToSolar(year, lunarMonth, lunarDay))
+                .filter(java.util.Objects::nonNull)
+                .filter(date -> !date.isBefore(today))
+                .min(Comparator.naturalOrder())
+                .orElse(null);
     }
 
     private LocalDate resolveNextOccurrence(CommonAnniversary commonAnniversary, LocalDate today) {
@@ -113,11 +133,12 @@ public class AnniversaryService {
     }
 
     private LocalDate resolveNextLunarOccurrence(CommonAnniversary commonAnniversary, LocalDate today) {
-        LocalDate thisYearSolar = convertLunarToSolar(today.getYear(), commonAnniversary.getMonth(), commonAnniversary.getDay());
-        if (thisYearSolar != null && !thisYearSolar.isBefore(today)) {
-            return thisYearSolar;
-        }
-        return convertLunarToSolar(today.getYear() + 1, commonAnniversary.getMonth(), commonAnniversary.getDay());
+        return java.util.stream.Stream.of(today.getYear() - 1, today.getYear(), today.getYear() + 1)
+                .map(year -> convertLunarToSolar(year, commonAnniversary.getMonth(), commonAnniversary.getDay()))
+                .filter(java.util.Objects::nonNull)
+                .filter(date -> !date.isBefore(today))
+                .min(Comparator.naturalOrder())
+                .orElse(null);
     }
 
     // 음력 날짜(윤달 아님)를 해당 연도의 양력 날짜로 변환. 지원 범위를 벗어나거나 변환 실패 시 null 반환
@@ -156,6 +177,8 @@ public class AnniversaryService {
         anniversary.update(
                 request.title(),
                 request.anniversaryDate(),
+                request.isLunar(),
+                request.isRepeated(),
                 request.sevenDaysAlarmEnabled(),
                 request.dayAlarmEnabled(),
                 request.memo()
@@ -188,6 +211,30 @@ public class AnniversaryService {
         anniversaryRepository.deleteAll(anniversaries);
     }
 
+    @Transactional
+    public void deleteExpiredNonRepeatingAnniversaries() {
+        LocalDate today = LocalDate.now();
+
+        List<Anniversary> expiredSolarAnniversaries =
+                anniversaryRepository.findAllByIsRepeatedFalseAndIsLunarFalseAndAnniversaryDateBefore(today);
+
+        List<Anniversary> expiredLunarAnniversaries =
+                anniversaryRepository.findAllByIsRepeatedFalseAndIsLunarTrue().stream()
+                        .filter(anniversary -> isExpiredNonRepeatingLunar(anniversary, today))
+                        .toList();
+
+        List<Anniversary> expiredAnniversaries = java.util.stream.Stream.concat(
+                        expiredSolarAnniversaries.stream(), expiredLunarAnniversaries.stream())
+                .toList();
+
+        if (expiredAnniversaries.isEmpty()) {
+            return;
+        }
+        List<Long> expiredIds = expiredAnniversaries.stream().map(Anniversary::getId).toList();
+        notificationRepository.deleteAllByAnniversaryIdIn(expiredIds);
+        anniversaryRepository.deleteAll(expiredAnniversaries);
+    }
+
     private Anniversary getOwnedAnniversary(Long memberId, Long anniversaryId) {
         Anniversary anniversary = anniversaryRepository.findById(anniversaryId)
                 .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
@@ -195,5 +242,13 @@ public class AnniversaryService {
             throw new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_ACCESS_DENIED);
         }
         return anniversary;
+    }
+
+    private boolean isExpiredNonRepeatingLunar(Anniversary anniversary, LocalDate today) {
+        LocalDate solarDate = convertLunarToSolar(
+                anniversary.getAnniversaryDate().getYear(),
+                anniversary.getAnniversaryDate().getMonthValue(),
+                anniversary.getAnniversaryDate().getDayOfMonth());
+        return solarDate != null && solarDate.isBefore(today);
     }
 }
