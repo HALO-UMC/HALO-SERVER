@@ -6,7 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "storybook_character")
+@Table(name = "storybook_character",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"storybook_id"}))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder

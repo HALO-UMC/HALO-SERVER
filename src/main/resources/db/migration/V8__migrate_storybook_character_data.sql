@@ -31,3 +31,14 @@ FROM storybook_character sc
          JOIN tmp_character t ON t.storybook_id = sc.storybook_id;
 
 DROP TEMPORARY TABLE tmp_character;
+
+-- 실제 URL로 UPDATE 필요
+INSERT INTO storybook_character_variant (created_at, updated_at, storybook_character_id, variant, image_url)
+SELECT w.created_at, w.updated_at, w.storybook_character_id, 'EXHIBITION', w.image_url
+FROM storybook_character_variant w
+WHERE w.variant = 'WRITING';
+
+INSERT INTO storybook_character_variant (created_at, updated_at, storybook_character_id, variant, image_url)
+SELECT w.created_at, w.updated_at, w.storybook_character_id, 'PROFILE', w.image_url
+FROM storybook_character_variant w
+WHERE w.variant = 'WRITING';

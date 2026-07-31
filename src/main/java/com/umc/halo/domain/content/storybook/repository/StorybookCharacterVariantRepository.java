@@ -19,6 +19,7 @@ public interface StorybookCharacterVariantRepository extends JpaRepository<Story
     @Query("""
                     SELECT sv FROM StorybookCharacterVariant sv
                     JOIN FETCH sv.storybookCharacter sc
+                    JOIN FETCH sc.storybook s
                     WHERE sc.storybook IN :storybooks AND sv.variant=:variant
             """)
     List<StorybookCharacterVariant> findAllByStorybookCharacter_StorybookInAndVariant(
