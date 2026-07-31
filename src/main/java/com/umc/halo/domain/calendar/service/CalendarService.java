@@ -24,7 +24,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -105,10 +104,6 @@ public class CalendarService {
                 .sorted(Comparator.comparing(MemberChapter::getUpdatedAt).reversed())
                 .toList();
 
-        Map<Long, MemberStorybook> progressByStorybookId = memberStorybookRepository
-                .findAllByMemberWithStorybook(member).stream()
-                .collect(Collectors.toMap(ms -> ms.getStorybook().getId(), Function.identity()));
-
         Map<Long, List<MemberChapter>> chaptersByStorybook = memberChapterRepository
                 .findAllByMemberWithChapter(member).stream()
                 .collect(Collectors.groupingBy(mc -> mc.getChapter().getStorybook().getId()));
@@ -122,24 +117,19 @@ public class CalendarService {
             if (chapterOrderOfDay == TOTAL_CHAPTER_COUNT) {
                 storybooks.add(CalendarConverter.toStorybookInfo(storybook));
             } else {
-                MemberStorybook ms = progressByStorybookId.get(storybook.getId());
                 List<MemberChapter> myChapters = chaptersByStorybook.getOrDefault(storybook.getId(), List.of());
-                Integer nextChapterOrder = resolveNextChapterOrder(ms, myChapters, chapterOrderOfDay);
-                chapters.add(CalendarConverter.toChapterInfo(storybook, nextChapterOrder));
+                Integer completedChapterOrder = resolveCompletedChapterOrder(myChapters);
+                chapters.add(CalendarConverter.toChapterInfo(storybook, completedChapterOrder));
             }
         }
 
         return CalendarConverter.toDailyInfo(date.toString(), storybooks, chapters);
     }
-
-    private Integer resolveNextChapterOrder(MemberStorybook ms, List<MemberChapter> myChapters, int fallbackOrder) {
-        Integer lastChapterOrder = (ms != null) ? ms.getLastChapterOrder() : fallbackOrder;
-
-        boolean lastCompleted = myChapters.stream()
-                .anyMatch(mc -> lastChapterOrder.equals(mc.getChapter().getChapterOrder())
-                        && mc.getStatus() == Status.COMPLETED);
-
-        int next = lastCompleted ? lastChapterOrder + 1 : lastChapterOrder;
-        return Math.min(next, TOTAL_CHAPTER_COUNT);
+    private Integer resolveCompletedChapterOrder(List<MemberChapter> myChapters) {
+        return myChapters.stream()
+                .filter(mc -> mc.getStatus() == Status.COMPLETED)
+                .map(mc -> mc.getChapter().getChapterOrder())                .max(Integer::compareTo)
+                .orElse(0);
     }
+
 }
