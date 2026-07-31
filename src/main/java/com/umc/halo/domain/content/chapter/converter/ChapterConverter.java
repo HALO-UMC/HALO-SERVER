@@ -11,8 +11,8 @@ public class ChapterConverter {
 
     public static ChapterResDTO.TodayChapter toTodayChapter(
             Chapter chapter,
-            StorybookCharacter originalCharacter,
-            StorybookCharacter imageChoiceCharacter,
+            StorybookCharacter writingCharacter,
+            StorybookCharacter sceneCardCharacter,
             List<ChapterQuestion> questions,
             List<SceneCard> sceneCards,
             MemberChapter memberChapter,
@@ -26,8 +26,8 @@ public class ChapterConverter {
 
                 .character(
                         ChapterResDTO.TodayChapter.Character.builder()
-                                .originalUrl(originalCharacter.getImageUrl())
-                                .imageChoiceUrl(imageChoiceCharacter.getImageUrl())
+                                .writingCharacterImageUrl(writingCharacter.getImageUrl())
+                                .sceneCardCharacterImageUrl(sceneCardCharacter.getImageUrl())
                                 .build()
                 )
 

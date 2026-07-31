@@ -107,7 +107,7 @@ public class ExhibitionService {
                     .map(MemberStorybook::getStorybook)
                     .toList();
             Map<Long, StorybookCharacter> characterMap = storybookCharacterRepository
-                    .findByStorybookInAndVariant(completedStorybooks, Variant.ORIGINAL).stream()
+                    .findByStorybookInAndVariant(completedStorybooks, Variant.EXHIBITION).stream()
                     .collect(Collectors.toMap(c -> c.getStorybook().getId(), Function.identity()));
 
             for (MemberStorybook ms : completed) {

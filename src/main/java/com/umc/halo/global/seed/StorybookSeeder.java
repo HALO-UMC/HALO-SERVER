@@ -93,16 +93,32 @@ public class StorybookSeeder {
                 StorybookCharacter.builder()
                         .storybook(storybook)
                         .name(characterName)
-                        .variant(Variant.ORIGINAL)
-                        .imageUrl("https://example.com/character-original.png")
+                        .variant(Variant.WRITING)
+                        .imageUrl("https://example.com/character-writing.png")
                         .build()
         );
         storybookCharacters.add(
                 StorybookCharacter.builder()
                         .storybook(storybook)
                         .name(characterName)
-                        .variant(Variant.IMAGE_CHOICE)
-                        .imageUrl("https://example.com/character-image-choice.png")
+                        .variant(Variant.SCENE_CARD)
+                        .imageUrl("https://example.com/character-scene-card.png")
+                        .build()
+        );
+        storybookCharacters.add(
+                StorybookCharacter.builder()
+                        .storybook(storybook)
+                        .name(characterName)
+                        .variant(Variant.EXHIBITION)
+                        .imageUrl("https://example.com/character-exhibition.png")
+                        .build()
+        );
+        storybookCharacters.add(
+                StorybookCharacter.builder()
+                        .storybook(storybook)
+                        .name(characterName)
+                        .variant(Variant.PROFILE)
+                        .imageUrl("https://example.com/character-profile.png")
                         .build()
         );
 

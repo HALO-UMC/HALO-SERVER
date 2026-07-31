@@ -76,9 +76,9 @@ public class ChapterService {
         validateChapterStatus(member, storybook, chapterOrder, memberChapter, memberStorybookOpt.orElse(null));
 
         // character 조회
-        StorybookCharacter originalCharacter = storybookCharacterRepository.findByStorybookAndVariant(storybook, Variant.ORIGINAL)
+        StorybookCharacter writingCharacter = storybookCharacterRepository.findByStorybookAndVariant(storybook, Variant.WRITING)
                 .orElseThrow(() -> new StorybookException(StorybookErrorCode.NOT_FOUND_CHARACTER));
-        StorybookCharacter imageChoiceCharacter = storybookCharacterRepository.findByStorybookAndVariant(storybook, Variant.IMAGE_CHOICE)
+        StorybookCharacter sceneCardCharacter = storybookCharacterRepository.findByStorybookAndVariant(storybook, Variant.SCENE_CARD)
                 .orElseThrow(() -> new StorybookException(StorybookErrorCode.NOT_FOUND_CHARACTER));
 
         // question 조회
@@ -97,8 +97,8 @@ public class ChapterService {
 
         return ChapterConverter.toTodayChapter(
                 chapter,
-                originalCharacter,
-                imageChoiceCharacter,
+                writingCharacter,
+                sceneCardCharacter,
                 questions,
                 sceneCards,
                 memberChapter,
