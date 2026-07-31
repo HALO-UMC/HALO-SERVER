@@ -16,6 +16,7 @@ import java.util.*;
 public class StorybookSeeder {
     private final StorybookRepository storybookRepository;
     private final StorybookCharacterRepository storybookCharacterRepository;
+    private final StorybookCharacterVariantRepository storybookCharacterVariantRepository;
     private final ChapterSeeder chapterSeeder;
 
     @Transactional
@@ -86,46 +87,41 @@ public class StorybookSeeder {
     private static final List<String> CHARACTER_NAMES = List.of("하로", "온이", "다솜", "결", "다온", "가온");
 
     @Transactional
-    public List<StorybookCharacter> seedStorybookCharacter(Storybook storybook, String characterName) {
-        List<StorybookCharacter> storybookCharacters = new ArrayList<>();
-
-        storybookCharacters.add(
+    public StorybookCharacter seedStorybookCharacter(Storybook storybook, String characterName) {
+        StorybookCharacter storybookCharacter = storybookCharacterRepository.save(
                 StorybookCharacter.builder()
                         .storybook(storybook)
                         .name(characterName)
+                        .build()
+        );
+
+        List<StorybookCharacterVariant> variants = List.of(
+                StorybookCharacterVariant.builder()
+                        .storybookCharacter(storybookCharacter)
                         .variant(Variant.WRITING)
                         .imageUrl("https://example.com/character-writing.png")
-                        .build()
-        );
-        storybookCharacters.add(
-                StorybookCharacter.builder()
-                        .storybook(storybook)
-                        .name(characterName)
+                        .build(),
+                StorybookCharacterVariant.builder()
+                        .storybookCharacter(storybookCharacter)
                         .variant(Variant.SCENE_CARD)
                         .imageUrl("https://example.com/character-scene-card.png")
-                        .build()
-        );
-        storybookCharacters.add(
-                StorybookCharacter.builder()
-                        .storybook(storybook)
-                        .name(characterName)
+                        .build(),
+                StorybookCharacterVariant.builder()
+                        .storybookCharacter(storybookCharacter)
                         .variant(Variant.EXHIBITION)
                         .imageUrl("https://example.com/character-exhibition.png")
-                        .build()
-        );
-        storybookCharacters.add(
-                StorybookCharacter.builder()
-                        .storybook(storybook)
-                        .name(characterName)
+                        .build(),
+                StorybookCharacterVariant.builder()
+                        .storybookCharacter(storybookCharacter)
                         .variant(Variant.PROFILE)
                         .imageUrl("https://example.com/character-profile.png")
                         .build()
         );
 
-        List<StorybookCharacter> savedStorybookCharacters = storybookCharacterRepository.saveAll(storybookCharacters);
-        log.info("StorybookCharacters {}건 시딩 완료", savedStorybookCharacters.size());
+        storybookCharacterVariantRepository.saveAll(variants);
+        log.info("StorybookCharacter/Variant 시딩 완료 (character: {}, variant {}건)", characterName, variants.size());
 
-        return savedStorybookCharacters;
+        return storybookCharacter;
     }
 
     @Transactional

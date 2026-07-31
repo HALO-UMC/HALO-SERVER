@@ -25,12 +25,5 @@ public class StorybookCharacter extends BaseEntity {
     @Column(length = 10, nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Variant variant;
-
-    @Column(name = "image_url", nullable = false)
-    private String imageUrl;
-
 
 }
