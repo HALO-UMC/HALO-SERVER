@@ -19,13 +19,15 @@ public class MemberConverter {
             String accessToken,
             String refreshToken,
             Boolean isNewUser,
-            Boolean onboardingCompleted
+            Boolean onboardingCompleted,
+            Boolean termsAgreed
     ) {
         return MemberResDTO.Login.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .isNewUser(isNewUser)
                 .onboardingCompleted(onboardingCompleted)
+                .termsAgreed(termsAgreed)
                 .build();
     }
 
@@ -43,11 +45,15 @@ public class MemberConverter {
 
     public static MemberResDTO.TokenReissue toTokenReissueResponse(
             String accessToken,
-            String refreshToken
+            String refreshToken,
+            Boolean onboardingCompleted,
+            Boolean termsAgreed
     ) {
         return MemberResDTO.TokenReissue.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .onboardingCompleted(onboardingCompleted)
+                .termsAgreed(termsAgreed)
                 .build();
     }
 }
