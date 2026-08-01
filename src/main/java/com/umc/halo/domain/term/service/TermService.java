@@ -112,16 +112,11 @@ public class TermService {
     @Transactional(readOnly = true)
     public TermResDTO.AgreementStatus getAgreementStatus(Long memberId) {
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+        if (!memberRepository.existsById(memberId)) {
+            throw new MemberException(MemberErrorCode.NOT_FOUND);
+        }
 
-        Set<Long> agreedTermIds = memberTermRepository.findAllByMember(member).stream()
-                .filter(memberTerm -> Boolean.TRUE.equals(memberTerm.getIsAgreed()))
-                .map(memberTerm -> memberTerm.getTerm().getId())
-                .collect(Collectors.toSet());
-
-        boolean termsAgreed = termRepository.findAllByIsRequiredTrue().stream()
-                .allMatch(term -> agreedTermIds.contains(term.getId()));
+        boolean termsAgreed = memberTermRepository.areAllRequiredTermsAgreed(memberId);
 
         return TermConverter.toAgreementStatus(termsAgreed);
     }
