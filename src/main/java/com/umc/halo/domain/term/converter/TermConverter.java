@@ -12,7 +12,10 @@ public class TermConverter {
                 .termId(term.getId())
                 .title(term.getTitle())
                 .shortDescription(term.getShortDescription())
+                .description(term.getDescription())
                 .isRequired(term.getIsRequired())
+                .isRequired(term.getIsRequired())
+                .updatedAt(term.getUpdatedAt())
                 .build();
     }
 
