@@ -30,4 +30,7 @@ public class Tag extends BaseEntity {
 
     @Column(length = 255)
     private String description;
+
+    @Column(length = 100)
+    private String phrase;
 }

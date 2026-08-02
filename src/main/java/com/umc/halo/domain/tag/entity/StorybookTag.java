@@ -37,7 +37,4 @@ public class StorybookTag extends BaseEntity {
     @Column(nullable = false, name = "priority_level")
     @Enumerated(EnumType.STRING)
     private PriorityLevel priorityLevel;
-
-    @Column(nullable = false, length = 50)
-    private String phrase;
 }

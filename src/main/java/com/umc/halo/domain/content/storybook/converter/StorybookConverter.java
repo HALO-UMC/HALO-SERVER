@@ -76,12 +76,12 @@ public class StorybookConverter {
                 .build();
     }
 
-    public static StorybookResDTO.SituationalStorybook toSituationalStorybook(StorybookTag st) {
+    public static StorybookResDTO.SituationalStorybook toSituationalStorybook(StorybookTag st, String reasonText) {
         return StorybookResDTO.SituationalStorybook.builder()
                 .storybookId(st.getStorybook().getId())
                 .title(st.getStorybook().getTitle())
                 .imageUrl(st.getStorybook().getImageUrl())
-                .recommendationReasonText(st.getPhrase())
+                .recommendationReasonText(reasonText)
                 .build();
     }
 
@@ -93,13 +93,13 @@ public class StorybookConverter {
                 .build();
     }
 
-    public static StorybookResDTO.RecommendedStorybook toRecommendedStorybook(StorybookTag st) {
+    public static StorybookResDTO.RecommendedStorybook toRecommendedStorybook(StorybookTag st, String reasonText) {
         return StorybookResDTO.RecommendedStorybook.builder()
                 .storybookId(st.getStorybook().getId())
                 .title(st.getStorybook().getTitle())
                 .shortDescription(st.getStorybook().getShortDescription())
                 .imageUrl(st.getStorybook().getImageUrl())
-                .recommendationReasonText(st.getPhrase())
+                .recommendationReasonText(reasonText)
                 .build();
     }
 

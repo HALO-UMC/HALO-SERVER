@@ -24,10 +24,12 @@ import com.umc.halo.domain.record.repository.MemberStorybookRepository;
 import com.umc.halo.domain.tag.entity.MemberTag;
 import com.umc.halo.domain.tag.entity.StorybookTag;
 import com.umc.halo.domain.tag.entity.Tag;
+import com.umc.halo.domain.tag.entity.TagComboPhrase;
 import com.umc.halo.domain.tag.enums.Category;
 import com.umc.halo.domain.tag.enums.PriorityLevel;
 import com.umc.halo.domain.tag.repository.MemberTagRepository;
 import com.umc.halo.domain.tag.repository.StorybookTagRepository;
+import com.umc.halo.domain.tag.repository.TagComboPhraseRepository;
 import com.umc.halo.domain.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -56,6 +58,7 @@ public class StorybookService {
     private final MemberStorybookRepository memberStorybookRepository;
     private final TagRepository tagRepository;
     private final StorybookTagRepository storybookTagRepository;
+    private final TagComboPhraseRepository tagComboPhraseRepository;
     private final MemberTagRepository memberTagRepository;
 
     public StorybookResDTO.GetStorybookDetail getStorybookDetail(Long storybookId, Long memberId) {
@@ -190,7 +193,7 @@ public class StorybookService {
         List<StorybookResDTO.RecommendedStorybook> recommendations = bestMatchByStorybook.values().stream()
                 .sorted(Comparator.comparing(StorybookTag::getPriorityLevel))
                 .limit(2)
-                .map(StorybookConverter::toRecommendedStorybook)
+                .map(st -> StorybookConverter.toRecommendedStorybook(st, resolveReasonText(st)))
                 .collect(Collectors.toCollection(ArrayList::new));
 
         if (recommendations.size() < 2) {
@@ -363,11 +366,29 @@ public class StorybookService {
                     List<StorybookResDTO.SituationalStorybook> situationalStorybooks =
                             storybookTagsByTag.getOrDefault(tag, List.of()).stream()
                                     .limit(2)
-                                    .map(StorybookConverter::toSituationalStorybook)
+                                    .map(st -> StorybookConverter.toSituationalStorybook(st, tag.getPhrase()))
                                     .toList();
 
                     return StorybookConverter.toSituationalRecommendation(tag.getTitle(), situationalStorybooks);
                 })
                 .toList();
+    }
+
+    private String resolveReasonText(StorybookTag st) {
+        if (st.getPriorityLevel() == PriorityLevel.PRIMARY) {
+            return st.getTag().getPhrase();
+        }
+        StorybookTag primaryStorybookTag = storybookTagRepository
+                .findByStorybookAndPriorityLevel(st.getStorybook(), PriorityLevel.PRIMARY)
+                .orElseThrow(() -> new StorybookException(StorybookErrorCode.NOT_FOUND));
+        return resolveComboPhrase(primaryStorybookTag.getTag(), st.getTag());
+    }
+
+    private String resolveComboPhrase(Tag primaryTag, Tag secondaryTag) {
+        Tag smaller = primaryTag.getId() < secondaryTag.getId() ? primaryTag : secondaryTag;
+        Tag larger = primaryTag.getId() < secondaryTag.getId() ? secondaryTag : primaryTag;
+        return tagComboPhraseRepository.findByTag1AndTag2(smaller, larger)
+                .map(TagComboPhrase::getPhrase)
+                .orElse(smaller.getPhrase());
     }
 }

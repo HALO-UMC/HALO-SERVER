@@ -23,6 +23,7 @@ public class TagSeeder {
     private final TagRepository tagRepository;
     private final MemberTagRepository memberTagRepository;
     private final StorybookTagRepository storybookTagRepository;
+    private final TagComboPhraseRepository tagComboPhraseRepository;
     private final MemberRepository memberRepository;
     private final StorybookRepository storybookRepository;
 
@@ -81,22 +82,27 @@ public class TagSeeder {
                 Tag.builder()
                         .category(Category.DESIRED_DIRECTION)
                         .title("부모님을 더 알고 싶어요")
+                        .phrase("부모님을 더 알고 싶어요")
                         .build(),
                 Tag.builder()
                         .category(Category.DESIRED_DIRECTION)
                         .title("같이 보내는 시간을 만들고 싶어요")
+                        .phrase("같이 보내는 시간을 만들고 싶어요")
                         .build(),
                 Tag.builder()
                         .category(Category.DESIRED_DIRECTION)
                         .title("어색하지 않게 이야기하고 싶어요")
+                        .phrase("어색하지 않게 이야기하고 싶어요")
                         .build(),
                 Tag.builder()
                         .category(Category.DESIRED_DIRECTION)
                         .title("마음을 표현해보고 싶어요")
+                        .phrase("마음을 표현해보고 싶어요")
                         .build(),
                 Tag.builder()
                         .category(Category.DESIRED_DIRECTION)
                         .title("특별한 날이나 응원을 준비하고 싶어요")
+                        .phrase("특별한 날이나 응원을 준비하고 싶어요")
                         .build()
         );
 
@@ -160,19 +166,16 @@ public class TagSeeder {
                         .storybook(storybook.get("오래 전 당신"))
                         .tag(tag.get("어색하지 않게 이야기하고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("어색하지 않게 이야기하고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("오래 전 당신"))
                         .tag(tag.get("부모님을 더 알고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 어색하지 않게 이야기하고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("오래 전 당신"))
                         .tag(tag.get("같이 보내는 시간을 만들고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("같이 보내는 시간을 만들고, 어색하지 않게 이야기하고 싶어요")
                         .build(),
 
                 // 당신 사용설명서
@@ -180,19 +183,16 @@ public class TagSeeder {
                         .storybook(storybook.get("당신 사용설명서"))
                         .tag(tag.get("부모님을 더 알고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("부모님을 더 알고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("당신 사용설명서"))
                         .tag(tag.get("같이 보내는 시간을 만들고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 같이 보내는 시간을 만들고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("당신 사용설명서"))
                         .tag(tag.get("특별한 날이나 응원을 준비하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 특별한 날이나 응원을 준비하고 싶어요")
                         .build(),
 
                 // 가족의 온도
@@ -200,19 +200,16 @@ public class TagSeeder {
                         .storybook(storybook.get("가족의 온도"))
                         .tag(tag.get("부모님을 더 알고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("부모님을 더 알고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("가족의 온도"))
                         .tag(tag.get("마음을 표현해보고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 마음을 표현해보고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("가족의 온도"))
                         .tag(tag.get("어색하지 않게 이야기하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 어색하지 않게 이야기하고 싶어요")
                         .build(),
 
                 // 취향이 닿는 날
@@ -220,19 +217,16 @@ public class TagSeeder {
                         .storybook(storybook.get("취향이 닿는 날"))
                         .tag(tag.get("같이 보내는 시간을 만들고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("같이 보내는 시간을 만들고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("취향이 닿는 날"))
                         .tag(tag.get("어색하지 않게 이야기하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("같이 보내는 시간을 만들고, 어색하지 않게 이야기하고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("취향이 닿는 날"))
                         .tag(tag.get("특별한 날이나 응원을 준비하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("같이 보내는 시간을 만들고, 특별한 날이나 응원을 준비하고 싶어요")
                         .build(),
 
                 // 나란히 걷는 날
@@ -240,19 +234,16 @@ public class TagSeeder {
                         .storybook(storybook.get("나란히 걷는 날"))
                         .tag(tag.get("같이 보내는 시간을 만들고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("같이 보내는 시간을 만들고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("나란히 걷는 날"))
                         .tag(tag.get("마음을 표현해보고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("같이 보내는 시간을 만들고, 마음을 표현해보고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("나란히 걷는 날"))
                         .tag(tag.get("부모님을 더 알고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 같이 보내는 시간을 만들고 싶어요")
                         .build(),
 
                 // 오늘은 내가 먼저
@@ -260,19 +251,16 @@ public class TagSeeder {
                         .storybook(storybook.get("오늘은 내가 먼저"))
                         .tag(tag.get("마음을 표현해보고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("마음을 표현해보고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("오늘은 내가 먼저"))
                         .tag(tag.get("특별한 날이나 응원을 준비하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("마음을 표현해보고, 특별한 날이나 응원을 준비하고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("오늘은 내가 먼저"))
                         .tag(tag.get("어색하지 않게 이야기하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("어색하지 않게 이야기하고, 마음을 표현해보고 싶어요")
                         .build()
         );
 
@@ -283,6 +271,48 @@ public class TagSeeder {
     }
 
     @Transactional
+    public List<TagComboPhrase> seedTagComboPhrase(List<Tag> tags) {
+        Map<String, Tag> tag = tags.stream()
+                .collect(Collectors.toMap(Tag::getTitle, Function.identity()));
+
+        List<TagComboPhrase> comboPhrases = List.of(
+                comboPhrase(tag.get("어색하지 않게 이야기하고 싶어요"), tag.get("부모님을 더 알고 싶어요"),
+                        "부모님을 더 알고, 어색하지 않게 이야기하고 싶어요"),
+                comboPhrase(tag.get("어색하지 않게 이야기하고 싶어요"), tag.get("같이 보내는 시간을 만들고 싶어요"),
+                        "같이 보내는 시간을 만들고, 어색하지 않게 이야기하고 싶어요"),
+                comboPhrase(tag.get("부모님을 더 알고 싶어요"), tag.get("같이 보내는 시간을 만들고 싶어요"),
+                        "부모님을 더 알고, 같이 보내는 시간을 만들고 싶어요"),
+                comboPhrase(tag.get("부모님을 더 알고 싶어요"), tag.get("특별한 날이나 응원을 준비하고 싶어요"),
+                        "부모님을 더 알고, 특별한 날이나 응원을 준비하고 싶어요"),
+                comboPhrase(tag.get("부모님을 더 알고 싶어요"), tag.get("마음을 표현해보고 싶어요"),
+                        "부모님을 더 알고, 마음을 표현해보고 싶어요"),
+                comboPhrase(tag.get("같이 보내는 시간을 만들고 싶어요"), tag.get("특별한 날이나 응원을 준비하고 싶어요"),
+                        "같이 보내는 시간을 만들고, 특별한 날이나 응원을 준비하고 싶어요"),
+                comboPhrase(tag.get("같이 보내는 시간을 만들고 싶어요"), tag.get("마음을 표현해보고 싶어요"),
+                        "같이 보내는 시간을 만들고, 마음을 표현해보고 싶어요"),
+                comboPhrase(tag.get("마음을 표현해보고 싶어요"), tag.get("특별한 날이나 응원을 준비하고 싶어요"),
+                        "마음을 표현해보고, 특별한 날이나 응원을 준비하고 싶어요"),
+                comboPhrase(tag.get("어색하지 않게 이야기하고 싶어요"), tag.get("마음을 표현해보고 싶어요"),
+                        "어색하지 않게 이야기하고, 마음을 표현해보고 싶어요")
+        );
+
+        List<TagComboPhrase> savedComboPhrases = tagComboPhraseRepository.saveAll(comboPhrases);
+        log.info("TagComboPhrases {}건 시딩 완료", savedComboPhrases.size());
+
+        return savedComboPhrases;
+    }
+
+    private TagComboPhrase comboPhrase(Tag a, Tag b, String phrase) {
+        Tag smaller = a.getId() < b.getId() ? a : b;
+        Tag larger = a.getId() < b.getId() ? b : a;
+        return TagComboPhrase.builder()
+                .tag1(smaller)
+                .tag2(larger)
+                .phrase(phrase)
+                .build();
+    }
+
+    @Transactional
     public void seed() {
         List<Member> members = memberRepository.findAll();
         List<Storybook> storybooks = storybookRepository.findAll();
@@ -290,5 +320,6 @@ public class TagSeeder {
 
         seedMemberTag(members, tags);
         seedStorybookTag(storybooks, tags);
+        seedTagComboPhrase(tags);
     }
 }
