@@ -59,7 +59,7 @@ public class MemberSeeder {
 
     private StorybookCharacter pickRandomCharacter(List<StorybookCharacter> characters) {
         if (characters.isEmpty()) {
-            return null;
+            throw new IllegalStateException("배정 가능한 StorybookCharacter가 없습니다. StorybookSeeder가 먼저 실행되었는지 확인하세요.");
         }
         return characters.get(ThreadLocalRandom.current().nextInt(characters.size()));
     }

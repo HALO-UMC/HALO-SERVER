@@ -116,7 +116,9 @@ public class OnboardingService {
                 saveTags(member, tagIds, Category.DESIRED_DIRECTION);
 
                 // 캐릭터 랜덤 매칭
-                member.assignStorybookCharacter(pickRandomCharacter());
+                if (member.getStorybookCharacter() == null) {
+                    member.assignStorybookCharacter(pickRandomCharacter());
+                }
             }
         }
 

@@ -170,6 +170,21 @@ public interface OnboardingControllerDocs {
                                     }
                                     """)
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "500",
+                    description = "배정 가능한 캐릭터 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "ONBOARDING500_1",
+                                      "message": "배정 가능한 캐릭터가 존재하지 않습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
             )
     })
     ApiResponse<OnboardingResDTO.Save> saveOnboarding(
