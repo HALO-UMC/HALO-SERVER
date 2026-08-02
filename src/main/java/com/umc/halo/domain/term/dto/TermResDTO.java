@@ -9,8 +9,8 @@ public class TermResDTO {
     public record Info(
             Long termId,
             String title,
-            String description,
             String shortDescription,
+            String description,
             Boolean isRequired,
             LocalDateTime updatedAt
     ) {}
