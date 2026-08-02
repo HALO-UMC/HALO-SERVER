@@ -19,7 +19,7 @@ public class StorybookCharacter extends BaseEntity {
     @Column(name = "storybook_character_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "storybook_id", nullable = false)
     private Storybook storybook;
 
