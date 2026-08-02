@@ -17,23 +17,23 @@ public interface ChapterControllerDocs {
             summary = "오늘의 장 조회 API",
             description = """
                     # 오늘의 장 조회
-
+                    
                     ## 요청 형식
                     - **Header**
                         - Authorization: Bearer {JWT 토큰}
                     - **Path Variable**
                         - storybookId : 조회할 스토리북 ID
                         - chapterOrder : 조회할 장 순서 (1~10)
-
+                    
                     ## 동작 방식
                     1. storybookId와 chapterOrder로 장을 조회합니다. 존재하지 않으면 404(CHAPTER404_1)를 반환합니다.
                     2. 회원의 스토리북 진행 정보(MemberStorybook)를 조회합니다.
                     3. 오늘 이미 이 스토리북의 장을 완료했다면 403(CHAPTER403_3)을 반환합니다.
                     4. 진행 중인 장 순서를 기준으로 요청한 장에 접근 가능한지 검증합니다. 아직 열리지 않은 장이면 403(CHAPTER403_1), 이미 완료한 장이면 403(CHAPTER403_2)을 반환합니다.
-                    5. 스토리북의 캐릭터(ORIGINAL/IMAGE_CHOICE), 질문 목록, 장면 카드를 함께 조회합니다.
+                    5. 스토리북의 캐릭터(WRITING/SCENE_CARD), 질문 목록, 장면 카드를 함께 조회합니다.
                     6. 임시저장(draft) 답변이 있으면 함께 조회하고, imageKey가 있으면 presigned imageUrl을 새로 발급합니다.
                     7. 오늘의 장 정보를 반환합니다.
-
+                    
                     ## 참고
                     - 응답의 imageUrl은 매 요청마다 새로 발급되는 presigned GET URL이며, 발급 후 1시간 동안만 유효합니다. 캐싱하지 말고 응답받은 URL을 바로 사용해주세요.
                     """,
@@ -57,8 +57,8 @@ public interface ChapterControllerDocs {
                                                                 "storybookTitle": "오래 전 당신",
                                                                 "guide": "부모님이 지금 내 나이였을 땐 어떤 하루를 보냈을까요? 사진 한 장을 보며 가볍게 물어봐요.",
                                                                 "character": {
-                                                                  "originalUrl": "https://example.com/character-original.png",
-                                                                  "imageChoiceUrl": "https://example.com/character-image-choice.png"
+                                                                  "writingCharacterImageUrl": "https://example.com/character-writing.png",
+                                                                  "sceneCardCharacterImageUrl": "https://example.com/character-scene-card.png"
                                                                 },
                                                                 "questions": [
                                                                   { "chapterQuestionId": 1, "questionOrder": 1, "question": "나와 같은 나이였던 시절에 대한 질문1" },
@@ -99,8 +99,8 @@ public interface ChapterControllerDocs {
                                                                 "storybookTitle": "오래 전 당신",
                                                                 "guide": "부모님이 지금 내 나이였을 땐 어떤 하루를 보냈을까요? 사진 한 장을 보며 가볍게 물어봐요.",
                                                                 "character": {
-                                                                  "originalUrl": "https://example.com/character-original.png",
-                                                                  "imageChoiceUrl": "https://example.com/character-image-choice.png"
+                                                                  "writingCharacterImageUrl": "https://example.com/character-writing.png",
+                                                                  "sceneCardCharacterImageUrl": "https://example.com/character-scene-card.png"
                                                                 },
                                                                 "questions": [
                                                                   { "chapterQuestionId": 1, "questionOrder": 1, "question": "나와 같은 나이였던 시절에 대한 질문1" },
@@ -254,7 +254,7 @@ public interface ChapterControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "스토리북에 ORIGINAL/IMAGE_CHOICE 캐릭터가 등록되지 않음",
+                                                    name = "스토리북에 WRITING/SCENE_CARD 캐릭터가 등록되지 않음",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,

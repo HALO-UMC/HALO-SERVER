@@ -22,8 +22,8 @@ public class ChapterResDTO {
     ) {
         @Builder
         public record Character(
-                String originalUrl,
-                String imageChoiceUrl
+                String writingCharacterImageUrl,
+                String sceneCardCharacterImageUrl
         ) {
         }
 

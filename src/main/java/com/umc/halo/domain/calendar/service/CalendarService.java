@@ -104,9 +104,6 @@ public class CalendarService {
                 .sorted(Comparator.comparing(MemberChapter::getUpdatedAt).reversed())
                 .toList();
 
-        Map<Long, List<MemberChapter>> chaptersByStorybook = memberChapterRepository
-                .findAllByMemberWithChapter(member).stream()
-                .collect(Collectors.groupingBy(mc -> mc.getChapter().getStorybook().getId()));
         List<CalendarDailyResDTO.StorybookInfo> storybooks = new ArrayList<>();
         List<CalendarDailyResDTO.ChapterInfo> chapters = new ArrayList<>();
 
@@ -117,19 +114,11 @@ public class CalendarService {
             if (chapterOrderOfDay == TOTAL_CHAPTER_COUNT) {
                 storybooks.add(CalendarConverter.toStorybookInfo(storybook));
             } else {
-                List<MemberChapter> myChapters = chaptersByStorybook.getOrDefault(storybook.getId(), List.of());
-                Integer completedChapterOrder = resolveCompletedChapterOrder(myChapters);
-                chapters.add(CalendarConverter.toChapterInfo(storybook, completedChapterOrder));
+                chapters.add(CalendarConverter.toChapterInfo(storybook, chapterOrderOfDay));
             }
         }
 
         return CalendarConverter.toDailyInfo(date.toString(), storybooks, chapters);
-    }
-    private Integer resolveCompletedChapterOrder(List<MemberChapter> myChapters) {
-        return myChapters.stream()
-                .filter(mc -> mc.getStatus() == Status.COMPLETED)
-                .map(mc -> mc.getChapter().getChapterOrder())                .max(Integer::compareTo)
-                .orElse(0);
     }
 
 }

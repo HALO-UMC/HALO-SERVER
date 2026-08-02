@@ -1,6 +1,7 @@
 package com.umc.halo.domain.term.dto;
 
 import lombok.Builder;
+import java.time.LocalDateTime;
 
 public class TermResDTO {
 
@@ -9,7 +10,9 @@ public class TermResDTO {
             Long termId,
             String title,
             String shortDescription,
-            Boolean isRequired
+            String description,
+            Boolean isRequired,
+            LocalDateTime updatedAt
     ) {}
 
     @Builder

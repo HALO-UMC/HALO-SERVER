@@ -6,7 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "storybook_character")
+@Table(name = "storybook_character",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"storybook_id"}))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
@@ -18,19 +19,12 @@ public class StorybookCharacter extends BaseEntity {
     @Column(name = "storybook_character_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "storybook_id", nullable = false)
     private Storybook storybook;
 
     @Column(length = 10, nullable = false)
     private String name;
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Variant variant;
-
-    @Column(name = "image_url", nullable = false)
-    private String imageUrl;
 
 
 }
