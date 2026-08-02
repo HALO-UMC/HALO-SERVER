@@ -4,6 +4,7 @@ import com.umc.halo.domain.content.chapter.entity.Chapter;
 import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
 import com.umc.halo.domain.content.storybook.entity.StorybookCharacter;
+import com.umc.halo.domain.content.storybook.entity.StorybookCharacterVariant;
 import com.umc.halo.domain.exhibition.dto.ExhibitionChapterResDTO;
 import com.umc.halo.domain.exhibition.dto.ExhibitionResDTO;
 import com.umc.halo.domain.record.entity.MemberChapter;
@@ -32,8 +33,10 @@ public class ExhibitionConverter {
     }
 
     public static ExhibitionResDTO.CompletedStorybook toCompletedStorybook(
-            MemberStorybook ms, StorybookCharacter character) {
+            MemberStorybook ms,
+            StorybookCharacterVariant characterVariant) {
         Storybook sb = ms.getStorybook();
+        StorybookCharacter character = characterVariant.getStorybookCharacter();
         return new ExhibitionResDTO.CompletedStorybook(
                 sb.getId(),
                 sb.getThemeOrder(),
@@ -42,7 +45,7 @@ public class ExhibitionConverter {
                 ms.getLastCompletedDate(),
                 character.getId(),
                 character.getName(),
-                character.getImageUrl()
+                characterVariant.getImageUrl()
         );
     }
 

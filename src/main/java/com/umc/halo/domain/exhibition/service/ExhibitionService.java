@@ -4,11 +4,11 @@ import com.umc.halo.domain.content.chapter.entity.Chapter;
 import com.umc.halo.domain.content.chapter.entity.SceneCard;
 import com.umc.halo.domain.content.chapter.repository.ChapterRepository;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
-import com.umc.halo.domain.content.storybook.entity.StorybookCharacter;
+import com.umc.halo.domain.content.storybook.entity.StorybookCharacterVariant;
 import com.umc.halo.domain.content.storybook.enums.Variant;
 import com.umc.halo.domain.content.storybook.exception.StorybookException;
 import com.umc.halo.domain.content.storybook.exception.code.StorybookErrorCode;
-import com.umc.halo.domain.content.storybook.repository.StorybookCharacterRepository;
+import com.umc.halo.domain.content.storybook.repository.StorybookCharacterVariantRepository;
 import com.umc.halo.domain.content.storybook.service.StorybookService;
 import com.umc.halo.domain.exhibition.converter.ExhibitionConverter;
 import com.umc.halo.domain.exhibition.dto.ExhibitionChapterResDTO;
@@ -47,7 +47,7 @@ public class ExhibitionService {
     private final MemberStorybookRepository memberStorybookRepository;
     private final MemberChapterRepository memberChapterRepository;
     private final ChapterRepository chapterRepository;
-    private final StorybookCharacterRepository storybookCharacterRepository;
+    private final StorybookCharacterVariantRepository storybookCharacterVariantRepository;
     private final StorybookService storybookService;
 
     public ExhibitionResDTO.MainInfo getExhibition(Long memberId) {
@@ -106,16 +106,16 @@ public class ExhibitionService {
             List<Storybook> completedStorybooks = completed.stream()
                     .map(MemberStorybook::getStorybook)
                     .toList();
-            Map<Long, StorybookCharacter> characterMap = storybookCharacterRepository
-                    .findByStorybookInAndVariant(completedStorybooks, Variant.ORIGINAL).stream()
-                    .collect(Collectors.toMap(c -> c.getStorybook().getId(), Function.identity()));
+            Map<Long, StorybookCharacterVariant> characterVariantMap = storybookCharacterVariantRepository
+                    .findAllByStorybookCharacter_StorybookInAndVariant(completedStorybooks, Variant.EXHIBITION).stream()
+                    .collect(Collectors.toMap(c -> c.getStorybookCharacter().getStorybook().getId(), Function.identity()));
 
             for (MemberStorybook ms : completed) {
-                StorybookCharacter character = characterMap.get(ms.getStorybook().getId());
-                if (character == null) {
+                StorybookCharacterVariant characterVariant = characterVariantMap.get(ms.getStorybook().getId());
+                if (characterVariant == null) {
                     throw new StorybookException(StorybookErrorCode.NOT_FOUND_CHARACTER);
                 }
-                completedDtos.add(ExhibitionConverter.toCompletedStorybook(ms, character));
+                completedDtos.add(ExhibitionConverter.toCompletedStorybook(ms, characterVariant));
             }
         } else if (!inProgress.isEmpty()) {
             for (MemberStorybook ms : inProgress) {
