@@ -162,9 +162,8 @@ public interface TermControllerDocs {
 
                     ## 동작 방식
                     1. 인증된 회원을 조회합니다. 존재하지 않으면 404(MEMBER404_1)를 반환합니다.
-                    2. 회원이 동의한 약관 목록을 조회합니다.
-                    3. 필수 약관(isRequired=true)이 모두 동의 목록에 포함되어 있는지 확인합니다.
-                    4. 필수 약관 중 하나라도 동의하지 않았으면 termsAgreed를 false로, 모두 동의했으면 true로 반환합니다.
+                    2. 필수 약관 전체 개수와 회원이 동의한 필수 약관 개수를 비교합니다.
+                    3. 두 개수가 같으면 termsAgreed를 true로, 다르면 false로 반환합니다.
                     """
     )
     @ApiResponses(value = {
