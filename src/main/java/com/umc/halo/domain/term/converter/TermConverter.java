@@ -14,7 +14,6 @@ public class TermConverter {
                 .shortDescription(term.getShortDescription())
                 .description(term.getDescription())
                 .isRequired(term.getIsRequired())
-                .isRequired(term.getIsRequired())
                 .updatedAt(term.getUpdatedAt())
                 .build();
     }
