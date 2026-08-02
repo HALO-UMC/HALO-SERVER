@@ -31,7 +31,9 @@ public class MemberConverter {
                 .build();
     }
 
-    public static MemberResDTO.MyInfo toMyInfo(Member member) {
+    public static MemberResDTO.MyInfo toMyInfo(Member member, String characterImageUrl) {
+
+
         return MemberResDTO.MyInfo.builder()
                 .memberId(member.getId())
                 .name(member.getName())
@@ -40,6 +42,7 @@ public class MemberConverter {
                 .provider(member.getProvider())
                 .onboardingCompleted(member.getOnboardingCompleted())
                 .createdAt(member.getCreatedAt())
+                .characterImageUrl(characterImageUrl)
                 .build();
     }
 

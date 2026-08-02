@@ -16,7 +16,8 @@ public class MemberResDTO {
             Boolean isNewUser,
             Boolean onboardingCompleted,
             Boolean termsAgreed
-    ) {}
+    ) {
+    }
 
     @Builder
     public record TokenReissue(
@@ -24,7 +25,8 @@ public class MemberResDTO {
             String refreshToken,
             Boolean onboardingCompleted,
             Boolean termsAgreed
-    ) {}
+    ) {
+    }
 
     @Builder
     public record MyInfo(
@@ -34,6 +36,8 @@ public class MemberResDTO {
             LocalDate birthDate,
             Provider provider,
             Boolean onboardingCompleted,
+            String characterImageUrl,
             LocalDateTime createdAt
-    ) {}
+    ) {
+    }
 }
