@@ -31,8 +31,11 @@ public class Chapter extends BaseEntity {
     @Column(name = "chapter_order", nullable = false)
     private Integer chapterOrder;
 
-    @Column(name = "image_url", length = 255, nullable = false)
-    private String imageUrl;
+    @Column(name = "short_image_url", nullable = false)
+    private String shortImageUrl;
+
+    @Column(name = "long_image_url", nullable = false)
+    private String longImageUrl;
 
     @Column(length = 255)
     private String guide;

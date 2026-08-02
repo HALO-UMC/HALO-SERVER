@@ -28,7 +28,7 @@ public class RecordConverter {
                 .chapterTitle(chapter.getTitle())
                 .chapterOrder(memberChapter.getChapter().getChapterOrder())
                 .description(chapter.getDescription())
-                .chapterImageUrl(chapter.getImageUrl())
+                .chapterImageUrl(chapter.getShortImageUrl())
                 .emotion(memberChapter.getEmotion())
                 .coverType(coverType)
                 .imageUrl(coverType == CoverType.IMAGE ? imageUrl : null)
