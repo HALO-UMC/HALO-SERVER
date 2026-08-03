@@ -39,7 +39,6 @@ public class ExhibitionConverter {
         StorybookCharacter character = characterVariant.getStorybookCharacter();
         return new ExhibitionResDTO.CompletedStorybook(
                 sb.getId(),
-                sb.getThemeOrder(),
                 sb.getTitle(),
                 sb.getShortDescription(),
                 ms.getLastCompletedDate(),
