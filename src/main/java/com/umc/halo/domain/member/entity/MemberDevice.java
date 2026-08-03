@@ -34,4 +34,9 @@ public class MemberDevice extends BaseEntity {
 
     @Column(name = "device_identifier", nullable = false, length = 255)
     private String deviceIdentifier;
+
+    public void update(String fcmToken, DeviceType deviceType) {
+        this.fcmToken = fcmToken;
+        this.deviceType = deviceType;
+    }
 }
