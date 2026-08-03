@@ -31,9 +31,9 @@ public class LocalDataSeeder implements CommandLineRunner {
         }
 
         log.info("로컬 데이터 초기화");
-
-        memberSeeder.seed();
+        
         storybookSeeder.seed();
+        memberSeeder.seed();
         tagSeeder.seed();
         recordSeeder.seed();
         termSeeder.seed();

@@ -344,7 +344,7 @@ public interface MemberControllerDocs {
                     # 동작 방식
                     1. Access Token으로 현재 회원을 인증합니다.
                     2. 회원 정보를 조회합니다.
-                    3. 회원의 기본 정보를 반환합니다.
+                    3. 회원의 기본 정보와 온보딩 완료 시 배정된 캐릭터의 프로필 이미지 URL(characterImageUrl)을 반환합니다. 캐릭터가 배정되지 않았거나 프로필 이미지가 없다면 null입니다.
                     """
     )
     @ApiResponses(value = {
@@ -365,7 +365,8 @@ public interface MemberControllerDocs {
                                             "birthDate": "2002-02-25",
                                             "provider": "KAKAO",
                                             "onboardingCompleted": true,
-                                            "createdAt": "2026-06-30T14:20:00"
+                                            "createdAt": "2026-06-30T14:20:00",
+                                            "characterImageUrl": "https://cdn.halo.com/character/3/profile.png"
                                         }
                                     }
                                     """

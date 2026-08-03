@@ -1,6 +1,7 @@
 package com.umc.halo.domain.content.storybook.repository;
 
 import com.umc.halo.domain.content.storybook.entity.Storybook;
+import com.umc.halo.domain.content.storybook.entity.StorybookCharacter;
 import com.umc.halo.domain.content.storybook.entity.StorybookCharacterVariant;
 import com.umc.halo.domain.content.storybook.enums.Variant;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,4 +26,6 @@ public interface StorybookCharacterVariantRepository extends JpaRepository<Story
     List<StorybookCharacterVariant> findAllByStorybookCharacter_StorybookInAndVariant(
             @Param("storybooks") List<Storybook> storybooks,
             @Param("variant") Variant variant);
+
+    Optional<StorybookCharacterVariant> findByStorybookCharacterAndVariant(StorybookCharacter storybookCharacter, Variant variant);
 }
