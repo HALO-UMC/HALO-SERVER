@@ -205,7 +205,7 @@ public class StorybookService {
 
             for (Storybook sb : fallbackStorybooks) {
                 if (recommendations.size() >= 2) break;
-                recommendations.add(StorybookConverter.toRecommendedStorybook(sb, sb.getShortDescription()));
+                recommendations.add(StorybookConverter.toRecommendedStorybook(sb, sb.getRecommendationPhrase()));
             }
         }
 
