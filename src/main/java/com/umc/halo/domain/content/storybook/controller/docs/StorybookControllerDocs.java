@@ -37,36 +37,72 @@ public interface StorybookControllerDocs {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ApiResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": true,
-                                      "code": "HOME200_1",
-                                      "message": "홈 화면을 성공적으로 조회했습니다.",
-                                      "result": {
-                                        "homeStatus": "MULTIPLE_IN_PROGRESS",
-                                        "memberName": "김하로님",
-                                        "inProgressStorybooks": [
-                                          {
-                                            "storybookId": 3,
-                                            "title": "가족의 온도",
-                                            "imageUrl": "https://example.com/storybook3.png",
-                                            "currentChapterOrder": 1,
-                                            "totalChapterCount": 10,
-                                            "todayAvailable": true
-                                          },
-                                          {
-                                            "storybookId": 4,
-                                            "title": "취향이 닿는 날",
-                                            "imageUrl": "https://example.com/storybook4.png",
-                                            "currentChapterOrder": 3,
-                                            "totalChapterCount": 10,
-                                            "todayAvailable": true
+                            examples = {
+                                    @ExampleObject(
+                                            name = "진행중인 스토리북이 있는 경우",
+                                            value = """
+                                        {
+                                          "isSuccess": true,
+                                          "code": "HOME200_1",
+                                          "message": "홈 화면을 성공적으로 조회했습니다.",
+                                          "result": {
+                                            "homeStatus": "MULTIPLE_IN_PROGRESS",
+                                            "memberName": "김하로님",
+                                            "inProgressStorybooks": [
+                                              {
+                                                "storybookId": 3,
+                                                "title": "가족의 온도",
+                                                "imageUrl": "https://example.com/storybook3.png",
+                                                "currentChapterOrder": 1,
+                                                "totalChapterCount": 10,
+                                                "todayAvailable": true
+                                              },
+                                              {
+                                                "storybookId": 4,
+                                                "title": "취향이 닿는 날",
+                                                "imageUrl": "https://example.com/storybook4.png",
+                                                "currentChapterOrder": 3,
+                                                "totalChapterCount": 10,
+                                                "todayAvailable": true
+                                              }
+                                            ],
+                                            "recommendedStorybooks": []
                                           }
-                                        ],
-                                        "recommendedStorybooks": []
-                                      }
-                                    }
-                                    """)
+                                        }
+                                        """
+                                    ),
+                                    @ExampleObject(
+                                            name = "진행중인 스토리북이 없는 경우(추천)",
+                                            value = """
+                                        {
+                                          "isSuccess": true,
+                                          "code": "HOME200_1",
+                                          "message": "홈 화면을 성공적으로 조회했습니다.",
+                                          "result": {
+                                            "homeStatus": "NO_STORYBOOK",
+                                            "memberName": "김하로님",
+                                            "inProgressStorybooks": [],
+                                            "recommendedStorybooks": [
+                                              {
+                                                "storybookId": 1,
+                                                "title": "오래 전 당신",
+                                                "shortDescription": "가족과의 만남",
+                                                "imageUrl": "https://example.com/storybook1.png",
+                                                "recommendationReasonText": "부모님의 지난 시간을 알고 싶다면"
+                                              },
+                                              {
+                                                "storybookId": 2,
+                                                "title": "당신 사용설명서",
+                                                "shortDescription": "나를 아는 시간",
+                                                "imageUrl": "https://example.com/storybook2.png",
+                                                "recommendationReasonText": "부모님을 더 잘 이해하고 싶다면"
+                                              }
+                                            ]
+                                          }
+                                        }
+                                        """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
