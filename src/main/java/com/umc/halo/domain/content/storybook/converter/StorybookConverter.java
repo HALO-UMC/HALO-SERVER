@@ -59,7 +59,6 @@ public class StorybookConverter {
         return StorybookResDTO.StorybookSummary.builder()
                 .storybookId(storybook.getId())
                 .title(storybook.getTitle())
-                .themeOrder(storybook.getThemeOrder())
                 .shortDescription(storybook.getShortDescription())
                 .imageUrl(storybook.getImageUrl())
                 .status(status)
@@ -147,7 +146,6 @@ public class StorybookConverter {
         return StorybookResDTO.BookshelfItem.builder()
                 .storybookId(sb.getId())
                 .title(sb.getTitle())
-                .themeOrder(sb.getThemeOrder())
                 .status(status)
                 .build();
     }
