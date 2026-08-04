@@ -74,10 +74,9 @@ public class StorybookService {
         Optional<MemberStorybook> memberStorybookOpt =
                 memberStorybookRepository.findByMemberAndStorybook(member, storybook);
 
-        Set<Long> completedChapterIds = memberChapters.stream()
+        Map<Long, Long> completedChapterIdToMemberChapterId = memberChapters.stream()
                 .filter(mc -> mc.getStatus() == Status.COMPLETED)
-                .map(mc -> mc.getChapter().getId())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toMap(mc -> mc.getChapter().getId(), MemberChapter::getId, (a, b) -> b));
 
         boolean completedToday = memberStorybookOpt
                 .map(MemberStorybook::isCompletedToday)
@@ -87,8 +86,9 @@ public class StorybookService {
         List<StorybookResDTO.ChapterInfo> chapterInfos = new ArrayList<>();
 
         for (Chapter sc : Chapters) {
+            Long memberChapterId = completedChapterIdToMemberChapterId.get(sc.getId());
             ChapterViewStatus status;
-            if (completedChapterIds.contains(sc.getId())) {
+            if (memberChapterId != null) {
                 status = ChapterViewStatus.COMPLETED;
             } else if (!foundToday) {
                 foundToday = true;
@@ -97,10 +97,9 @@ public class StorybookService {
                 status = ChapterViewStatus.LOCKED;
             }
 
-            chapterInfos.add(StorybookConverter.toChapterInfo(sc, status));
+            chapterInfos.add(StorybookConverter.toChapterInfo(sc, status, memberChapterId));
         }
-
-        int completedChapterCount = completedChapterIds.size();
+        int completedChapterCount = completedChapterIdToMemberChapterId.size();
         int progressPercentage = completedChapterCount * 10;
 
         return StorybookConverter.toStorybookDetail(storybook, chapterInfos, completedChapterCount, progressPercentage);

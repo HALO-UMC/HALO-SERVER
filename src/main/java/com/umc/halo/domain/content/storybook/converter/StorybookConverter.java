@@ -20,12 +20,12 @@ public class StorybookConverter {
         throw new IllegalStateException("유틸리티 클래스는 인스턴스화할 수 없습니다.");
     }
 
-    public static StorybookResDTO.ChapterInfo toChapterInfo(Chapter chapter, ChapterViewStatus status) {
+    public static StorybookResDTO.ChapterInfo toChapterInfo(Chapter chapter, ChapterViewStatus status, Long memberChapterId) {
         return StorybookResDTO.ChapterInfo.builder()
                 .chapterOrder(chapter.getChapterOrder())
+                .memberChapterId(memberChapterId)
                 .title(chapter.getTitle())
                 .shortImageUrl(chapter.getShortImageUrl())
-                .longImageUrl(chapter.getLongImageUrl())
                 .shortDescription(chapter.getShortDescription())
                 .description(chapter.getDescription())
                 .status(status)

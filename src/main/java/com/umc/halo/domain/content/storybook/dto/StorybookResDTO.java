@@ -82,9 +82,9 @@ public class StorybookResDTO {
     @Builder
     public record ChapterInfo(
             int chapterOrder,
+            Long memberChapterId,
             String title,
             String shortImageUrl,
-            String longImageUrl,
             String shortDescription,
             String description,
             ChapterViewStatus status
