@@ -22,6 +22,7 @@ public class ChapterConverter {
         return ChapterResDTO.TodayChapter.builder()
                 .chapterId(chapter.getId())
                 .storybookTitle(chapter.getStorybook().getTitle())
+                .longImageUrl(chapter.getLongImageUrl())
                 .guide(chapter.getGuide())
 
                 .character(
