@@ -41,7 +41,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             Long memberId = jwtUtil.getMemberId(token);
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
-                            memberId,               // principal = memberId (현재는 memberId만 사용 (MemberRepository 생기면 회원 조회로 수정 예정)
+                            memberId,
                             null,
                             Collections.emptyList() // 권한 목록 (role 구분 없어 현재 비움)
                     );
