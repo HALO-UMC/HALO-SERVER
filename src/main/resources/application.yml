@@ -73,3 +73,8 @@ async:
     keep-alive-seconds: 60
     await-termination-seconds: 20
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
