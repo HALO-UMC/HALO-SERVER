@@ -247,41 +247,60 @@ public interface StorybookControllerDocs {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ApiResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": true,
-                                      "code": "STORYBOOK200_2",
-                                      "message": "스토리북 상세를 성공적으로 조회했습니다.",
-                                      "result": {
-                                        "storybookId": 4,
-                                        "title": "취향이 닿는 날",
-                                        "description": "좋아하는 것과 싫어하는 것을 하나씩 나누며, 서로의 취향이 닿는 순간들을 발견하는 이야기입니다.",
-                                        "imageUrl": "https://example.com/storybook4.png",
-                                        "completedChapterCount": 1,
-                                        "progressPercentage": 10,
-                                        "chapters": [
-                                          {
-                                            "chapterOrder": 1,
-                                            "memberChapterId": 12,
-                                            "title": "나와 같은 나이였던 시절",
-                                            "shortImageUrl": "https://example.com/chapter1-short.png",
-                                            "shortDescription": "부모님이 지금의 내 나이였을 때의 하루",
-                                            "description": "부모님을 한 사람으로 바라보는 첫 장입니다.",
-                                            "status": "COMPLETED"
-                                          },
-                                          {
-                                            "chapterOrder": 2,
-                                            "memberChapterId": null,
-                                            "title": "소년과 소녀의 꿈",
-                                            "shortImageUrl": "https://example.com/chapter2-short.png",
-                                            "shortDescription": "목차 예시2",
-                                            "description": "부모님에게도 작고 선명했던 어린 시절의 꿈이 있었습니다.",
-                                            "status": "LOCKED"
-                                          }
-                                        ]
-                                      }
-                                    }
-                                    """)
+                            examples = {
+                                    @ExampleObject(
+                                            name = "전체 완료된 스토리북",
+                                            value = """
+                        {
+                          "isSuccess": true,
+                          "code": "STORYBOOK200_2",
+                          "message": "스토리북 상세를 성공적으로 조회했습니다.",
+                          "result": {
+                            "storybookId": 1,
+                            "title": "오래 전 당신",
+                            "description": "부모님을 '부모'가 아닌 한 사람으로 바라보며, 어린 시절의 기억과 청춘의 순간, 지나온 시간을 차근차근 들어보는 이야기입니다.",
+                            "imageUrl": "https://example.com/storybook1.png",
+                            "completedChapterCount": 10,
+                            "progressPercentage": 100,
+                            "chapters": [
+                              { "chapterOrder": 1, "memberChapterId": 1, "title": "집 앞 한 바퀴", "shortImageUrl": "https://example.com/chapter1.png", "shortDescription": "부모님이 지금의 내 나이였을 때의 하루", "description": "부담 없이 집 앞을 함께 걸어보는 첫 장입니다.", "status": "COMPLETED" },
+                              { "chapterOrder": 2, "memberChapterId": 2, "title": "자주 가던 길", "shortImageUrl": "https://example.com/chapter2.png", "shortDescription": "목차 예시2", "description": "부모님이 자주 가는 길을 함께 따라가봅니다.", "status": "COMPLETED" },
+                              { "chapterOrder": 3, "memberChapterId": 3, "title": "부모님의 속도", "shortImageUrl": "https://example.com/chapter3.png", "shortDescription": "목차 예시3", "description": "부모님의 속도에 맞춰 걸어봐요.", "status": "COMPLETED" },
+                              { "chapterOrder": 4, "memberChapterId": 4, "title": "함께 장보기", "shortImageUrl": "https://example.com/chapter4.png", "shortDescription": "목차 예시4", "description": "부모님과 장을 보며 선택의 기준을 알아봅니다.", "status": "COMPLETED" },
+                              { "chapterOrder": 5, "memberChapterId": 5, "title": "가까운 외출", "shortImageUrl": "https://example.com/chapter5.png", "shortDescription": "목차 예시5", "description": "멀리 가지 않아도 가능한 작은 외출을 다녀옵니다.", "status": "COMPLETED" },
+                              { "chapterOrder": 6, "memberChapterId": 6, "title": "오래된 장소", "shortImageUrl": "https://example.com/chapter6.png", "shortDescription": "목차 예시6", "description": "부모님에게 의미 있는 장소를 찾아가봅니다.", "status": "COMPLETED" },
+                              { "chapterOrder": 7, "memberChapterId": 7, "title": "오늘의 사진 한 장", "shortImageUrl": "https://example.com/chapter7.png", "shortDescription": "목차 예시7", "description": "외출 중 부모님의 모습을 사진으로 남기는 장입니다.", "status": "COMPLETED" },
+                              { "chapterOrder": 8, "memberChapterId": 8, "title": "조금 먼 곳", "shortImageUrl": "https://example.com/chapter8.png", "shortDescription": "목차 예시8", "description": "평소보다 조금 먼 곳을 함께 다녀옵니다.", "status": "COMPLETED" },
+                              { "chapterOrder": 9, "memberChapterId": 9, "title": "돌아오는 길", "shortImageUrl": "https://example.com/chapter9.png", "shortDescription": "목차 예시9", "description": "돌아오는 길에 오늘의 감상을 나눠봅니다.", "status": "COMPLETED" },
+                              { "chapterOrder": 10, "memberChapterId": 10, "title": "나란히 걷는 우리", "shortImageUrl": "https://example.com/chapter10.png", "shortDescription": "목차 예시10", "description": "함께 걸었던 길들을 돌아보는 마지막 장입니다.", "status": "COMPLETED" }
+                            ]
+                          }
+                        }
+                        """
+                                    ),
+                                    @ExampleObject(
+                                            name = "진행 중인 스토리북",
+                                            value = """
+                        {
+                          "isSuccess": true,
+                          "code": "STORYBOOK200_2",
+                          "message": "스토리북 상세를 성공적으로 조회했습니다.",
+                          "result": {
+                            "storybookId": 4,
+                            "title": "취향이 닿는 날",
+                            "description": "좋아하는 것과 싫어하는 것을 하나씩 나누며, 서로의 취향이 닿는 순간들을 발견하는 이야기입니다.",
+                            "imageUrl": "https://example.com/storybook4.png",
+                            "completedChapterCount": 1,
+                            "progressPercentage": 10,
+                            "chapters": [
+                              { "chapterOrder": 1, "memberChapterId": 1, "title": "나와 같은 나이였던 시절", "shortImageUrl": "https://example.com/chapter1-short.png", "shortDescription": "부모님이 지금의 내 나이였을 때의 하루", "description": "부모님을 한 사람으로 바라보는 첫 장입니다.", "status": "COMPLETED" },
+                              { "chapterOrder": 2, "memberChapterId": null, "title": "소년과 소녀의 꿈", "shortImageUrl": "https://example.com/chapter2-short.png", "shortDescription": "목차 예시2", "description": "부모님에게도 작고 선명했던 어린 시절의 꿈이 있었습니다.", "status": "LOCKED" }
+                            ]
+                          }
+                        }
+                        """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
