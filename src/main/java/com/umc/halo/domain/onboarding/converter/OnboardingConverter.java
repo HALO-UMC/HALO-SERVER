@@ -2,7 +2,8 @@ package com.umc.halo.domain.onboarding.converter;
 
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.onboarding.dto.OnboardingResDTO;
-
+import com.umc.halo.domain.tag.entity.Tag;
+import java.util.List;
 import java.util.List;
 
 public class OnboardingConverter {
@@ -42,5 +43,25 @@ public class OnboardingConverter {
                 .currentRelationStateTagId(currentRelationStateTagId)
                 .goalRelationshipTagIds(goalRelationshipTagIds)
                 .build();
+    }
+    public static OnboardingResDTO.TagInfo toTagInfo(Tag tag) {
+        return new OnboardingResDTO.TagInfo(
+                tag.getId(),
+                tag.getTitle(),
+                tag.getSubtitle(),
+                tag.getDescription()
+        );
+    }
+
+    public static OnboardingResDTO.TagList toTagList(
+            List<Tag> parentPersonalityTags,
+            List<Tag> currentRelationStateTags,
+            List<Tag> goalRelationshipTags
+    ) {
+        return new OnboardingResDTO.TagList(
+                parentPersonalityTags.stream().map(OnboardingConverter::toTagInfo).toList(),
+                currentRelationStateTags.stream().map(OnboardingConverter::toTagInfo).toList(),
+                goalRelationshipTags.stream().map(OnboardingConverter::toTagInfo).toList()
+        );
     }
 }

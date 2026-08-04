@@ -117,7 +117,7 @@ public interface CalendarControllerDocs {
                     2. 요청한 날짜(date)에 완료(COMPLETED)된 장 기록을 최신 수정순으로 조회합니다.
                     3. 각 기록의 스토리북별 진행 상태를 계산합니다.
                     4. 완료한 장이 마지막 장(10번째)이면 완성 스토리북(storybooks) 목록에 추가합니다.
-                    5. 그 외의 경우 완료한 마지막 장 순서(completedChapterOrder)를 계산하여 진행 중 장(chapters) 목록에 추가합니다.
+                    5. 그 외의 경우 해당 날짜에 완료한 장 순서(completedChapterOrder)를 진행 중 장(chapters) 목록에 추가합니다.
                     6. 완성 스토리북과 진행 중 장 목록을 함께 반환합니다.
                     """
     )
