@@ -38,7 +38,6 @@ public class MemberStorybook extends BaseEntity {
     @Column(name = "last_completed_date")
     private LocalDate lastCompletedDate;
 
-
     public void updateCompleted(Integer chapterOrder) {
         this.lastChapterOrder = chapterOrder;
         this.lastCompletedDate = LocalDate.now();
