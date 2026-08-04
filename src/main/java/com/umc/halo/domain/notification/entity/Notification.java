@@ -112,13 +112,4 @@ public class Notification extends BaseEntity {
         this.status = NotificationStatus.PROCESSING;
         this.processingAt = LocalDateTime.now();
     }
-
-    public void resetToScheduled() {
-        if (this.status != NotificationStatus.PROCESSING) {
-            return;
-        }
-
-        this.status = NotificationStatus.SCHEDULED;
-        this.processingAt = null;
-    }
 }
