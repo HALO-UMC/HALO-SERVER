@@ -36,7 +36,6 @@ public class StorybookResDTO {
     public record BookshelfItem(
             Long storybookId,
             String title,
-            int themeOrder,
             BookshelfStatus status
     ) {
     }
@@ -52,7 +51,6 @@ public class StorybookResDTO {
     public record StorybookSummary(
             Long storybookId,
             String title,
-            int themeOrder,
             String shortDescription,
             String imageUrl,
             StorybookStatus status,

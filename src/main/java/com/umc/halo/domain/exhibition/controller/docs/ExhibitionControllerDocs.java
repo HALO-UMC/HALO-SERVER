@@ -42,7 +42,6 @@ public interface ExhibitionControllerDocs {
                                 "storybooks": [
                                   {
                                     "storybookId": 101,
-                                    "order": 1,
                                     "title": "오래 전 당신",
                                     "summary": "가족과의 만남",
                                     "completedDate": "2026-06-10",

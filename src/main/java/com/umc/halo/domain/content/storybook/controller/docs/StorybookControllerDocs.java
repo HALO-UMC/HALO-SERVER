@@ -66,13 +66,11 @@ public interface StorybookControllerDocs {
                                           {
                                             "storybookId": 1,
                                             "title": "오래 전 당신",
-                                            "themeOrder": 1,
                                             "status": "COMPLETED"
                                           },
                                           {
                                             "storybookId": 3,
                                             "title": "가족의 온도",
-                                            "themeOrder": 3,
                                             "status": "IN_PROGRESS"
                                           }
                                         ],
@@ -152,7 +150,6 @@ public interface StorybookControllerDocs {
                                           {
                                             "storybookId": 1,
                                             "title": "오래 전 당신",
-                                            "themeOrder": 1,
                                             "shortDescription": "가족과의 만남",
                                             "imageUrl": "https://example.com/storybook1.png",
                                             "status": "COMPLETED",
@@ -162,7 +159,6 @@ public interface StorybookControllerDocs {
                                           {
                                             "storybookId": 2,
                                             "title": "당신 사용설명서",
-                                            "themeOrder": 2,
                                             "shortDescription": "나를 아는 시간",
                                             "imageUrl": "https://example.com/storybook2.png",
                                             "status": "NOT_STARTED",

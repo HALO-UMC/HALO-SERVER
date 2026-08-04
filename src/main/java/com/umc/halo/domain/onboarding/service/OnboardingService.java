@@ -1,5 +1,7 @@
 package com.umc.halo.domain.onboarding.service;
 
+import com.umc.halo.domain.content.storybook.entity.StorybookCharacter;
+import com.umc.halo.domain.content.storybook.repository.StorybookCharacterRepository;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.onboarding.dto.OnboardingResDTO;
 import com.umc.halo.domain.onboarding.exception.OnboardingException;
@@ -20,6 +22,7 @@ import com.umc.halo.domain.onboarding.converter.OnboardingConverter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 import java.util.List;
 
@@ -30,6 +33,7 @@ public class OnboardingService {
     private final MemberRepository memberRepository;
     private final TagRepository tagRepository;
     private final MemberTagRepository memberTagRepository;
+    private final StorybookCharacterRepository storybookCharacterRepository;
 
     private static final Pattern NICKNAME_PATTERN =
             Pattern.compile("^[가-힣a-zA-Z0-9]{2,10}$");
@@ -46,11 +50,13 @@ public class OnboardingService {
         boolean available = !memberRepository.existsByName(nickname);
         return OnboardingConverter.toNicknameCheck(available);
     }
+
     private void validateNicknameFormat(String nickname) {
         if (nickname == null || !NICKNAME_PATTERN.matcher(nickname).matches()) {
             throw new OnboardingException(OnboardingErrorCode.INVALID_NICKNAME);
         }
     }
+
     // 온보딩 정보 저장 이어서 하는 작업용
     @Transactional
     public OnboardingResDTO.Save saveOnboarding(Long memberId, OnboardingReqDTO.Save request) {
@@ -108,6 +114,11 @@ public class OnboardingService {
                     throw new OnboardingException(OnboardingErrorCode.GOAL_TAG_LIMIT_EXCEEDED);
                 }
                 saveTags(member, tagIds, Category.DESIRED_DIRECTION);
+
+                // 캐릭터 랜덤 매칭
+                if (member.getStorybookCharacter() == null) {
+                    member.assignStorybookCharacter(pickRandomCharacter());
+                }
             }
         }
 
@@ -171,5 +182,13 @@ public class OnboardingService {
                 member, parentTagIds, currentRelationTagId, goalTagIds);
 
         return OnboardingConverter.toStatus(member, savedData);
+    }
+
+    private StorybookCharacter pickRandomCharacter() {
+        List<StorybookCharacter> characters = storybookCharacterRepository.findAll();
+        if (characters.isEmpty()) {
+            throw new OnboardingException(OnboardingErrorCode.CHARACTER_NOT_FOUND);
+        }
+        return characters.get(ThreadLocalRandom.current().nextInt(characters.size()));
     }
 }
