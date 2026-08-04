@@ -59,6 +59,9 @@ public class Notification extends BaseEntity {
     @Column(name = "anniversary_enabled")
     private Boolean anniversaryEnabled;
 
+    @Column(name = "processing_at")
+    private LocalDateTime processingAt;
+
     public void updateContent(String title, String message) {
         this.title = title;
         this.message = message;
@@ -90,15 +93,32 @@ public class Notification extends BaseEntity {
     public void expire() {
         if (this.status != NotificationStatus.SENT) {
             this.status = NotificationStatus.EXPIRED;
+            this.processingAt = null;
         }
     }
 
     public void send() {
         this.status = NotificationStatus.SENT;
         this.sentAt = LocalDateTime.now();
+        this.processingAt = null;
     }
 
     public void fail() {
         this.status = NotificationStatus.FAILED;
+        this.processingAt = null;
+    }
+
+    public void startProcessing() {
+        this.status = NotificationStatus.PROCESSING;
+        this.processingAt = LocalDateTime.now();
+    }
+
+    public void resetToScheduled() {
+        if (this.status != NotificationStatus.PROCESSING) {
+            return;
+        }
+
+        this.status = NotificationStatus.SCHEDULED;
+        this.processingAt = null;
     }
 }

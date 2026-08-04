@@ -22,31 +22,53 @@ public class NotificationService {
     private final MemberDeviceRepository memberDeviceRepository;
     private final FcmService fcmService;
 
-    @Transactional
-    public void sendScheduledNotification() {
+    public void sendScheduledNotifications() {
 
-        LocalDateTime now = LocalDateTime.now();
-
-        List<Notification> notifications = notificationRepository.findAllByStatusAndScheduledAtLessThanEqual(NotificationStatus.SCHEDULED, now);
+        List<Notification> notifications = claimNotifications();
 
         for (Notification notification : notifications) {
+
             if (!canSend(notification)) {
+                resetToScheduled(notification.getId());
                 continue;
             }
 
-            send(notification);
+            try {
+                boolean success = send(notification);
+
+                if (success) {
+                    completeSend(notification.getId());
+                } else {
+                    failSend(notification.getId());
+                }
+
+            } catch (Exception e) {
+                failSend(notification.getId());
+            }
         }
+    }
+
+    @Transactional
+    public List<Notification> claimNotifications() {
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime timeOut = now.minusMinutes(10);
+
+        List<Notification> notifications = notificationRepository.findTargetsForUpdate(NotificationStatus.SCHEDULED, NotificationStatus.PROCESSING, now, timeOut);
+
+        notifications.forEach(Notification::startProcessing);
+
+        return notifications;
     }
 
     private boolean canSend(Notification notification) {
         return switch (notification.getNotificationType()) {
-            case ANNIVERSARY_D7, ANNIVERSARY_DDAY -> notification.getAnniversaryEnabled() && notification.getSettingEnabled();
-            case TODAY_CHAPTER -> notification.getSettingEnabled();
-            case RETENTION -> notification.getSettingEnabled();
+            case ANNIVERSARY_D7, ANNIVERSARY_DDAY -> Boolean.TRUE.equals(notification.getAnniversaryEnabled()) && Boolean.TRUE.equals(notification.getSettingEnabled());
+            case TODAY_CHAPTER, RETENTION -> Boolean.TRUE.equals(notification.getSettingEnabled());
         };
     }
 
-    private void send(Notification notification) {
+    private boolean send(Notification notification) {
         List<MemberDevice> memberDevices = memberDeviceRepository.findAllByMember(notification.getMember());
 
         int successCount = 0;
@@ -60,10 +82,25 @@ public class NotificationService {
             }
         }
 
-        if (successCount > 0) {
-            notification.send();
-        } else {
-            notification.fail();
-        }
+        return successCount > 0;
+    }
+
+    @Transactional
+    public void completeSend(Long notificationId){
+        Notification notification = notificationRepository.findById(notificationId).orElseThrow();
+        notification.send();
+    }
+
+
+    @Transactional
+    public void failSend(Long notificationId){
+        Notification notification = notificationRepository.findById(notificationId).orElseThrow();
+        notification.fail();
+    }
+
+    @Transactional
+    public void resetToScheduled(Long notificationId) {
+        Notification notification = notificationRepository.findById(notificationId).orElseThrow();
+        notification.resetToScheduled();
     }
 }

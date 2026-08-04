@@ -22,9 +22,10 @@ public class MemberDeviceController {
 
     @PostMapping
     public ApiResponse<Void> registerDevice(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
             @RequestBody @Valid MemberDeviceReqDTO.Register dto
     ) {
-        memberDeviceService.registerDevice(9L, dto);
+        memberDeviceService.registerDevice(memberId, dto);
         BaseSuccessCode code = MemberDeviceSuccessCode.DEVICE_REGISTER_SUCCESS;
         return ApiResponse.onSuccess(code);
     }

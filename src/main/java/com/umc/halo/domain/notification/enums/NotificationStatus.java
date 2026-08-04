@@ -4,5 +4,6 @@ public enum NotificationStatus {
     SCHEDULED,
     SENT,
     EXPIRED,
-    FAILED
+    FAILED,
+    PROCESSING
 }
