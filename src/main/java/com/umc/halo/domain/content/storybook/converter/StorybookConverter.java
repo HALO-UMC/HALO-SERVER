@@ -113,17 +113,6 @@ public class StorybookConverter {
                 .build();
     }
 
-    public static StorybookResDTO.RecommendedStorybook toRecommendedStorybook(
-            StorybookResDTO.RecommendedStorybook original, String reasonText) {
-        return StorybookResDTO.RecommendedStorybook.builder()
-                .storybookId(original.storybookId())
-                .title(original.title())
-                .shortDescription(original.shortDescription())
-                .imageUrl(original.imageUrl())
-                .recommendationReasonText(reasonText)
-                .build();
-    }
-
     public static StorybookResDTO.GetRecommendedStorybooks toRecommendedStorybooksResult(
             List<StorybookResDTO.RecommendedStorybook> recommendations) {
         return StorybookResDTO.GetRecommendedStorybooks.builder()
@@ -136,17 +125,10 @@ public class StorybookConverter {
         return StorybookResDTO.InProgressStorybook.builder()
                 .storybookId(storybook.getId())
                 .title(storybook.getTitle())
+                .imageUrl(storybook.getImageUrl())
                 .currentChapterOrder(currentChapterOrder)
                 .totalChapterCount(10)
                 .todayAvailable(todayAvailable)
-                .build();
-    }
-
-    public static StorybookResDTO.BookshelfItem toBookshelfItem(Storybook sb, BookshelfStatus status) {
-        return StorybookResDTO.BookshelfItem.builder()
-                .storybookId(sb.getId())
-                .title(sb.getTitle())
-                .status(status)
                 .build();
     }
 
@@ -154,13 +136,11 @@ public class StorybookConverter {
             HomeStatus homeStatus,
             String memberName,
             List<StorybookResDTO.InProgressStorybook> inProgressStorybooks,
-            List<StorybookResDTO.BookshelfItem> bookshelf,
             List<StorybookResDTO.RecommendedStorybook> recommendedStorybooks) {
         return StorybookResDTO.GetHome.builder()
                 .homeStatus(homeStatus)
                 .memberName(memberName)
                 .inProgressStorybooks(inProgressStorybooks)
-                .bookshelf(bookshelf)
                 .recommendedStorybooks(recommendedStorybooks)
                 .build();
     }

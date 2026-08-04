@@ -26,9 +26,8 @@ public interface StorybookControllerDocs {
                     ## 동작 방식
                     1. 인증된 회원의 진행 중인 스토리북들을 조회합니다.
                     2. 진행 중인 스토리북 전체의 제목/진행 상황을 리스트로 계산합니다.
-                    3. 전체 스토리북의 책장 상태(NOT_STARTED/IN_PROGRESS/COMPLETED)를 계산합니다.
-                    4. 진행 중인 스토리북이 하나도 없으면 추천 스토리북을 함께 조회합니다.
-                    5. 계산된 홈 화면 상태(homeStatus)와 함께 결과를 반환합니다.
+                    3. 진행 중인 스토리북이 하나도 없으면 추천 스토리북을 함께 조회합니다.
+                    4. 계산된 홈 화면 상태(homeStatus)와 함께 결과를 반환합니다.
                     """
     )
     @ApiResponses(value = {
@@ -38,46 +37,72 @@ public interface StorybookControllerDocs {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ApiResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": true,
-                                      "code": "HOME200_1",
-                                      "message": "홈 화면을 성공적으로 조회했습니다.",
-                                      "result": {
-                                        "homeStatus": "MULTIPLE_IN_PROGRESS",
-                                        "memberName": "김하로님",
-                                        "inProgressStorybooks": [
-                                          {
-                                            "storybookId": 3,
-                                            "title": "가족의 온도",
-                                            "currentChapterOrder": 1,
-                                            "totalChapterCount": 10,
-                                            "todayAvailable": true
-                                          },
-                                          {
-                                            "storybookId": 4,
-                                            "title": "취향이 닿는 날",
-                                            "currentChapterOrder": 3,
-                                            "totalChapterCount": 10,
-                                            "todayAvailable": true
+                            examples = {
+                                    @ExampleObject(
+                                            name = "진행중인 스토리북이 있는 경우",
+                                            value = """
+                                        {
+                                          "isSuccess": true,
+                                          "code": "HOME200_1",
+                                          "message": "홈 화면을 성공적으로 조회했습니다.",
+                                          "result": {
+                                            "homeStatus": "MULTIPLE_IN_PROGRESS",
+                                            "memberName": "김하로님",
+                                            "inProgressStorybooks": [
+                                              {
+                                                "storybookId": 3,
+                                                "title": "가족의 온도",
+                                                "imageUrl": "https://example.com/storybook3.png",
+                                                "currentChapterOrder": 1,
+                                                "totalChapterCount": 10,
+                                                "todayAvailable": true
+                                              },
+                                              {
+                                                "storybookId": 4,
+                                                "title": "취향이 닿는 날",
+                                                "imageUrl": "https://example.com/storybook4.png",
+                                                "currentChapterOrder": 3,
+                                                "totalChapterCount": 10,
+                                                "todayAvailable": true
+                                              }
+                                            ],
+                                            "recommendedStorybooks": []
                                           }
-                                        ],
-                                        "bookshelf": [
-                                          {
-                                            "storybookId": 1,
-                                            "title": "오래 전 당신",
-                                            "status": "COMPLETED"
-                                          },
-                                          {
-                                            "storybookId": 3,
-                                            "title": "가족의 온도",
-                                            "status": "IN_PROGRESS"
+                                        }
+                                        """
+                                    ),
+                                    @ExampleObject(
+                                            name = "진행중인 스토리북이 없는 경우(추천)",
+                                            value = """
+                                        {
+                                          "isSuccess": true,
+                                          "code": "HOME200_1",
+                                          "message": "홈 화면을 성공적으로 조회했습니다.",
+                                          "result": {
+                                            "homeStatus": "NO_STORYBOOK",
+                                            "memberName": "김하로님",
+                                            "inProgressStorybooks": [],
+                                            "recommendedStorybooks": [
+                                              {
+                                                "storybookId": 1,
+                                                "title": "오래 전 당신",
+                                                "shortDescription": "가족과의 만남",
+                                                "imageUrl": "https://example.com/storybook1.png",
+                                                "recommendationReasonText": "부모님의 지난 시간을 알고 싶다면"
+                                              },
+                                              {
+                                                "storybookId": 2,
+                                                "title": "당신 사용설명서",
+                                                "shortDescription": "나를 아는 시간",
+                                                "imageUrl": "https://example.com/storybook2.png",
+                                                "recommendationReasonText": "부모님을 더 잘 이해하고 싶다면"
+                                              }
+                                            ]
                                           }
-                                        ],
-                                        "recommendedStorybooks": []
-                                      }
-                                    }
-                                    """)
+                                        }
+                                        """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -127,7 +152,7 @@ public interface StorybookControllerDocs {
                         - Authorization: Bearer {accessToken}
                     
                     ## 동작 방식
-                    1. 전체 스토리북을 테마 순서대로 조회합니다.
+                    1. 전체 스토리북을 storybookId 순서대로 조회합니다.
                     2. 회원별 진행 상태(NOT_STARTED/IN_PROGRESS/TODAY_DONE/COMPLETED)를 계산합니다.
                     3. 회원이 온보딩에서 선택한 목적 태그를 기준으로 상황별 추천 카테고리를 구성합니다.
                     4. 스토리북 목록과 상황별 추천 결과를 함께 반환합니다.
@@ -475,7 +500,7 @@ public interface StorybookControllerDocs {
                     ## 동작 방식
                     1. 회원이 온보딩에서 선택한 목적 태그를 조회합니다.
                     2. 태그와 매칭되는 스토리북을 우선순위(PRIMARY > SECONDARY) 순으로 정렬합니다.
-                    3. 매칭된 스토리북이 2개 미만이면 테마 순서를 기준으로 나머지를 채웁니다.
+                    3. 매칭된 스토리북이 2개 미만이면 storybookId 순서를 기준으로 나머지를 채웁니다.
                     4. 최종 추천 스토리북 2개를 반환합니다.
                     """
     )
