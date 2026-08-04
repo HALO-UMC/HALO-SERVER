@@ -77,6 +77,8 @@ public class Notification extends BaseEntity {
         }
         this.scheduledAt = scheduledAt;
         this.status = NotificationStatus.SCHEDULED;
+        this.processingAt = null;
+        this.processingLeaseId = null;
     }
 
     public void updateScheduledAt(LocalDateTime scheduledAt) {
@@ -84,6 +86,8 @@ public class Notification extends BaseEntity {
             return;
         }
         this.scheduledAt = scheduledAt;
+        this.processingAt = null;
+        this.processingLeaseId = null;
     }
 
     public void updateSettingEnabled(boolean enabled) {
