@@ -65,3 +65,16 @@ gemini:
   api-key: ${GEMINI_API_KEY}
   model: gemini-flash-lite-latest
 
+async:
+  executor:
+    core-size: 4
+    max-size: 8
+    queue-capacity: 50
+    keep-alive-seconds: 60
+    await-termination-seconds: 20
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
