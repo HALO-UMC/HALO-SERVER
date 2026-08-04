@@ -3,6 +3,12 @@ spring:
     activate:
       on-profile: local
 
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3307/halo_dev
+    username: jaehyeon
+    password: JaehyeonPassword123!
+
 springdoc:
   api-docs:
     enabled: true

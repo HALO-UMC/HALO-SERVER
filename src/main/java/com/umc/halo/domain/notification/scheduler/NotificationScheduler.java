@@ -1,0 +1,23 @@
+package com.umc.halo.domain.notification.scheduler;
+
+import com.umc.halo.domain.member.repository.MemberDeviceRepository;
+import com.umc.halo.domain.notification.repository.NotificationRepository;
+import com.umc.halo.domain.notification.service.FcmService;
+import com.umc.halo.domain.notification.service.NotificationService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class NotificationScheduler {
+
+    private final NotificationService notificationService;
+
+    @Scheduled(fixedDelay = 1000)
+    public void sendScheduledNotification() {
+        notificationService.sendScheduledNotification();
+    }
+}

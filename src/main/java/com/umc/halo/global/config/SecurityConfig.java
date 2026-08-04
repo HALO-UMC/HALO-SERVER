@@ -28,6 +28,7 @@ public class SecurityConfig {
             // 인증(소셜 로그인 / 토큰 재발급)
             "/api/v1/auth/login",
             "/api/v1/auth/reissue",
+            "/api/v1/members/devices"
 
     };
 

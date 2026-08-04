@@ -70,7 +70,7 @@ public class SettingService {
         );
 
         if (!Objects.equals(previousNotificationTime, dto.regularNotificationTime())) {
-            updateNotificationScheduledTime(memberId, dto.regularNotificationTime());
+            updateAnniversaryNotificationScheduledTime(memberId, dto.regularNotificationTime());
         }
 
         if (previousAnniversaryEnabled != dto.anniversaryNotificationEnabled()) {
@@ -109,7 +109,7 @@ public class SettingService {
         return SettingConverter.toBgmSettings(memberSetting);
     }
 
-    private void updateNotificationScheduledTime(Long memberId, LocalTime notifyTime) {
+    private void updateAnniversaryNotificationScheduledTime(Long memberId, LocalTime notifyTime) {
 
         List<Notification> notifications = notificationRepository.findAllWithAnniversary(memberId, List.of(NotificationType.ANNIVERSARY_D7, NotificationType.ANNIVERSARY_DDAY), List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
         LocalDate today = LocalDate.now();

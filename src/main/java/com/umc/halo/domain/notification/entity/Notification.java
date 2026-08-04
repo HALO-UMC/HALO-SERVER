@@ -92,4 +92,13 @@ public class Notification extends BaseEntity {
             this.status = NotificationStatus.EXPIRED;
         }
     }
+
+    public void send() {
+        this.status = NotificationStatus.SENT;
+        this.sentAt = LocalDateTime.now();
+    }
+
+    public void fail() {
+        this.status = NotificationStatus.FAILED;
+    }
 }

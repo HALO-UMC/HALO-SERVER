@@ -9,9 +9,15 @@ import com.umc.halo.domain.member.exception.code.MemberDeviceErrorCode;
 import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.repository.MemberDeviceRepository;
 import com.umc.halo.domain.member.repository.MemberRepository;
+import com.umc.halo.domain.notification.entity.Notification;
+import com.umc.halo.domain.notification.enums.NotificationStatus;
+import com.umc.halo.domain.notification.enums.NotificationType;
+import com.umc.halo.domain.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +25,7 @@ public class MemberDeviceService {
 
     private final MemberRepository memberRepository;
     private final MemberDeviceRepository memberDeviceRepository;
+    private final NotificationRepository notificationRepository;
 
     @Transactional
     public void registerDevice(Long memberId, MemberDeviceReqDTO.Register dto) {
@@ -33,6 +40,18 @@ public class MemberDeviceService {
         }
 
         memberDeviceRepository.save(MemberDeviceConverter.toMemberDevice(member, dto));
+
+        Notification notification = Notification.builder()
+                .member(member)
+                .notificationType(NotificationType.RETENTION)
+                .title("테스트 알림")
+                .message("FCM 테스트입니다.")
+                .scheduledAt(LocalDateTime.now().plusSeconds(5))
+                .status(NotificationStatus.SCHEDULED)
+                .settingEnabled(true)
+                .build();
+
+        notificationRepository.save(notification);
     }
 
     @Transactional
