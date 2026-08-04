@@ -175,6 +175,21 @@ public interface MemberDeviceControllerDocs {
                                     }
                                     """)
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "회원 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "MEMBER404_1",
+                                        "message": "존재하지 않는 회원입니다.",
+                                        "result": null
+                                    }
+                                    """)
+                    )
             )
     })
     @Parameters(value = {
