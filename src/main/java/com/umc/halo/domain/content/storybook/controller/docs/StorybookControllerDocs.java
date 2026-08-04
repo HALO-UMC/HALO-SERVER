@@ -179,6 +179,7 @@ public interface StorybookControllerDocs {
                                             "imageUrl": "https://example.com/storybook1.png",
                                             "status": "COMPLETED",
                                             "lastChapterOrder": 10,
+                                            "startedDate": "2026-07-05",
                                             "lastCompletedDate": "2026-07-14"
                                           },
                                           {
@@ -188,6 +189,7 @@ public interface StorybookControllerDocs {
                                             "imageUrl": "https://example.com/storybook2.png",
                                             "status": "NOT_STARTED",
                                             "lastChapterOrder": null,
+                                            "startedDate": null,
                                             "lastCompletedDate": null
                                           }
                                         ],
