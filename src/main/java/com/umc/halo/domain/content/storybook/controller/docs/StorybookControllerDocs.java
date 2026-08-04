@@ -262,18 +262,18 @@ public interface StorybookControllerDocs {
                                         "chapters": [
                                           {
                                             "chapterOrder": 1,
+                                            "memberChapterId": 12,
                                             "title": "나와 같은 나이였던 시절",
                                             "shortImageUrl": "https://example.com/chapter1-short.png",
-                                            "longImageUrl": "https://example.com/chapter1-long.png",
                                             "shortDescription": "부모님이 지금의 내 나이였을 때의 하루",
                                             "description": "부모님을 한 사람으로 바라보는 첫 장입니다.",
                                             "status": "COMPLETED"
                                           },
                                           {
                                             "chapterOrder": 2,
+                                            "memberChapterId": null,
                                             "title": "소년과 소녀의 꿈",
                                             "shortImageUrl": "https://example.com/chapter2-short.png",
-                                            "longImageUrl": "https://example.com/chapter2-long.png",
                                             "shortDescription": "목차 예시2",
                                             "description": "부모님에게도 작고 선명했던 어린 시절의 꿈이 있었습니다.",
                                             "status": "LOCKED"
