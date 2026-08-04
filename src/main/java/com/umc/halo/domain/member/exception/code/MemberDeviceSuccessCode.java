@@ -10,16 +10,12 @@ import org.springframework.http.HttpStatus;
 public enum MemberDeviceSuccessCode implements BaseSuccessCode {
 
     DEVICE_REGISTER_SUCCESS(HttpStatus.OK,
-            "MEMBER_DEVICE_200_1",
+            "MEMBER_DEVICE200_1",
             "기기가 성공적으로 등록되었습니다."
     ),
     DEVICE_DELETE_SUCCESS(HttpStatus.OK,
-            "MEMBER_DEVICE_200_2",
+            "MEMBER_DEVICE200_2",
             "기기가 성공적으로 삭제되었습니다."
-    ),
-    DEVICE_LIST_SUCCESS(HttpStatus.OK,
-            "MEMBER_DEVICE_200_3",
-            "기기 목록 조회에 성공했습니다."
     );
 
     private final HttpStatus status;

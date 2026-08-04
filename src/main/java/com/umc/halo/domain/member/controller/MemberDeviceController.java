@@ -1,5 +1,6 @@
 package com.umc.halo.domain.member.controller;
 
+import com.umc.halo.domain.member.controller.docs.MemberDeviceControllerDocs;
 import com.umc.halo.domain.member.dto.MemberDeviceReqDTO;
 import com.umc.halo.domain.member.exception.code.MemberDeviceSuccessCode;
 import com.umc.halo.domain.member.repository.MemberDeviceRepository;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/members/devices")
-public class MemberDeviceController {
+public class MemberDeviceController implements MemberDeviceControllerDocs {
 
     private final MemberDeviceRepository memberDeviceRepository;
     private final MemberDeviceService memberDeviceService;

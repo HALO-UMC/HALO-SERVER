@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface MemberDeviceRepository extends JpaRepository<MemberDevice, Long> {
     Optional<MemberDevice> findByMemberAndDeviceIdentifier(Member member, String deviceIdentifier);
     List<MemberDevice> findAllByMember(Member member);
+    void deleteByMemberId(Long memberId);
 }

@@ -13,6 +13,7 @@ import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.oauth.AbstractOidcProvider;
 import com.umc.halo.domain.member.oauth.OidcProviderFactory;
 import com.umc.halo.domain.member.oauth.OidcUserInfo;
+import com.umc.halo.domain.member.repository.MemberDeviceRepository;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.notification.repository.AnniversaryRepository;
 import com.umc.halo.domain.notification.repository.NotificationRepository;
@@ -50,6 +51,7 @@ public class MemberService {
     private final MemberChapterAnswerRepository memberChapterAnswerRepository;
     private final MemberTagRepository memberTagRepository;
     private final StorybookCharacterVariantRepository storybookCharacterVariantRepository;
+    private final MemberDeviceRepository memberDeviceRepository;
     private final JwtUtil jwtUtil;
     private final HashUtil hashUtil;
     private final OidcProviderFactory oidcProviderFactory;
@@ -142,6 +144,7 @@ public class MemberService {
         notificationRepository.deleteByMemberId(memberId);
         anniversaryRepository.deleteByMemberId(memberId);
         memberTagRepository.deleteByMemberId(memberId);
+        memberDeviceRepository.deleteByMemberId(memberId);
 
         memberRepository.delete(member);
     }
