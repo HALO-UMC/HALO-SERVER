@@ -1,7 +1,10 @@
 package com.umc.halo.domain.onboarding.dto;
 
+import com.umc.halo.domain.tag.enums.Subtitle;
 import lombok.Builder;
 import com.umc.halo.domain.member.enums.Gender;
+
+import java.util.List;
 
 public class OnboardingResDTO {
 
@@ -33,5 +36,18 @@ public class OnboardingResDTO {
             java.util.List<Long> parentPersonalityTagIds,
             Long currentRelationStateTagId,
             java.util.List<Long> goalRelationshipTagIds
+    ) {}
+
+    public record TagList(
+            List<TagInfo> parentPersonalityTags,
+            List<TagInfo> currentRelationStateTags,
+            List<TagInfo> goalRelationshipTags
+    ) {}
+
+    public record TagInfo(
+            Long tagId,
+            String title,
+            Subtitle subtitle,
+            String description
     ) {}
 }
