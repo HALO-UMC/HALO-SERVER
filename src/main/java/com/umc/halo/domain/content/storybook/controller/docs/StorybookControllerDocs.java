@@ -281,24 +281,32 @@ public interface StorybookControllerDocs {
                                     @ExampleObject(
                                             name = "진행 중인 스토리북",
                                             value = """
-                        {
-                          "isSuccess": true,
-                          "code": "STORYBOOK200_2",
-                          "message": "스토리북 상세를 성공적으로 조회했습니다.",
-                          "result": {
-                            "storybookId": 4,
-                            "title": "취향이 닿는 날",
-                            "description": "좋아하는 것과 싫어하는 것을 하나씩 나누며, 서로의 취향이 닿는 순간들을 발견하는 이야기입니다.",
-                            "imageUrl": "https://example.com/storybook4.png",
-                            "completedChapterCount": 1,
-                            "progressPercentage": 10,
-                            "chapters": [
-                              { "chapterOrder": 1, "memberChapterId": 1, "title": "나와 같은 나이였던 시절", "shortImageUrl": "https://example.com/chapter1-short.png", "shortDescription": "부모님이 지금의 내 나이였을 때의 하루", "description": "부모님을 한 사람으로 바라보는 첫 장입니다.", "status": "COMPLETED" },
-                              { "chapterOrder": 2, "memberChapterId": null, "title": "소년과 소녀의 꿈", "shortImageUrl": "https://example.com/chapter2-short.png", "shortDescription": "목차 예시2", "description": "부모님에게도 작고 선명했던 어린 시절의 꿈이 있었습니다.", "status": "LOCKED" }
-                            ]
-                          }
-                        }
-                        """
+                {
+                  "isSuccess": true,
+                  "code": "STORYBOOK200_2",
+                  "message": "스토리북 상세를 성공적으로 조회했습니다.",
+                  "result": {
+                    "storybookId": 4,
+                    "title": "취향이 닿는 날",
+                    "description": "좋아하는 것과 싫어하는 것을 하나씩 나누며, 서로의 취향이 닿는 순간들을 발견하는 이야기입니다.",
+                    "imageUrl": "https://example.com/storybook4.png",
+                    "completedChapterCount": 1,
+                    "progressPercentage": 10,
+                    "chapters": [
+                      { "chapterOrder": 1, "memberChapterId": 1, "title": "나와 같은 나이였던 시절", "shortImageUrl": "https://example.com/chapter1-short.png", "shortDescription": "부모님이 지금의 내 나이였을 때의 하루", "description": "부모님을 한 사람으로 바라보는 첫 장입니다.", "status": "COMPLETED" },
+                      { "chapterOrder": 2, "memberChapterId": null, "title": "소년과 소녀의 꿈", "shortImageUrl": "https://example.com/chapter2-short.png", "shortDescription": "목차 예시2", "description": "부모님에게도 작고 선명했던 어린 시절의 꿈이 있었습니다.", "status": "TODAY" },
+                      { "chapterOrder": 3, "memberChapterId": null, "title": "목차 예시3", "shortImageUrl": "https://example.com/chapter3-short.png", "shortDescription": "목차 예시3", "description": "목차 예시3 설명입니다.", "status": "LOCKED" },
+                      { "chapterOrder": 4, "memberChapterId": null, "title": "목차 예시4", "shortImageUrl": "https://example.com/chapter4-short.png", "shortDescription": "목차 예시4", "description": "목차 예시4 설명입니다.", "status": "LOCKED" },
+                      { "chapterOrder": 5, "memberChapterId": null, "title": "목차 예시5", "shortImageUrl": "https://example.com/chapter5-short.png", "shortDescription": "목차 예시5", "description": "목차 예시5 설명입니다.", "status": "LOCKED" },
+                      { "chapterOrder": 6, "memberChapterId": null, "title": "목차 예시6", "shortImageUrl": "https://example.com/chapter6-short.png", "shortDescription": "목차 예시6", "description": "목차 예시6 설명입니다.", "status": "LOCKED" },
+                      { "chapterOrder": 7, "memberChapterId": null, "title": "목차 예시7", "shortImageUrl": "https://example.com/chapter7-short.png", "shortDescription": "목차 예시7", "description": "목차 예시7 설명입니다.", "status": "LOCKED" },
+                      { "chapterOrder": 8, "memberChapterId": null, "title": "목차 예시8", "shortImageUrl": "https://example.com/chapter8-short.png", "shortDescription": "목차 예시8", "description": "목차 예시8 설명입니다.", "status": "LOCKED" },
+                      { "chapterOrder": 9, "memberChapterId": null, "title": "목차 예시9", "shortImageUrl": "https://example.com/chapter9-short.png", "shortDescription": "목차 예시9", "description": "목차 예시9 설명입니다.", "status": "LOCKED" },
+                      { "chapterOrder": 10, "memberChapterId": null, "title": "목차 예시10", "shortImageUrl": "https://example.com/chapter10-short.png", "shortDescription": "목차 예시10", "description": "목차 예시10 설명입니다.", "status": "LOCKED" }
+                    ]
+                  }
+                }
+                """
                                     )
                             }
                     )
