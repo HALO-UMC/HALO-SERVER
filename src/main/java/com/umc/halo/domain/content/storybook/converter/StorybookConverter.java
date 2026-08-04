@@ -55,14 +55,14 @@ public class StorybookConverter {
     }
 
     public static StorybookResDTO.StorybookSummary toStorybookSummary(
-            Storybook storybook, StorybookStatus status, MemberStorybook memberStorybook) {
+            Storybook storybook, StorybookStatus status, MemberStorybook memberStorybook, Integer displayChapterOrder) {
         return StorybookResDTO.StorybookSummary.builder()
                 .storybookId(storybook.getId())
                 .title(storybook.getTitle())
                 .shortDescription(storybook.getShortDescription())
                 .imageUrl(storybook.getImageUrl())
                 .status(status)
-                .lastChapterOrder(memberStorybook == null ? null : memberStorybook.getLastChapterOrder())
+                .lastChapterOrder(displayChapterOrder)
                 .lastCompletedDate(memberStorybook == null ? null : memberStorybook.getLastCompletedDate())
                 .build();
     }

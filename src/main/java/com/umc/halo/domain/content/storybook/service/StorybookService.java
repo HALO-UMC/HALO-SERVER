@@ -225,6 +225,7 @@ public class StorybookService {
 
         // 스토리북마다 상태 계산 (목록 조회와 동일한 로직)
         Map<Storybook, StorybookStatus> statusMap = new LinkedHashMap<>();
+        Map<Long, List<MemberChapter>> memberChaptersMap = new LinkedHashMap<>();
         for (Storybook sb : storybooks) {
             MemberStorybook ms = memberStorybookMap.get(sb.getId());
             if (ms == null) {
@@ -234,6 +235,7 @@ public class StorybookService {
 
             List<MemberChapter> memberChapters =
                     memberChapterRepository.findByMemberAndChapter_Storybook_Id(member, sb.getId());
+            memberChaptersMap.put(sb.getId(), memberChapters);
 
             boolean completed = isCompleted(sb, memberChapters);
             boolean completedToday = ms.isCompletedToday();
@@ -268,7 +270,7 @@ public class StorybookService {
 
             for (Storybook sb : activeStorybooks) {
                 MemberStorybook memberStorybook = memberStorybookMap.get(sb.getId());
-                Integer chapterOrder = memberStorybook.getLastChapterOrder();
+                Integer chapterOrder = resolveDisplayChapterOrder(memberStorybook, memberChaptersMap.get(sb.getId()));
                 boolean todayAvailable = statusMap.get(sb) == StorybookStatus.IN_PROGRESS;
                 inProgressStorybooks.add(StorybookConverter.toInProgressStorybook(sb, chapterOrder, todayAvailable));
             }
@@ -291,7 +293,7 @@ public class StorybookService {
             Member member, Storybook storybook, MemberStorybook memberStorybook) {
 
         if (memberStorybook == null) {
-            return StorybookConverter.toStorybookSummary(storybook, StorybookStatus.NOT_STARTED, null);
+            return StorybookConverter.toStorybookSummary(storybook, StorybookStatus.NOT_STARTED, null, null);
         }
 
         List<MemberChapter> memberChapters =
@@ -310,7 +312,8 @@ public class StorybookService {
             status = StorybookStatus.IN_PROGRESS;
         }
 
-        return StorybookConverter.toStorybookSummary(storybook, status, memberStorybook);
+        Integer displayChapterOrder = resolveDisplayChapterOrder(memberStorybook, memberChapters);
+        return StorybookConverter.toStorybookSummary(storybook, status, memberStorybook, displayChapterOrder);
     }
 
     private boolean isStorybookCompleted(Member member, Storybook storybook) {
@@ -352,5 +355,13 @@ public class StorybookService {
                     return StorybookConverter.toSituationalRecommendation(tag.getTitle(), situationalStorybooks);
                 })
                 .toList();
+    }
+
+    private Integer resolveDisplayChapterOrder(MemberStorybook memberStorybook, List<MemberChapter> memberChapters) {
+        Integer lastChapterOrder = memberStorybook.getLastChapterOrder();
+        boolean lastCompleted = memberChapters.stream()
+                .anyMatch(mc -> lastChapterOrder.equals(mc.getChapter().getChapterOrder())
+                        && mc.getStatus() == Status.COMPLETED);
+        return (lastCompleted && lastChapterOrder < 10) ? lastChapterOrder + 1 : lastChapterOrder;
     }
 }
