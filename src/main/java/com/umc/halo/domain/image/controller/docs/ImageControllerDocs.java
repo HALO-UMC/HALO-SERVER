@@ -48,7 +48,6 @@ public interface ImageControllerDocs {
                                         "message": "presigned URL을 성공적으로 발급했습니다.",
                                         "result": {
                                             "presignedUrl": "https://halo-bucket.s3.ap-northeast-2.amazonaws.com/images/1/9f1c2e3a-....png?X-Amz-Algorithm=...",
-                                            "imageUrl": "https://halo-bucket.s3.ap-northeast-2.amazonaws.com/images/1/9f1c2e3a-....png",
                                             "imageKey": "images/1/9f1c2e3a-....png",
                                             "expires": 300
                                         }
