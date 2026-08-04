@@ -49,4 +49,11 @@ public class OnboardingController implements OnboardingControllerDocs {
         BaseSuccessCode code = OnboardingSuccessCode.STATUS_SUCCESS;
         return ApiResponse.onSuccess(code, onboardingService.getStatus(memberId));
     }
+
+    // 온보딩 태그 목록 조회
+    @GetMapping("/tags")
+    public ApiResponse<OnboardingResDTO.TagList> getTags() {
+        BaseSuccessCode code = OnboardingSuccessCode.TAG_LIST_SUCCESS;
+        return ApiResponse.onSuccess(code, onboardingService.getTags());
+    }
 }
