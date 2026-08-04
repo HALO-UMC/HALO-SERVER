@@ -18,18 +18,18 @@ import java.util.List;
 @Slf4j
 public class NotificationService {
 
-    private final NotificationRepository notificationRepository;
+    private final NotificationTransactionService notificationTransactionService;
     private final MemberDeviceRepository memberDeviceRepository;
     private final FcmService fcmService;
 
     public void sendScheduledNotifications() {
 
-        List<Notification> notifications = claimNotifications();
+        List<Notification> notifications = notificationTransactionService.claimNotifications();
 
         for (Notification notification : notifications) {
 
             if (!canSend(notification)) {
-                resetToScheduled(notification.getId());
+                notificationTransactionService.expireSend(notification.getId());
                 continue;
             }
 
@@ -37,28 +37,15 @@ public class NotificationService {
                 boolean success = send(notification);
 
                 if (success) {
-                    completeSend(notification.getId());
+                    notificationTransactionService.completeSend(notification.getId());
                 } else {
-                    failSend(notification.getId());
+                    notificationTransactionService.failSend(notification.getId());
                 }
 
             } catch (Exception e) {
-                failSend(notification.getId());
+                notificationTransactionService.failSend(notification.getId());
             }
         }
-    }
-
-    @Transactional
-    public List<Notification> claimNotifications() {
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime timeOut = now.minusMinutes(10);
-
-        List<Notification> notifications = notificationRepository.findTargetsForUpdate(NotificationStatus.SCHEDULED, NotificationStatus.PROCESSING, now, timeOut);
-
-        notifications.forEach(Notification::startProcessing);
-
-        return notifications;
     }
 
     private boolean canSend(Notification notification) {
@@ -83,24 +70,5 @@ public class NotificationService {
         }
 
         return successCount > 0;
-    }
-
-    @Transactional
-    public void completeSend(Long notificationId){
-        Notification notification = notificationRepository.findById(notificationId).orElseThrow();
-        notification.send();
-    }
-
-
-    @Transactional
-    public void failSend(Long notificationId){
-        Notification notification = notificationRepository.findById(notificationId).orElseThrow();
-        notification.fail();
-    }
-
-    @Transactional
-    public void resetToScheduled(Long notificationId) {
-        Notification notification = notificationRepository.findById(notificationId).orElseThrow();
-        notification.resetToScheduled();
     }
 }
