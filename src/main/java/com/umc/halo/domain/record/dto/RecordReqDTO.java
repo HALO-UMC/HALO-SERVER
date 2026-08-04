@@ -15,7 +15,6 @@ public class RecordReqDTO {
             Long chapterId,
             Emotion emotion,
             CoverType coverType,
-            String imageUrl,
             String imageKey,
             Long sceneCardId,
             @Valid

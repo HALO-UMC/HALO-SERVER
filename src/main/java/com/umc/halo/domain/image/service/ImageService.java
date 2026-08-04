@@ -44,13 +44,12 @@ public class ImageService {
 
         ImageContentType contentType = ImageContentType.from(dto.contentType());
         String imageKey = generateImageKey(memberId, contentType);
-        String imageUrl = buildImageUrl(imageKey);
 
         PutObjectRequest putObjectRequest = ImageConverter.toPutObjectRequest(bucket, imageKey, contentType, dto.fileSize());
         PutObjectPresignRequest putPresignRequest = ImageConverter.toPutObjectPresignRequest(EXPIRATION, putObjectRequest);
         PresignedPutObjectRequest presignedPutObjectRequest = s3Presigner.presignPutObject(putPresignRequest);
 
-        return ImageConverter.toCreatePresignedUrl(presignedPutObjectRequest, imageKey, imageUrl, EXPIRATION);
+        return ImageConverter.toCreatePresignedUrl(presignedPutObjectRequest, imageKey, EXPIRATION);
     }
 
     // imageKey 발급 (presigned URL 발급시, pending/images/)
