@@ -76,7 +76,7 @@ public class StorybookService {
 
         Map<Long, Long> completedChapterIdToMemberChapterId = memberChapters.stream()
                 .filter(mc -> mc.getStatus() == Status.COMPLETED)
-                .collect(Collectors.toMap(mc -> mc.getChapter().getId(), MemberChapter::getId));
+                .collect(Collectors.toMap(mc -> mc.getChapter().getId(), MemberChapter::getId, (a, b) -> b));
 
         boolean completedToday = memberStorybookOpt
                 .map(MemberStorybook::isCompletedToday)
