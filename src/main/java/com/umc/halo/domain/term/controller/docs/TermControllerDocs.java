@@ -177,7 +177,15 @@ public interface TermControllerDocs {
                                       "isSuccess": true,
                                       "code": "TERMS200_3",
                                       "message": "약관 동의 여부 조회 성공",
-                                      "result": { "termsAgreed": true }
+                                      "result": {
+                                              "termsAgreed": true,
+                                              "agreements": [
+                                                { "termId": 1, "isAgreed": true },
+                                                { "termId": 2, "isAgreed": true },
+                                                { "termId": 3, "isAgreed": true },
+                                                { "termId": 4, "isAgreed": false }
+                                              ]
+                                      }
                                     }
                                     """)
                     )
