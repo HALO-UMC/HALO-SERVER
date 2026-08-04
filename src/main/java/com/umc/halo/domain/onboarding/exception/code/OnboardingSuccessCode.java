@@ -20,8 +20,12 @@ public enum OnboardingSuccessCode implements BaseSuccessCode {
     // 닉네임 중복 확인
     NICKNAME_AVAILABLE(HttpStatus.OK,
             "ONBOARDING200_3",
-            "사용 가능한 닉네임입니다.")
-    ;
+            "사용 가능한 닉네임입니다."),
+
+    // 온보딩 태그 목록 조회
+    TAG_LIST_SUCCESS(HttpStatus.OK,
+            "ONBOARDING200_4",
+                    "온보딩 태그 목록 조회 성공");
 
     private final HttpStatus status;
     private final String code;

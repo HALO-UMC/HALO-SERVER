@@ -257,4 +257,44 @@ public interface OnboardingControllerDocs {
     ApiResponse<OnboardingResDTO.Status> getStatus(
             @Parameter(hidden = true) Long memberId
     );
+
+    @Operation(summary = "온보딩 태그 목록 조회",
+            description = "온보딩 화면에서 선택할 태그 목록을 카테고리별로 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "온보딩 태그 목록 조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                            {
+                              "isSuccess": true,
+                              "code": "ONBOARDING200_4",
+                              "message": "온보딩 태그 목록 조회 성공",
+                              "result": {
+                                "parentPersonalityTags": [
+                                  { "tagId": 12, "title": "낙천적인", "subtitle": "POSITIVE", "description": null }
+                                ],
+                                "currentRelationStateTags": [
+                                  { "tagId": 23, "title": "매우 가까운 편이에요", "subtitle": null, "description": "부모이기 전에 친구 같은, 비밀까지 나누는 사이" }
+                                ],
+                                "goalRelationshipTags": [
+                                  { "tagId": 31, "title": "부모님을 더 알고 싶어요", "subtitle": null, "description": null }
+                                ]
+                              }
+                            }
+                            """))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "토큰 만료",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                            {
+                              "isSuccess": false,
+                              "code": "AUTH401_1",
+                              "message": "토큰이 만료되었습니다.",
+                              "result": null
+                            }
+                            """)))
+    })
+    ApiResponse<OnboardingResDTO.TagList> getTags();
 }
