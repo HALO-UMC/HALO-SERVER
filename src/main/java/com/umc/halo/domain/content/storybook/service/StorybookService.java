@@ -33,6 +33,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -129,6 +130,7 @@ public class StorybookService {
                 .member(member)
                 .storybook(storybook)
                 .lastChapterOrder(1)
+                .startedDate(LocalDate.now())
                 .build();
 
         try {
@@ -167,6 +169,10 @@ public class StorybookService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
+        Set<Long> startedStorybookIds = memberStorybookRepository.findByMember(member).stream()
+                .map(ms -> ms.getStorybook().getId())
+                .collect(Collectors.toSet());
+
         List<Tag> desiredTags = memberTagRepository.findByMemberAndTag_Category(member, Category.DESIRED_DIRECTION).stream()
                 .map(MemberTag::getTag)
                 .toList();
@@ -178,6 +184,9 @@ public class StorybookService {
         Map<Long, StorybookTag> bestMatchByStorybook = new LinkedHashMap<>();
         for (StorybookTag st : matchedStorybookTags) {
             Long storybookId = st.getStorybook().getId();
+            if (startedStorybookIds.contains(storybookId)) {
+                continue;
+            }
             StorybookTag existing = bestMatchByStorybook.get(storybookId);
             if (existing == null || (existing.getPriorityLevel() == PriorityLevel.SECONDARY
                     && st.getPriorityLevel() == PriorityLevel.PRIMARY)) {
@@ -199,6 +208,7 @@ public class StorybookService {
             List<Storybook> fallbackStorybooks = storybookRepository.findAll().stream()
                     .sorted(Comparator.comparing(Storybook::getId))
                     .filter(sb -> !alreadyIncluded.contains(sb.getId()))
+                    .filter(sb -> !startedStorybookIds.contains(sb.getId()))
                     .toList();
 
             for (Storybook sb : fallbackStorybooks) {

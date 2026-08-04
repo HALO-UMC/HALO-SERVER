@@ -63,6 +63,7 @@ public class StorybookConverter {
                 .imageUrl(storybook.getImageUrl())
                 .status(status)
                 .lastChapterOrder(displayChapterOrder)
+                .startedDate(memberStorybook == null ? null : memberStorybook.getStartedDate())
                 .lastCompletedDate(memberStorybook == null ? null : memberStorybook.getLastCompletedDate())
                 .build();
     }

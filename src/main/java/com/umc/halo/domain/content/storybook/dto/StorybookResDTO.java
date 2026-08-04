@@ -47,6 +47,7 @@ public class StorybookResDTO {
             String imageUrl,
             StorybookStatus status,
             Integer lastChapterOrder,
+            LocalDate startedDate,
             LocalDate lastCompletedDate
     ) {
     }
