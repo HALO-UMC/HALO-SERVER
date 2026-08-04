@@ -80,7 +80,7 @@ public class RecordService {
                 if (recordReqDTO.sceneCardId() != null) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
-                if (recordReqDTO.imageKey() == null) {
+                if (recordReqDTO.imageKey() == null || recordReqDTO.imageKey().isBlank()) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
                 // 기존 기록의 imageKey와 동일하면 그대로 사용
