@@ -37,7 +37,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String token = header.substring(7); // "Bearer " 제거
 
         // 유효한 토큰이면 인증 객체를 만들어 SecurityContext에 저장
-        if (jwtUtil.isValid(token)) {
+        if (jwtUtil.isValid(token) && !jwtUtil.isRefreshToken(token)) {
             Long memberId = jwtUtil.getMemberId(token);
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
