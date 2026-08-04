@@ -55,6 +55,7 @@ public interface ChapterControllerDocs {
                                                               "result": {
                                                                 "chapterId": 1,
                                                                 "storybookTitle": "오래 전 당신",
+                                                                "longImageUrl": "https://example.com/long-image.png",
                                                                 "guide": "부모님이 지금 내 나이였을 땐 어떤 하루를 보냈을까요? 사진 한 장을 보며 가볍게 물어봐요.",
                                                                 "character": {
                                                                   "writingCharacterImageUrl": "https://example.com/character-writing.png",
@@ -97,6 +98,7 @@ public interface ChapterControllerDocs {
                                                               "result": {
                                                                 "chapterId": 1,
                                                                 "storybookTitle": "오래 전 당신",
+                                                                "longImageUrl": "https://example.com/long-image.png",
                                                                 "guide": "부모님이 지금 내 나이였을 땐 어떤 하루를 보냈을까요? 사진 한 장을 보며 가볍게 물어봐요.",
                                                                 "character": {
                                                                   "writingCharacterImageUrl": "https://example.com/character-writing.png",

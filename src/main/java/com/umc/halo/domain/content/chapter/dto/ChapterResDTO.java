@@ -11,9 +11,9 @@ public class ChapterResDTO {
     // 오늘의 장 조회
     @Builder
     public record TodayChapter(
-
             Long chapterId,
             String storybookTitle,
+            String longImageUrl,
             String guide,
             Character character,
             List<Question> questions,
