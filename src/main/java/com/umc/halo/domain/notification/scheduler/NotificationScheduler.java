@@ -1,8 +1,5 @@
 package com.umc.halo.domain.notification.scheduler;
 
-import com.umc.halo.domain.member.repository.MemberDeviceRepository;
-import com.umc.halo.domain.notification.repository.NotificationRepository;
-import com.umc.halo.domain.notification.service.FcmService;
 import com.umc.halo.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
