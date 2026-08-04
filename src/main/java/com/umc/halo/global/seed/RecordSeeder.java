@@ -51,6 +51,7 @@ public class RecordSeeder {
                         .member(member.get(scenario.memberName()))
                         .storybook(storybook.get(scenario.storybookTitle()))
                         .lastChapterOrder(scenario.lastChapterOrder())
+                        .startedDate(scenario.completedDate().minusDays(scenario.lastChapterOrder()))
                         .lastCompletedDate(scenario.completedDate())
                         .build())
                 .toList();

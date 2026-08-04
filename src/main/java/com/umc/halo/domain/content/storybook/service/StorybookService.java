@@ -33,6 +33,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -129,6 +130,7 @@ public class StorybookService {
                 .member(member)
                 .storybook(storybook)
                 .lastChapterOrder(1)
+                .startedDate(LocalDate.now())
                 .build();
 
         try {
