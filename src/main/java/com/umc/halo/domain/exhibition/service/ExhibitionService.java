@@ -119,10 +119,8 @@ public class ExhibitionService {
             }
         } else if (!inProgress.isEmpty()) {
             for (MemberStorybook ms : inProgress) {
-                List<MemberChapter> myChapters =
-                        chaptersByStorybook.getOrDefault(ms.getStorybook().getId(), List.of());
                 inProgressDtos.add(ExhibitionConverter.toInProgressStorybook(
-                        ms, resolveNextChapterOrder(ms, myChapters)));
+                        ms, resolveCompletedChapterOrder(ms)));
             }
         } else {
             recommendedDtos = storybookService.getRecommendedStorybooks(memberId).storybooks().stream()
@@ -182,13 +180,8 @@ public class ExhibitionService {
         return sceneCard == null ? null : sceneCard.getImageUrl();
     }
 
-    private Integer resolveNextChapterOrder(MemberStorybook ms, List<MemberChapter> myChapters) {
+    private Integer resolveCompletedChapterOrder(MemberStorybook ms) {
         Integer lastChapterOrder = ms.getLastChapterOrder();
-
-        boolean lastCompleted = myChapters.stream()
-                .anyMatch(mc -> lastChapterOrder.equals(mc.getChapter().getChapterOrder())
-                        && mc.getStatus() == Status.COMPLETED);
-
-        return lastCompleted ? lastChapterOrder + 1 : lastChapterOrder;
+        return lastChapterOrder == null ? 0 : lastChapterOrder;
     }
 }

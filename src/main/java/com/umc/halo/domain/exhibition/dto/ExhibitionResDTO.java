@@ -34,7 +34,7 @@ public class ExhibitionResDTO {
     public record InProgressStorybook(
             Long storybookId,
             String title,
-            Integer nextChapterOrder
+            Integer completedChapterOrder
     ) {
     }
 
