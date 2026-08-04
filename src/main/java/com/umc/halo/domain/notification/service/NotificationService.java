@@ -3,15 +3,12 @@ package com.umc.halo.domain.notification.service;
 import com.umc.halo.domain.member.entity.MemberDevice;
 import com.umc.halo.domain.member.repository.MemberDeviceRepository;
 import com.umc.halo.domain.notification.entity.Notification;
-import com.umc.halo.domain.notification.enums.NotificationStatus;
-import com.umc.halo.domain.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,8 +25,15 @@ public class NotificationService {
 
         for (Notification notification : notifications) {
 
+            UUID leaseId = notification.getProcessingLeaseId();
+
+            if (leaseId == null) {
+                log.warn("processing lease가 없는 notificationId={}", notification.getId());
+                continue;
+            }
+
             if (!canSend(notification)) {
-                notificationTransactionService.expireSend(notification.getId());
+                notificationTransactionService.expireSend(notification.getId(), leaseId);
                 continue;
             }
 
@@ -37,13 +41,13 @@ public class NotificationService {
                 boolean success = send(notification);
 
                 if (success) {
-                    notificationTransactionService.completeSend(notification.getId());
+                    notificationTransactionService.completeSend(notification.getId(), leaseId);
                 } else {
-                    notificationTransactionService.failSend(notification.getId());
+                    notificationTransactionService.failSend(notification.getId(), leaseId);
                 }
 
             } catch (Exception e) {
-                notificationTransactionService.failSend(notification.getId());
+                notificationTransactionService.failSend(notification.getId(), leaseId);
             }
         }
     }

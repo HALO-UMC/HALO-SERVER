@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,21 +31,21 @@ public class NotificationTransactionService {
     }
 
     @Transactional
-    public void completeSend(Long notificationId){
+    public void completeSend(Long notificationId, UUID leaseId){
         Notification notification = notificationRepository.findById(notificationId).orElseThrow();
-        notification.send();
+        notification.send(leaseId);
     }
 
 
     @Transactional
-    public void failSend(Long notificationId){
+    public void failSend(Long notificationId, UUID leaseId){
         Notification notification = notificationRepository.findById(notificationId).orElseThrow();
-        notification.fail();
+        notification.fail(leaseId);
     }
 
     @Transactional
-    public void expireSend(Long notificationId) {
+    public void expireSend(Long notificationId, UUID leaseId) {
         Notification notification = notificationRepository.findById(notificationId).orElseThrow();
-        notification.expire();
+        notification.expireWithLease(leaseId);
     }
 }

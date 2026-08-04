@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.*;
+import java.util.UUID;
 
 @Entity
 @Table(
@@ -62,6 +63,9 @@ public class Notification extends BaseEntity {
     @Column(name = "processing_at")
     private LocalDateTime processingAt;
 
+    @Column(name = "processing_lease_id")
+    private UUID processingLeaseId;
+
     public void updateContent(String title, String message) {
         this.title = title;
         this.message = message;
@@ -94,22 +98,42 @@ public class Notification extends BaseEntity {
         if (this.status != NotificationStatus.SENT) {
             this.status = NotificationStatus.EXPIRED;
             this.processingAt = null;
+            this.processingLeaseId = null;
         }
     }
 
-    public void send() {
+    public void expireWithLease(UUID leaseId) {
+
+        if (this.processingLeaseId == null || !this.processingLeaseId.equals(leaseId)) {
+            return;
+        }
+        expire();
+    }
+
+    public void send(UUID leaseId) {
+        if(this.processingLeaseId == null || !this.processingLeaseId.equals(leaseId)){
+            return;
+        }
+
         this.status = NotificationStatus.SENT;
         this.sentAt = LocalDateTime.now();
         this.processingAt = null;
+        this.processingLeaseId = null;
     }
 
-    public void fail() {
+    public void fail(UUID leaseId) {
+        if (this.processingLeaseId == null || !this.processingLeaseId.equals(leaseId)) {
+            return;
+        }
+
         this.status = NotificationStatus.FAILED;
         this.processingAt = null;
+        this.processingLeaseId = null;
     }
 
     public void startProcessing() {
         this.status = NotificationStatus.PROCESSING;
         this.processingAt = LocalDateTime.now();
+        this.processingLeaseId = UUID.randomUUID();
     }
 }
