@@ -255,6 +255,20 @@ public class StorybookService {
             statusMap.put(sb, status);
         }
 
+        // 책장(bookshelf) 전체 10개 테마 상태 계산 (미시작 테마만 추천 문구 채움)
+        List<StorybookResDTO.BookshelfItem> bookshelf = storybooks.stream()
+                .map(sb -> {
+                    StorybookStatus status = statusMap.get(sb);
+                    if (status == StorybookStatus.NOT_STARTED) {
+                        return StorybookConverter.toBookshelfItem(sb, null, true, sb.getRecommendationPhrase());
+                    }
+                    MemberStorybook ms = memberStorybookMap.get(sb.getId());
+                    Integer chapterOrder = resolveDisplayChapterOrder(ms, memberChaptersMap.get(sb.getId()));
+                    boolean todayAvailable = status == StorybookStatus.IN_PROGRESS;
+                    return StorybookConverter.toBookshelfItem(sb, chapterOrder, todayAvailable, null);
+                })
+                .toList();
+
         // 완료 안 하고 시작은 한 스토리북들(진행중 + 오늘 완료) 추리기
         List<Storybook> activeStorybooks = statusMap.entrySet().stream()
                 .filter(e -> e.getValue() == StorybookStatus.IN_PROGRESS || e.getValue() == StorybookStatus.TODAY_DONE)
@@ -293,6 +307,7 @@ public class StorybookService {
         return StorybookConverter.toHome(
                 homeStatus,
                 member.getName() + "님",
+                bookshelf,
                 inProgressStorybooks,
                 recommendedStorybooks
         );

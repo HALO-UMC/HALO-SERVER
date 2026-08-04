@@ -48,6 +48,18 @@ public interface StorybookControllerDocs {
                                           "result": {
                                             "homeStatus": "MULTIPLE_IN_PROGRESS",
                                             "memberName": "김하로님",
+                                            "bookshelf": [
+                                              { "storybookId": 1, "title": "오래전 당신", "shortDescription": "가족과의 만남", "imageUrl": "https://example.com/storybook1.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "부모님의 지난 시간을 알고 싶다면" },
+                                              { "storybookId": 2, "title": "당신 사용설명서", "shortDescription": "따뜻했던 순간들", "imageUrl": "https://example.com/storybook2.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "부모님을 더 잘 이해하고 싶다면" },
+                                              { "storybookId": 3, "title": "가족의 온도", "shortDescription": "가족이 서로에게 건네는 마음", "imageUrl": "https://example.com/storybook3.png", "currentChapterOrder": 1, "todayAvailable": true, "recommendationReasonText": null },
+                                              { "storybookId": 4, "title": "취향이 닿는 날", "shortDescription": "서로의 취향을 알아가는 시간", "imageUrl": "https://example.com/storybook4.png", "currentChapterOrder": 3, "todayAvailable": true, "recommendationReasonText": null },
+                                              { "storybookId": 5, "title": "나란히 걷는 날", "shortDescription": "함께 걸어온 시간을 돌아보는 이야기", "imageUrl": "https://example.com/storybook5.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "함께하는 시간을 늘리고 싶다면" },
+                                              { "storybookId": 6, "title": "오늘은 내가 먼저", "shortDescription": "먼저 다가서는 용기에 대한 이야기", "imageUrl": "https://example.com/storybook6.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "먼저 마음을 표현하고 싶다면" },
+                                              { "storybookId": 7, "title": "생신까지 열 장", "shortDescription": "열 번의 준비", "imageUrl": "https://example.com/storybook7.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "특별한 생신을 준비하고 싶다면" },
+                                              { "storybookId": 8, "title": "한 장의 가족사진", "shortDescription": "한 장의 추억", "imageUrl": "https://example.com/storybook8.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "가족의 순간을 남기고 싶다면" },
+                                              { "storybookId": 9, "title": "손을 내미는 연습", "shortDescription": "용기의 시작", "imageUrl": "https://example.com/storybook9.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "어색한 관계에 다가가고 싶다면" },
+                                              { "storybookId": 10, "title": "당신의 1호 팬", "shortDescription": "가장 큰 응원", "imageUrl": "https://example.com/storybook10.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "부모님을 응원하고 싶다면" }
+                                            ],
                                             "inProgressStorybooks": [
                                               {
                                                 "storybookId": 3,
@@ -81,6 +93,18 @@ public interface StorybookControllerDocs {
                                           "result": {
                                             "homeStatus": "NO_STORYBOOK",
                                             "memberName": "김하로님",
+                                            "bookshelf": [
+                                              { "storybookId": 1, "title": "오래전 당신", "shortDescription": "가족과의 만남", "imageUrl": "https://example.com/storybook1.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "부모님의 지난 시간을 알고 싶다면" },
+                                              { "storybookId": 2, "title": "당신 사용설명서", "shortDescription": "따뜻했던 순간들", "imageUrl": "https://example.com/storybook2.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "부모님을 더 잘 이해하고 싶다면" },
+                                              { "storybookId": 3, "title": "가족의 온도", "shortDescription": "가족이 서로에게 건네는 마음", "imageUrl": "https://example.com/storybook3.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "가족의 마음을 다시 느끼고 싶다면" },
+                                              { "storybookId": 4, "title": "취향이 닿는 날", "shortDescription": "서로의 취향을 알아가는 시간", "imageUrl": "https://example.com/storybook4.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "함께할 취향을 찾고 싶다면" },
+                                              { "storybookId": 5, "title": "나란히 걷는 날", "shortDescription": "함께 걸어온 시간을 돌아보는 이야기", "imageUrl": "https://example.com/storybook5.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "함께하는 시간을 늘리고 싶다면" },
+                                              { "storybookId": 6, "title": "오늘은 내가 먼저", "shortDescription": "먼저 다가서는 용기에 대한 이야기", "imageUrl": "https://example.com/storybook6.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "먼저 마음을 표현하고 싶다면" },
+                                              { "storybookId": 7, "title": "생신까지 열 장", "shortDescription": "열 번의 준비", "imageUrl": "https://example.com/storybook7.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "특별한 생신을 준비하고 싶다면" },
+                                              { "storybookId": 8, "title": "한 장의 가족사진", "shortDescription": "한 장의 추억", "imageUrl": "https://example.com/storybook8.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "가족의 순간을 남기고 싶다면" },
+                                              { "storybookId": 9, "title": "손을 내미는 연습", "shortDescription": "용기의 시작", "imageUrl": "https://example.com/storybook9.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "어색한 관계에 다가가고 싶다면" },
+                                              { "storybookId": 10, "title": "당신의 1호 팬", "shortDescription": "가장 큰 응원", "imageUrl": "https://example.com/storybook10.png", "currentChapterOrder": null, "todayAvailable": true, "recommendationReasonText": "부모님을 응원하고 싶다면" }
+                                            ],
                                             "inProgressStorybooks": [],
                                             "recommendedStorybooks": [
                                               {
