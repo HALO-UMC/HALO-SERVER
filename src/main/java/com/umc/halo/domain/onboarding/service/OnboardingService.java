@@ -191,4 +191,14 @@ public class OnboardingService {
         }
         return characters.get(ThreadLocalRandom.current().nextInt(characters.size()));
     }
+
+    // 온보딩 태그 목록 조회
+    @Transactional(readOnly = true)
+    public OnboardingResDTO.TagList getTags() {
+        return OnboardingConverter.toTagList(
+                tagRepository.findByCategory(Category.PARENT_TENDENCY),
+                tagRepository.findByCategory(Category.CURRENT_RELATIONSHIP),
+                tagRepository.findByCategory(Category.DESIRED_DIRECTION)
+        );
+    }
 }
