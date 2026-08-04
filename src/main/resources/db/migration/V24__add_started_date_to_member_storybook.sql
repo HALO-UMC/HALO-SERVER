@@ -1,0 +1,2 @@
+ALTER TABLE member_storybook
+    ADD COLUMN started_date DATE NOT NULL DEFAULT (CURRENT_DATE);
