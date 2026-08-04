@@ -40,18 +40,6 @@ public class MemberDeviceService {
         }
 
         memberDeviceRepository.save(MemberDeviceConverter.toMemberDevice(member, dto));
-
-        Notification notification = Notification.builder()
-                .member(member)
-                .notificationType(NotificationType.RETENTION)
-                .title("테스트 알림")
-                .message("FCM 테스트입니다.")
-                .scheduledAt(LocalDateTime.now().plusSeconds(5))
-                .status(NotificationStatus.SCHEDULED)
-                .settingEnabled(true)
-                .build();
-
-        notificationRepository.save(notification);
     }
 
     @Transactional

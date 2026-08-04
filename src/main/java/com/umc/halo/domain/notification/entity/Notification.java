@@ -56,7 +56,7 @@ public class Notification extends BaseEntity {
     @Column(name = "setting_enabled", nullable = false)
     private Boolean settingEnabled;
 
-    @Column(name = "anniversary_enabled", nullable = false)
+    @Column(name = "anniversary_enabled")
     private Boolean anniversaryEnabled;
 
     public void updateContent(String title, String message) {

@@ -16,7 +16,7 @@ public class NotificationScheduler {
 
     private final NotificationService notificationService;
 
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(cron = "0 * * * * *")
     public void sendScheduledNotification() {
         notificationService.sendScheduledNotification();
     }
