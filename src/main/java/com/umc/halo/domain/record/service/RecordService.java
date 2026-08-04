@@ -80,7 +80,7 @@ public class RecordService {
                 if (recordReqDTO.sceneCardId() != null) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
-                if ((recordReqDTO.imageUrl() == null) || (recordReqDTO.imageKey() == null)) {
+                if (recordReqDTO.imageKey() == null || recordReqDTO.imageKey().isBlank()) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
                 // 기존 기록의 imageKey와 동일하면 그대로 사용
@@ -90,7 +90,7 @@ public class RecordService {
                     imageKey = imageService.finalizeImage(memberId, recordReqDTO.imageKey()).finalKey();
                 }
             } else {
-                if ((recordReqDTO.imageKey() != null) || (recordReqDTO.imageUrl() != null)) {
+                if (recordReqDTO.imageKey() != null) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
                 if (recordReqDTO.sceneCardId() == null) {
@@ -98,7 +98,7 @@ public class RecordService {
                 }
             }
         } else {
-            if ((recordReqDTO.sceneCardId() != null) || (recordReqDTO.imageKey() != null) || (recordReqDTO.imageUrl() != null)) {
+            if ((recordReqDTO.sceneCardId() != null) || (recordReqDTO.imageKey() != null)) {
                 throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
             }
         }

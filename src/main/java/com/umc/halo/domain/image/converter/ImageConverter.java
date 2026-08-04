@@ -26,11 +26,10 @@ public class ImageConverter {
     }
 
     public static ImageResDTO.CreatePresignedUrl toCreatePresignedUrl(
-            PresignedPutObjectRequest presignedPutObjectRequest, String imageKey, String imageUrl, Duration expiration) {
+            PresignedPutObjectRequest presignedPutObjectRequest, String imageKey, Duration expiration) {
         return ImageResDTO.CreatePresignedUrl.builder()
                 .presignedUrl(presignedPutObjectRequest.url().toString())
                 .imageKey(imageKey)
-                .imageUrl(imageUrl)
                 .expires((int) expiration.toSeconds())
                 .build();
     }

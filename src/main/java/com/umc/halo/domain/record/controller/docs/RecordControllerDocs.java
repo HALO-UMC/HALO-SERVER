@@ -24,7 +24,7 @@ public interface RecordControllerDocs {
                     - **Body**
                         - chapterId : 기록할 장 ID
                         - emotion / coverType : status가 COMPLETED일 때만 필수
-                        - imageUrl / imageKey : coverType이 IMAGE일 때만 필수
+                        - imageKey : coverType이 IMAGE일 때만 필수
                         - sceneCardId : coverType이 SCENE_CARD일 때만 필수
                         - answers : 질문별 답변 목록 (최대 3개, 단계별 저장 시 일부만 포함 가능. status가 COMPLETED일 때는 장의 모든 질문에 대한 답변 필요)
                         - status : DRAFT(임시저장) 또는 COMPLETED(최종완료)
@@ -34,7 +34,7 @@ public interface RecordControllerDocs {
                     2. 회원의 스토리북 진행 정보(MemberStorybook)를 조회합니다. 아직 시작하지 않은 스토리북이면 403(CHAPTER403_1)을 반환합니다.
                     3. 오늘 이미 이 스토리북의 장을 완료했다면 409(CHAPTER409_1)를 반환합니다.
                     4. 진행 중인 장 순서를 기준으로 요청한 장에 접근 가능한지 검증합니다. 아직 열리지 않은 장이면 403(CHAPTER403_1), 이미 완료한 장이면 403(CHAPTER403_2)을 반환합니다.
-                    5. coverType과 imageUrl/imageKey/sceneCardId 조합이 일치하는지 검증합니다. (CHAPTER400_1)
+                    5. coverType과 imageKey/sceneCardId 조합이 일치하는지 검증합니다. (CHAPTER400_1)
                     6. status가 COMPLETED이면 coverType, emotion이 모두 입력되었는지, 장의 모든 질문에 답변했는지 검증합니다. (CHAPTER400_4~6)
                     7. sceneCardId가 있으면 해당 장의 장면 카드가 맞는지 확인합니다. (CHAPTER400_2)
                     8. 장 기록(MemberChapter)을 생성하거나 갱신합니다. 동시 요청으로 중복 저장이 발생하면 409(CHAPTER409_2)를 반환합니다.
