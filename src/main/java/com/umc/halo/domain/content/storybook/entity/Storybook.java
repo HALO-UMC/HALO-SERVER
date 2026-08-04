@@ -20,8 +20,8 @@ public class Storybook extends BaseEntity {
     @Column(length = 50, nullable = false)
     private String title;
 
-    @Column(name = "theme_order", nullable = false)
-    private Integer themeOrder;
+    @Column(name = "recommendation_phrase", length = 100, nullable = false)
+    private String recommendationPhrase;
 
     @Column(name = "short_description", length = 255, nullable = false)
     private String shortDescription;
@@ -31,8 +31,5 @@ public class Storybook extends BaseEntity {
 
     @Column(name = "image_url", length = 255, nullable = false)
     private String imageUrl;
-
-    @Column(name = "spine_color", length = 7, nullable = false)
-    private String spineColor;
 
 }

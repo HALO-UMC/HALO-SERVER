@@ -11,7 +11,7 @@ import java.time.*;
 @Entity
 @Table(
         name = "notification",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"anniversary_id", "notification_type"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"anniversary_id", "notification_type", "scheduled_at"})
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -53,13 +53,15 @@ public class Notification extends BaseEntity {
     @Builder.Default
     private NotificationStatus status = NotificationStatus.SCHEDULED;
 
-    public void update(String title, String message, LocalDateTime scheduledAt) {
+    @Column(name = "setting_enabled", nullable = false)
+    private Boolean settingEnabled;
+
+    @Column(name = "anniversary_enabled", nullable = false)
+    private Boolean anniversaryEnabled;
+
+    public void updateContent(String title, String message) {
         this.title = title;
         this.message = message;
-        this.scheduledAt = scheduledAt;
-        if (this.status != NotificationStatus.SENT) {
-            this.status = NotificationStatus.SCHEDULED;
-        }
     }
 
     public void reserve(LocalDateTime scheduledAt) {
@@ -70,17 +72,24 @@ public class Notification extends BaseEntity {
         this.status = NotificationStatus.SCHEDULED;
     }
 
-    public void cancel() {
-        if (this.status != NotificationStatus.SENT) {
-            this.status = NotificationStatus.CANCELED;
+    public void updateScheduledAt(LocalDateTime scheduledAt) {
+        if (this.status == NotificationStatus.SENT) {
+            return;
         }
+        this.scheduledAt = scheduledAt;
     }
 
-    public boolean isReserved() {
-        return status == NotificationStatus.SCHEDULED;
+    public void updateSettingEnabled(boolean enabled) {
+        this.settingEnabled = enabled;
     }
 
-    public boolean isCanceled() {
-        return status == NotificationStatus.CANCELED;
+    public void updateAnniversaryEnabled(boolean enabled) {
+        this.anniversaryEnabled = enabled;
+    }
+
+    public void expire() {
+        if (this.status != NotificationStatus.SENT) {
+            this.status = NotificationStatus.EXPIRED;
+        }
     }
 }

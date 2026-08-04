@@ -29,7 +29,7 @@ public class RecordSeeder {
     private final MemberStorybookRepository memberStorybookRepository;
     private final MemberRepository memberRepository;
     private final StorybookRepository storybookRepository;
-    private final StorybookChapterRepository storybookChapterRepository;
+    private final ChapterRepository chapterRepository;
     private final ChapterQuestionRepository chapterQuestionRepository;
     private final SceneCardRepository sceneCardRepository;
 
@@ -52,7 +52,6 @@ public class RecordSeeder {
                         .storybook(storybook.get(scenario.storybookTitle()))
                         .lastChapterOrder(scenario.lastChapterOrder())
                         .lastCompletedDate(scenario.completedDate())
-                        .emotion(scenario.emotion())
                         .build())
                 .toList();
 
@@ -63,14 +62,14 @@ public class RecordSeeder {
     }
 
     @Transactional
-    public List<MemberChapter> seedMemberChapter(Map<String, Member> member, List<StorybookChapter> storybookChapters, List<SceneCard> sceneCards) {
+    public List<MemberChapter> seedMemberChapter(Map<String, Member> member, List<Chapter> chapters, List<SceneCard> sceneCards) {
         List<MemberChapter> memberChapters = PROGRESS_SCENARIOS.stream()
                 .flatMap(scenario -> IntStream.rangeClosed(1, scenario.lastChapterOrder())
                         .mapToObj(chapterOrder -> buildMemberChapter(
                                 member.get(scenario.memberName()),
                                 scenario.storybookTitle(),
                                 chapterOrder,
-                                storybookChapters,
+                                chapters,
                                 sceneCards,
                                 scenario.emotion(),
                                 scenario.completedDate())))
@@ -131,16 +130,16 @@ public class RecordSeeder {
     );
 
     private MemberChapter buildMemberChapter(Member member, String storybookTitle, int chapterOrder,
-                                             List<StorybookChapter> storybookChapters, List<SceneCard> sceneCards,
+                                             List<Chapter> chapters, List<SceneCard> sceneCards,
                                              Emotion emotion, LocalDate completedDate) {
-        StorybookChapter storybookChapter = storybookChapters.stream()
-                .filter(sc -> sc.getStorybook().getTitle().equals(storybookTitle)
-                        && sc.getChapterOrder().equals(chapterOrder))
+        Chapter chapter = chapters.stream()
+                .filter(c -> c.getStorybook().getTitle().equals(storybookTitle)
+                        && c.getChapterOrder().equals(chapterOrder))
                 .findFirst()
                 .orElseThrow();
 
         SceneCard sceneCard = sceneCards.stream()
-                .filter(sc -> sc.getChapter().getId().equals(storybookChapter.getChapter().getId()))
+                .filter(sc -> sc.getChapter().getId().equals(chapter.getId()))
                 .findFirst()
                 .orElseThrow();
 
@@ -148,7 +147,7 @@ public class RecordSeeder {
 
         return MemberChapter.builder()
                 .member(member)
-                .storybookChapter(storybookChapter)
+                .chapter(chapter)
                 .sceneCard(sceneCard)
                 .emotion(emotion)
                 .coverType(CoverType.SCENE_CARD)
@@ -162,7 +161,7 @@ public class RecordSeeder {
     public List<MemberChapterAnswer> seedMemberChapterAnswer(List<MemberChapter> memberChapters, List<ChapterQuestion> chapterQuestions) {
         List<MemberChapterAnswer> memberChapterAnswers = memberChapters.stream()
                 .flatMap(memberChapter -> {
-                    Long chapterId = memberChapter.getStorybookChapter().getChapter().getId();
+                    Long chapterId = memberChapter.getChapter().getId();
                     return chapterQuestions.stream()
                             .filter(question -> question.getChapter().getId().equals(chapterId))
                             .map(question -> MemberChapterAnswer.builder()
@@ -186,12 +185,12 @@ public class RecordSeeder {
                 .collect(Collectors.toMap(Member::getName, Function.identity(), (a, b) -> a));
         Map<String, Storybook> storybook = storybookRepository.findAll().stream()
                 .collect(Collectors.toMap(Storybook::getTitle, Function.identity()));
-        List<StorybookChapter> storybookChapters = storybookChapterRepository.findAll();
+        List<Chapter> chapters = chapterRepository.findAll();
         List<ChapterQuestion> chapterQuestions = chapterQuestionRepository.findAll();
         List<SceneCard> sceneCards = sceneCardRepository.findAll();
 
         seedMemberStorybook(member, storybook);
-        List<MemberChapter> memberChapters = seedMemberChapter(member, storybookChapters, sceneCards);
+        List<MemberChapter> memberChapters = seedMemberChapter(member, chapters, sceneCards);
         seedMemberChapterAnswer(memberChapters, chapterQuestions);
     }
 }

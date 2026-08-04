@@ -32,7 +32,12 @@ public enum OnboardingErrorCode implements BaseErrorCode {
     // 404
     TAG_NOT_FOUND(HttpStatus.NOT_FOUND,
             "ONBOARDING404_1",
-            "존재하지 않는 태그입니다.")
+            "존재하지 않는 태그입니다."),
+
+    // 500
+    CHARACTER_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR,
+            "ONBOARDING500_1",
+            "배정 가능한 캐릭터가 존재하지 않습니다.")
     ;
 
     private final HttpStatus status;

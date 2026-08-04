@@ -10,26 +10,24 @@ import java.util.*;
 public class ChapterConverter {
 
     public static ChapterResDTO.TodayChapter toTodayChapter(
-            StorybookChapter storybookChapter,
-            StorybookCharacter originalCharacter,
-            StorybookCharacter imageChoiceCharacter,
+            Chapter chapter,
+            StorybookCharacterVariant writingCharacterVariant,
+            StorybookCharacterVariant sceneCardCharacterVariant,
             List<ChapterQuestion> questions,
             List<SceneCard> sceneCards,
             MemberChapter memberChapter,
             List<MemberChapterAnswer> answers,
             String imageUrl) {
 
-        Chapter chapter = storybookChapter.getChapter();
-
         return ChapterResDTO.TodayChapter.builder()
                 .chapterId(chapter.getId())
-                .storybookTitle(storybookChapter.getStorybook().getTitle())
+                .storybookTitle(chapter.getStorybook().getTitle())
                 .guide(chapter.getGuide())
 
                 .character(
                         ChapterResDTO.TodayChapter.Character.builder()
-                                .originalUrl(originalCharacter.getImageUrl())
-                                .imageChoiceUrl(imageChoiceCharacter.getImageUrl())
+                                .writingCharacterImageUrl(writingCharacterVariant.getImageUrl())
+                                .sceneCardCharacterImageUrl(sceneCardCharacterVariant.getImageUrl())
                                 .build()
                 )
 

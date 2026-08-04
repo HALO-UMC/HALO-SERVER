@@ -34,7 +34,7 @@ public interface MemberControllerDocs {
                     2. provider와 providerId로 기존 회원을 조회합니다.
                     3. 기존 회원이면 로그인을 진행합니다.
                     4. 회원이 없으면 신규 회원을 생성한 후 로그인합니다.
-                    5. Access Token과 Refresh Token을 발급합니다.
+                    5. Access Token, Refresh Token, onboardingCompleted, termsAgreed를 반환합니다.
                     """
     )
     @ApiResponses(value = {
@@ -52,7 +52,8 @@ public interface MemberControllerDocs {
                                             "accessToken": "eyJ...",
                                             "refreshToken": "eyJ...",
                                             "isNewUser": true,
-                                            "onboardingCompleted": true
+                                            "onboardingCompleted": false,
+                                            "termsAgreed": false
                                         }
                                     }
                                     """
@@ -141,7 +142,8 @@ public interface MemberControllerDocs {
                     1. Refresh Token의 서명, 만료 여부 및 토큰 타입을 검증합니다.
                     2. 회원 DB에 저장된 Refresh Token과 일치하는지 검증합니다.
                     3. 검증에 성공하면 새로운 Access Token과 Refresh Token을 발급합니다.
-                    4. 기존 Refresh Token은 무효화되고 새 Refresh Token으로 교체됩니다.
+                    4. onboardingCompleted와 termsAgreed 상태를 함께 반환합니다.
+                    5. 기존 Refresh Token은 무효화되고 새 Refresh Token으로 교체됩니다.
                     """
     )
     @ApiResponses(value = {
@@ -157,7 +159,9 @@ public interface MemberControllerDocs {
                                         "message": "토큰 재발급 성공",
                                         "result": {
                                             "accessToken": "eyJ...",
-                                            "refreshToken": "eyJ..."
+                                            "refreshToken": "eyJ...",
+                                            "onboardingCompleted": true,
+                                            "termsAgreed": true
                                         }
                                     }
                                     """
@@ -340,7 +344,7 @@ public interface MemberControllerDocs {
                     # 동작 방식
                     1. Access Token으로 현재 회원을 인증합니다.
                     2. 회원 정보를 조회합니다.
-                    3. 회원의 기본 정보를 반환합니다.
+                    3. 회원의 기본 정보와 온보딩 완료 시 배정된 캐릭터의 프로필 이미지 URL(characterImageUrl)을 반환합니다. 캐릭터가 배정되지 않았거나 프로필 이미지가 없다면 null입니다.
                     """
     )
     @ApiResponses(value = {
@@ -361,7 +365,8 @@ public interface MemberControllerDocs {
                                             "birthDate": "2002-02-25",
                                             "provider": "KAKAO",
                                             "onboardingCompleted": true,
-                                            "createdAt": "2026-06-30T14:20:00"
+                                            "createdAt": "2026-06-30T14:20:00",
+                                            "characterImageUrl": "https://cdn.halo.com/character/3/profile.png"
                                         }
                                     }
                                     """

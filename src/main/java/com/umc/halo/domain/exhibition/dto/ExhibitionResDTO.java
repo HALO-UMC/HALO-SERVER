@@ -11,29 +11,32 @@ public class ExhibitionResDTO {
             List<CompletedStorybook> storybooks,
             List<InProgressStorybook> inProgressStorybooks,
             List<RecommendedStorybook> recommendedStorybooks
-    ) {}
+    ) {
+    }
 
     public record Stats(
             Integer collectedCharacterCount,
             Integer inProgressStorybookCount
-    ) {}
+    ) {
+    }
 
     public record CompletedStorybook(
             Long storybookId,
-            Integer order,
             String title,
             String summary,
             LocalDate completedDate,
             Long characterId,
             String characterName,
             String characterImageUrl
-    ) {}
+    ) {
+    }
 
     public record InProgressStorybook(
             Long storybookId,
             String title,
             Integer nextChapterOrder
-    ) {}
+    ) {
+    }
 
     public record RecommendedStorybook(
             Long storybookId,
@@ -41,5 +44,6 @@ public class ExhibitionResDTO {
             String shortDescription,
             String imageUrl,
             String recommendationReasonText
-    ) {}
+    ) {
+    }
 }

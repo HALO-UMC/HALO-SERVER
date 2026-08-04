@@ -1,4 +1,4 @@
-package com.umc.halo.domain.record.excption.code;
+package com.umc.halo.domain.record.exception.code;
 
 import com.umc.halo.global.apiPayload.code.*;
 import lombok.*;

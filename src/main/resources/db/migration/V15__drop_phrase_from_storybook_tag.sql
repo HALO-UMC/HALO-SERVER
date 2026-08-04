@@ -1,0 +1,1 @@
+ALTER TABLE storybook_tag DROP COLUMN phrase;

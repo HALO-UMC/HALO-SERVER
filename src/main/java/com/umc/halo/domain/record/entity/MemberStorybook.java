@@ -3,7 +3,6 @@ package com.umc.halo.domain.record.entity;
 import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.global.entity.*;
-import com.umc.halo.global.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,10 +37,6 @@ public class MemberStorybook extends BaseEntity {
 
     @Column(name = "last_completed_date")
     private LocalDate lastCompletedDate;
-
-    @Column
-    @Enumerated(EnumType.STRING)
-    private Emotion emotion;
 
     public void updateCompleted(Integer chapterOrder) {
         this.lastChapterOrder = chapterOrder;

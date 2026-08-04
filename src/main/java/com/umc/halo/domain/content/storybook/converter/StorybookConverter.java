@@ -1,16 +1,18 @@
 package com.umc.halo.domain.content.storybook.converter;
 
-import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
-import com.umc.halo.domain.content.storybook.entity.Storybook;
-import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
-import com.umc.halo.domain.content.storybook.enums.BookshelfStatus;
-import com.umc.halo.domain.content.storybook.enums.ChapterViewStatus;
-import com.umc.halo.domain.content.storybook.enums.HomeStatus;
-import com.umc.halo.domain.content.storybook.enums.StorybookStatus;
-import com.umc.halo.domain.record.entity.MemberStorybook;
-import com.umc.halo.domain.tag.entity.StorybookTag;
+import com.umc.halo.domain.content.storybook.dto.*;
+import com.umc.halo.domain.content.storybook.entity.*;
+import com.umc.halo.domain.content.storybook.enums.*;
+import com.umc.halo.domain.record.entity.*;
+import com.umc.halo.domain.tag.entity.*;
+import com.umc.halo.domain.content.chapter.entity.*;
+import com.umc.halo.domain.content.storybook.dto.*;
+import com.umc.halo.domain.content.storybook.entity.*;
+import com.umc.halo.domain.content.storybook.enums.*;
+import com.umc.halo.domain.record.entity.*;
+import com.umc.halo.domain.tag.entity.*;
 
-import java.util.List;
+import java.util.*;
 
 public class StorybookConverter {
 
@@ -18,13 +20,14 @@ public class StorybookConverter {
         throw new IllegalStateException("유틸리티 클래스는 인스턴스화할 수 없습니다.");
     }
 
-    public static StorybookResDTO.ChapterInfo toChapterInfo(StorybookChapter sc, ChapterViewStatus status) {
+    public static StorybookResDTO.ChapterInfo toChapterInfo(Chapter chapter, ChapterViewStatus status, Long memberChapterId) {
         return StorybookResDTO.ChapterInfo.builder()
-                .chapterOrder(sc.getChapterOrder())
-                .title(sc.getChapter().getTitle())
-                .imageUrl(sc.getChapter().getImageUrl())
-                .shortDescription(sc.getChapter().getShortDescription())
-                .description(sc.getChapter().getDescription())
+                .chapterOrder(chapter.getChapterOrder())
+                .memberChapterId(memberChapterId)
+                .title(chapter.getTitle())
+                .shortImageUrl(chapter.getShortImageUrl())
+                .shortDescription(chapter.getShortDescription())
+                .description(chapter.getDescription())
                 .status(status)
                 .build();
     }
@@ -52,15 +55,14 @@ public class StorybookConverter {
     }
 
     public static StorybookResDTO.StorybookSummary toStorybookSummary(
-            Storybook storybook, StorybookStatus status, MemberStorybook memberStorybook) {
+            Storybook storybook, StorybookStatus status, MemberStorybook memberStorybook, Integer displayChapterOrder) {
         return StorybookResDTO.StorybookSummary.builder()
                 .storybookId(storybook.getId())
                 .title(storybook.getTitle())
-                .themeOrder(storybook.getThemeOrder())
                 .shortDescription(storybook.getShortDescription())
                 .imageUrl(storybook.getImageUrl())
                 .status(status)
-                .lastChapterOrder(memberStorybook == null ? null : memberStorybook.getLastChapterOrder())
+                .lastChapterOrder(displayChapterOrder)
                 .lastCompletedDate(memberStorybook == null ? null : memberStorybook.getLastCompletedDate())
                 .build();
     }
@@ -74,12 +76,12 @@ public class StorybookConverter {
                 .build();
     }
 
-    public static StorybookResDTO.SituationalStorybook toSituationalStorybook(StorybookTag st) {
+    public static StorybookResDTO.SituationalStorybook toSituationalStorybook(StorybookTag st, String reasonText) {
         return StorybookResDTO.SituationalStorybook.builder()
                 .storybookId(st.getStorybook().getId())
                 .title(st.getStorybook().getTitle())
                 .imageUrl(st.getStorybook().getImageUrl())
-                .recommendationReasonText(st.getPhrase())
+                .recommendationReasonText(reasonText)
                 .build();
     }
 
@@ -91,13 +93,13 @@ public class StorybookConverter {
                 .build();
     }
 
-    public static StorybookResDTO.RecommendedStorybook toRecommendedStorybook(StorybookTag st) {
+    public static StorybookResDTO.RecommendedStorybook toRecommendedStorybook(StorybookTag st, String reasonText) {
         return StorybookResDTO.RecommendedStorybook.builder()
                 .storybookId(st.getStorybook().getId())
                 .title(st.getStorybook().getTitle())
                 .shortDescription(st.getStorybook().getShortDescription())
                 .imageUrl(st.getStorybook().getImageUrl())
-                .recommendationReasonText(st.getPhrase())
+                .recommendationReasonText(reasonText)
                 .build();
     }
 
@@ -107,17 +109,6 @@ public class StorybookConverter {
                 .title(sb.getTitle())
                 .shortDescription(sb.getShortDescription())
                 .imageUrl(sb.getImageUrl())
-                .recommendationReasonText(reasonText)
-                .build();
-    }
-
-    public static StorybookResDTO.RecommendedStorybook toRecommendedStorybook(
-            StorybookResDTO.RecommendedStorybook original, String reasonText) {
-        return StorybookResDTO.RecommendedStorybook.builder()
-                .storybookId(original.storybookId())
-                .title(original.title())
-                .shortDescription(original.shortDescription())
-                .imageUrl(original.imageUrl())
                 .recommendationReasonText(reasonText)
                 .build();
     }
@@ -134,19 +125,10 @@ public class StorybookConverter {
         return StorybookResDTO.InProgressStorybook.builder()
                 .storybookId(storybook.getId())
                 .title(storybook.getTitle())
+                .imageUrl(storybook.getImageUrl())
                 .currentChapterOrder(currentChapterOrder)
                 .totalChapterCount(10)
                 .todayAvailable(todayAvailable)
-                .build();
-    }
-
-    public static StorybookResDTO.BookshelfItem toBookshelfItem(Storybook sb, BookshelfStatus status) {
-        return StorybookResDTO.BookshelfItem.builder()
-                .storybookId(sb.getId())
-                .title(sb.getTitle())
-                .themeOrder(sb.getThemeOrder())
-                .spineColor(sb.getSpineColor())
-                .status(status)
                 .build();
     }
 
@@ -154,13 +136,11 @@ public class StorybookConverter {
             HomeStatus homeStatus,
             String memberName,
             List<StorybookResDTO.InProgressStorybook> inProgressStorybooks,
-            List<StorybookResDTO.BookshelfItem> bookshelf,
             List<StorybookResDTO.RecommendedStorybook> recommendedStorybooks) {
         return StorybookResDTO.GetHome.builder()
                 .homeStatus(homeStatus)
                 .memberName(memberName)
                 .inProgressStorybooks(inProgressStorybooks)
-                .bookshelf(bookshelf)
                 .recommendedStorybooks(recommendedStorybooks)
                 .build();
     }

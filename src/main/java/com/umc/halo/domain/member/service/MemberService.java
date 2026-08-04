@@ -1,5 +1,8 @@
 package com.umc.halo.domain.member.service;
 
+import com.umc.halo.domain.content.storybook.entity.StorybookCharacterVariant;
+import com.umc.halo.domain.content.storybook.enums.Variant;
+import com.umc.halo.domain.content.storybook.repository.StorybookCharacterVariantRepository;
 import com.umc.halo.domain.member.converter.MemberConverter;
 import com.umc.halo.domain.member.dto.MemberReqDTO;
 import com.umc.halo.domain.member.dto.MemberResDTO;
@@ -25,12 +28,14 @@ import com.umc.halo.global.apiPayload.exception.ProjectException;
 import com.umc.halo.global.util.HashUtil;
 import com.umc.halo.global.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -44,6 +49,7 @@ public class MemberService {
     private final MemberChapterRepository memberChapterRepository;
     private final MemberChapterAnswerRepository memberChapterAnswerRepository;
     private final MemberTagRepository memberTagRepository;
+    private final StorybookCharacterVariantRepository storybookCharacterVariantRepository;
     private final JwtUtil jwtUtil;
     private final HashUtil hashUtil;
     private final OidcProviderFactory oidcProviderFactory;
@@ -66,7 +72,7 @@ public class MemberService {
         boolean isNewUser = false;
 
         if (member == null) {
-            try{
+            try {
                 member = MemberConverter.toMember(provider, oidcUserInfo);
                 memberRepository.save(member);
 
@@ -84,7 +90,9 @@ public class MemberService {
         String refreshToken = jwtUtil.createRefreshToken(member.getId());
         member.updateRefreshTokenToHash(hashUtil.hash(refreshToken));
 
-        return MemberConverter.toLoginResponse(accessToken, refreshToken, isNewUser, member.getOnboardingCompleted());
+        boolean termsAgreed = memberTermRepository.areAllRequiredTermsAgreed(member.getId());
+
+        return MemberConverter.toLoginResponse(accessToken, refreshToken, isNewUser, member.getOnboardingCompleted(), termsAgreed);
     }
 
     @Transactional
@@ -108,7 +116,9 @@ public class MemberService {
         String newRefreshToken = jwtUtil.createRefreshToken(memberId);
         member.updateRefreshTokenToHash(hashUtil.hash(newRefreshToken));
 
-        return MemberConverter.toTokenReissueResponse(newAccessToken, newRefreshToken);
+        boolean termsAgreed = memberTermRepository.areAllRequiredTermsAgreed(member.getId());
+
+        return MemberConverter.toTokenReissueResponse(newAccessToken, newRefreshToken, member.getOnboardingCompleted(), termsAgreed);
     }
 
     @Transactional
@@ -142,6 +152,17 @@ public class MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new ProjectException(MemberErrorCode.NOT_FOUND));
 
-        return MemberConverter.toMyInfo(member);
+        String characterImageUrl = null;
+        if (member.getStorybookCharacter() != null) {
+            characterImageUrl = storybookCharacterVariantRepository
+                    .findByStorybookCharacterAndVariant(member.getStorybookCharacter(), Variant.PROFILE)
+                    .map(StorybookCharacterVariant::getImageUrl)
+                    .orElseGet(() -> {
+                        log.warn("[CharacterImageMissing] PROFILE variant 없음: characterId={}", member.getStorybookCharacter().getId());
+                        return null;
+                    });
+        }
+
+        return MemberConverter.toMyInfo(member, characterImageUrl);
     }
 }

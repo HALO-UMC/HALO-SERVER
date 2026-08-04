@@ -19,17 +19,21 @@ public class MemberConverter {
             String accessToken,
             String refreshToken,
             Boolean isNewUser,
-            Boolean onboardingCompleted
+            Boolean onboardingCompleted,
+            Boolean termsAgreed
     ) {
         return MemberResDTO.Login.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .isNewUser(isNewUser)
                 .onboardingCompleted(onboardingCompleted)
+                .termsAgreed(termsAgreed)
                 .build();
     }
 
-    public static MemberResDTO.MyInfo toMyInfo(Member member) {
+    public static MemberResDTO.MyInfo toMyInfo(Member member, String characterImageUrl) {
+
+
         return MemberResDTO.MyInfo.builder()
                 .memberId(member.getId())
                 .name(member.getName())
@@ -38,16 +42,21 @@ public class MemberConverter {
                 .provider(member.getProvider())
                 .onboardingCompleted(member.getOnboardingCompleted())
                 .createdAt(member.getCreatedAt())
+                .characterImageUrl(characterImageUrl)
                 .build();
     }
 
     public static MemberResDTO.TokenReissue toTokenReissueResponse(
             String accessToken,
-            String refreshToken
+            String refreshToken,
+            Boolean onboardingCompleted,
+            Boolean termsAgreed
     ) {
         return MemberResDTO.TokenReissue.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .onboardingCompleted(onboardingCompleted)
+                .termsAgreed(termsAgreed)
                 .build();
     }
 }

@@ -47,7 +47,6 @@ public interface SettingControllerDocs {
                                         "code": "NOTIFICATION200_1",
                                         "message": "알림 설정을 성공적으로 조회했습니다.",
                                         "result": {
-                                            "regularNotificationEnabled": true,
                                             "regularNotificationTime": "10:00",
                                             "todayChapterNotificationEnabled": true,
                                             "retentionNotificationEnabled": false,
@@ -255,7 +254,6 @@ public interface SettingControllerDocs {
                         - Content-Type: application/json
                         - Authorization: Bearer {Access Token}
                     - **Body**
-                        - regularNotificationEnabled : 정기 알림 ON/OFF 여부
                         - regularNotificationTime : 정기 알림 시간
                         - todayChapterNotificationEnabled : 오늘의 장 알림 ON/OFF 여부
                         - retentionNotificationEnabled : 리텐션 알림 ON/OFF 여부
@@ -281,7 +279,6 @@ public interface SettingControllerDocs {
                                         "code": "NOTIFICATION200_2",
                                         "message": "알림 설정을 성공적으로 수정했습니다.",
                                         "result": {
-                                            "regularNotificationEnabled": true,
                                             "regularNotificationTime": "10:00",
                                             "todayChapterNotificationEnabled": true,
                                             "retentionNotificationEnabled": false,

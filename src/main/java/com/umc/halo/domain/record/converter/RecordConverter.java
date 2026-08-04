@@ -1,7 +1,6 @@
 package com.umc.halo.domain.record.converter;
 
 import com.umc.halo.domain.content.chapter.entity.*;
-import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.record.dto.*;
 import com.umc.halo.domain.record.entity.*;
@@ -21,15 +20,15 @@ public class RecordConverter {
 
     public static RecordResDTO.ReadChapterRecord toReadChapterRecord(MemberChapter memberChapter, List<RecordResDTO.ReadChapterRecord.Answer> answer, String imageUrl) {
         CoverType coverType = memberChapter.getCoverType();
-        Chapter chapter = memberChapter.getStorybookChapter().getChapter();
+        Chapter chapter = memberChapter.getChapter();
 
         return RecordResDTO.ReadChapterRecord.builder()
                 .memberChapterId(memberChapter.getId())
-                .storybookTitle(memberChapter.getStorybookChapter().getStorybook().getTitle())
+                .storybookTitle(memberChapter.getChapter().getStorybook().getTitle())
                 .chapterTitle(chapter.getTitle())
-                .chapterOrder(memberChapter.getStorybookChapter().getChapterOrder())
+                .chapterOrder(memberChapter.getChapter().getChapterOrder())
                 .description(chapter.getDescription())
-                .chapterImageUrl(chapter.getImageUrl())
+                .chapterImageUrl(chapter.getShortImageUrl())
                 .emotion(memberChapter.getEmotion())
                 .coverType(coverType)
                 .imageUrl(coverType == CoverType.IMAGE ? imageUrl : null)
@@ -46,11 +45,11 @@ public class RecordConverter {
                 .build();
     }
 
-    public static MemberChapter toMemberChapter(Member member, StorybookChapter storybookChapter, SceneCard sceneCard,
+    public static MemberChapter toMemberChapter(Member member, Chapter chapter, SceneCard sceneCard,
                                                 RecordReqDTO.WriteChapterRecord recordReqDTO, String imageKey) {
         return MemberChapter.builder()
                 .member(member)
-                .storybookChapter(storybookChapter)
+                .chapter(chapter)
                 .sceneCard(sceneCard)
                 .coverType(recordReqDTO.coverType())
                 .imageKey(imageKey)

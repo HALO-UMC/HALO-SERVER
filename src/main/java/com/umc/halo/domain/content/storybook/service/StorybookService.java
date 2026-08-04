@@ -1,16 +1,15 @@
 package com.umc.halo.domain.content.storybook.service;
 
+import com.umc.halo.domain.content.chapter.entity.Chapter;
+import com.umc.halo.domain.content.chapter.repository.ChapterRepository;
 import com.umc.halo.domain.content.storybook.converter.StorybookConverter;
 import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
-import com.umc.halo.domain.content.storybook.exception.code.StorybookErrorCode;
-import com.umc.halo.domain.content.storybook.exception.StorybookException;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
-import com.umc.halo.domain.content.storybook.entity.StorybookChapter;
-import com.umc.halo.domain.content.storybook.enums.BookshelfStatus;
 import com.umc.halo.domain.content.storybook.enums.ChapterViewStatus;
 import com.umc.halo.domain.content.storybook.enums.HomeStatus;
 import com.umc.halo.domain.content.storybook.enums.StorybookStatus;
-import com.umc.halo.domain.content.storybook.repository.StorybookChapterRepository;
+import com.umc.halo.domain.content.storybook.exception.StorybookException;
+import com.umc.halo.domain.content.storybook.exception.code.StorybookErrorCode;
 import com.umc.halo.domain.content.storybook.repository.StorybookRepository;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.exception.MemberException;
@@ -50,7 +49,7 @@ import java.util.stream.Collectors;
 public class StorybookService {
 
     private final StorybookRepository storybookRepository;
-    private final StorybookChapterRepository storybookChapterRepository;
+    private final ChapterRepository chapterRepository;
     private final MemberChapterRepository memberChapterRepository;
     private final MemberRepository memberRepository;
     private final MemberStorybookRepository memberStorybookRepository;
@@ -66,19 +65,18 @@ public class StorybookService {
         Storybook storybook = storybookRepository.findById(storybookId)
                 .orElseThrow(() -> new StorybookException(StorybookErrorCode.NOT_FOUND));
 
-        List<StorybookChapter> storybookChapters =
-                storybookChapterRepository.findByStorybook_IdOrderByChapterOrderAsc(storybookId);
+        List<Chapter> Chapters =
+                chapterRepository.findByStorybook_IdOrderByChapterOrderAsc(storybookId);
 
         List<MemberChapter> memberChapters =
-                memberChapterRepository.findByMemberAndStorybookChapter_Storybook_Id(member, storybookId);
+                memberChapterRepository.findByMemberAndChapter_Storybook_Id(member, storybookId);
 
         Optional<MemberStorybook> memberStorybookOpt =
                 memberStorybookRepository.findByMemberAndStorybook(member, storybook);
 
-        Set<Long> completedChapterIds = memberChapters.stream()
+        Map<Long, Long> completedChapterIdToMemberChapterId = memberChapters.stream()
                 .filter(mc -> mc.getStatus() == Status.COMPLETED)
-                .map(mc -> mc.getStorybookChapter().getId())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toMap(mc -> mc.getChapter().getId(), MemberChapter::getId, (a, b) -> b));
 
         boolean completedToday = memberStorybookOpt
                 .map(MemberStorybook::isCompletedToday)
@@ -87,9 +85,10 @@ public class StorybookService {
         boolean foundToday = false;
         List<StorybookResDTO.ChapterInfo> chapterInfos = new ArrayList<>();
 
-        for (StorybookChapter sc : storybookChapters) {
+        for (Chapter sc : Chapters) {
+            Long memberChapterId = completedChapterIdToMemberChapterId.get(sc.getId());
             ChapterViewStatus status;
-            if (completedChapterIds.contains(sc.getId())) {
+            if (memberChapterId != null) {
                 status = ChapterViewStatus.COMPLETED;
             } else if (!foundToday) {
                 foundToday = true;
@@ -98,10 +97,9 @@ public class StorybookService {
                 status = ChapterViewStatus.LOCKED;
             }
 
-            chapterInfos.add(StorybookConverter.toChapterInfo(sc, status));
+            chapterInfos.add(StorybookConverter.toChapterInfo(sc, status, memberChapterId));
         }
-
-        int completedChapterCount = completedChapterIds.size();
+        int completedChapterCount = completedChapterIdToMemberChapterId.size();
         int progressPercentage = completedChapterCount * 10;
 
         return StorybookConverter.toStorybookDetail(storybook, chapterInfos, completedChapterCount, progressPercentage);
@@ -148,7 +146,7 @@ public class StorybookService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         List<Storybook> storybooks = storybookRepository.findAll().stream()
-                .sorted(Comparator.comparing(Storybook::getThemeOrder))
+                .sorted(Comparator.comparing(Storybook::getId))
                 .toList();
 
         Map<Long, MemberStorybook> memberStorybookMap = memberStorybookRepository.findByMember(member).stream()
@@ -190,7 +188,7 @@ public class StorybookService {
         List<StorybookResDTO.RecommendedStorybook> recommendations = bestMatchByStorybook.values().stream()
                 .sorted(Comparator.comparing(StorybookTag::getPriorityLevel))
                 .limit(2)
-                .map(StorybookConverter::toRecommendedStorybook)
+                .map(st -> StorybookConverter.toRecommendedStorybook(st, st.getStorybook().getRecommendationPhrase()))
                 .collect(Collectors.toCollection(ArrayList::new));
 
         if (recommendations.size() < 2) {
@@ -199,13 +197,13 @@ public class StorybookService {
                     .collect(Collectors.toSet());
 
             List<Storybook> fallbackStorybooks = storybookRepository.findAll().stream()
-                    .sorted(Comparator.comparing(Storybook::getThemeOrder))
+                    .sorted(Comparator.comparing(Storybook::getId))
                     .filter(sb -> !alreadyIncluded.contains(sb.getId()))
                     .toList();
 
             for (Storybook sb : fallbackStorybooks) {
                 if (recommendations.size() >= 2) break;
-                recommendations.add(StorybookConverter.toRecommendedStorybook(sb, sb.getShortDescription()));
+                recommendations.add(StorybookConverter.toRecommendedStorybook(sb, sb.getRecommendationPhrase()));
             }
         }
 
@@ -218,7 +216,7 @@ public class StorybookService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         List<Storybook> storybooks = storybookRepository.findAll().stream()
-                .sorted(Comparator.comparing(Storybook::getThemeOrder))
+                .sorted(Comparator.comparing(Storybook::getId))
                 .toList();
 
         Map<Long, MemberStorybook> memberStorybookMap = memberStorybookRepository.findByMember(member).stream()
@@ -226,6 +224,7 @@ public class StorybookService {
 
         // 스토리북마다 상태 계산 (목록 조회와 동일한 로직)
         Map<Storybook, StorybookStatus> statusMap = new LinkedHashMap<>();
+        Map<Long, List<MemberChapter>> memberChaptersMap = new LinkedHashMap<>();
         for (Storybook sb : storybooks) {
             MemberStorybook ms = memberStorybookMap.get(sb.getId());
             if (ms == null) {
@@ -234,7 +233,8 @@ public class StorybookService {
             }
 
             List<MemberChapter> memberChapters =
-                    memberChapterRepository.findByMemberAndStorybookChapter_Storybook_Id(member, sb.getId());
+                    memberChapterRepository.findByMemberAndChapter_Storybook_Id(member, sb.getId());
+            memberChaptersMap.put(sb.getId(), memberChapters);
 
             boolean completed = isCompleted(sb, memberChapters);
             boolean completedToday = ms.isCompletedToday();
@@ -251,7 +251,7 @@ public class StorybookService {
                 .map(Map.Entry::getKey)
                 .sorted(Comparator
                         .comparing((Storybook sb) -> statusMap.get(sb) != StorybookStatus.IN_PROGRESS)
-                        .thenComparing(Storybook::getThemeOrder))
+                        .thenComparing(Storybook::getId))
                 .toList();
 
         HomeStatus homeStatus;
@@ -269,50 +269,34 @@ public class StorybookService {
 
             for (Storybook sb : activeStorybooks) {
                 MemberStorybook memberStorybook = memberStorybookMap.get(sb.getId());
-                Integer chapterOrder = memberStorybook.getLastChapterOrder();
+                Integer chapterOrder = resolveDisplayChapterOrder(memberStorybook, memberChaptersMap.get(sb.getId()));
                 boolean todayAvailable = statusMap.get(sb) == StorybookStatus.IN_PROGRESS;
                 inProgressStorybooks.add(StorybookConverter.toInProgressStorybook(sb, chapterOrder, todayAvailable));
             }
         }
 
-        List<StorybookResDTO.BookshelfItem> bookshelf = storybooks.stream()
-                .map(sb -> StorybookConverter.toBookshelfItem(sb, toBookshelfStatus(statusMap.get(sb))))
-                .toList();
-
         List<StorybookResDTO.RecommendedStorybook> recommendedStorybooks = new ArrayList<>();
         if (activeStorybooks.isEmpty()) {
-            StorybookResDTO.GetRecommendedStorybooks recommended = getRecommendedStorybooks(memberId);
-            recommendedStorybooks = recommended.storybooks().stream()
-                    .map(r -> StorybookConverter.toRecommendedStorybook(r, member.getName() + "님을 위한 추천 스토리북"))
-                    .toList();
+            recommendedStorybooks = getRecommendedStorybooks(memberId).storybooks();
         }
 
         return StorybookConverter.toHome(
                 homeStatus,
                 member.getName() + "님",
                 inProgressStorybooks,
-                bookshelf,
                 recommendedStorybooks
         );
-    }
-
-    private BookshelfStatus toBookshelfStatus(StorybookStatus status) {
-        return switch (status) {
-            case COMPLETED -> BookshelfStatus.COMPLETED;
-            case NOT_STARTED -> BookshelfStatus.NOT_STARTED;
-            case IN_PROGRESS, TODAY_DONE -> BookshelfStatus.IN_PROGRESS;
-        };
     }
 
     private StorybookResDTO.StorybookSummary buildStorybookSummary(
             Member member, Storybook storybook, MemberStorybook memberStorybook) {
 
         if (memberStorybook == null) {
-            return StorybookConverter.toStorybookSummary(storybook, StorybookStatus.NOT_STARTED, null);
+            return StorybookConverter.toStorybookSummary(storybook, StorybookStatus.NOT_STARTED, null, null);
         }
 
         List<MemberChapter> memberChapters =
-                memberChapterRepository.findByMemberAndStorybookChapter_Storybook_Id(member, storybook.getId());
+                memberChapterRepository.findByMemberAndChapter_Storybook_Id(member, storybook.getId());
 
         boolean completed = isCompleted(storybook, memberChapters);
 
@@ -327,18 +311,19 @@ public class StorybookService {
             status = StorybookStatus.IN_PROGRESS;
         }
 
-        return StorybookConverter.toStorybookSummary(storybook, status, memberStorybook);
+        Integer displayChapterOrder = resolveDisplayChapterOrder(memberStorybook, memberChapters);
+        return StorybookConverter.toStorybookSummary(storybook, status, memberStorybook, displayChapterOrder);
     }
 
     private boolean isStorybookCompleted(Member member, Storybook storybook) {
         List<MemberChapter> memberChapters =
-                memberChapterRepository.findByMemberAndStorybookChapter_Storybook_Id(member, storybook.getId());
+                memberChapterRepository.findByMemberAndChapter_Storybook_Id(member, storybook.getId());
         return isCompleted(storybook, memberChapters);
     }
 
     private boolean isCompleted(Storybook storybook, List<MemberChapter> memberChapters) {
         int totalChapters =
-                storybookChapterRepository.findByStorybook_IdOrderByChapterOrderAsc(storybook.getId()).size();
+                chapterRepository.findByStorybook_IdOrderByChapterOrderAsc(storybook.getId()).size();
 
         long completedCount = memberChapters.stream()
                 .filter(mc -> mc.getStatus() == Status.COMPLETED)
@@ -363,11 +348,19 @@ public class StorybookService {
                     List<StorybookResDTO.SituationalStorybook> situationalStorybooks =
                             storybookTagsByTag.getOrDefault(tag, List.of()).stream()
                                     .limit(2)
-                                    .map(StorybookConverter::toSituationalStorybook)
+                                    .map(st -> StorybookConverter.toSituationalStorybook(st, st.getStorybook().getRecommendationPhrase()))
                                     .toList();
 
                     return StorybookConverter.toSituationalRecommendation(tag.getTitle(), situationalStorybooks);
                 })
                 .toList();
+    }
+
+    private Integer resolveDisplayChapterOrder(MemberStorybook memberStorybook, List<MemberChapter> memberChapters) {
+        Integer lastChapterOrder = memberStorybook.getLastChapterOrder();
+        boolean lastCompleted = memberChapters.stream()
+                .anyMatch(mc -> lastChapterOrder.equals(mc.getChapter().getChapterOrder())
+                        && mc.getStatus() == Status.COMPLETED);
+        return (lastCompleted && lastChapterOrder < 10) ? lastChapterOrder + 1 : lastChapterOrder;
     }
 }

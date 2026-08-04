@@ -160,19 +160,16 @@ public class TagSeeder {
                         .storybook(storybook.get("오래 전 당신"))
                         .tag(tag.get("어색하지 않게 이야기하고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("어색하지 않게 이야기하고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("오래 전 당신"))
                         .tag(tag.get("부모님을 더 알고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 어색하지 않게 이야기하고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("오래 전 당신"))
                         .tag(tag.get("같이 보내는 시간을 만들고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("같이 보내는 시간을 만들고, 어색하지 않게 이야기하고 싶어요")
                         .build(),
 
                 // 당신 사용설명서
@@ -180,19 +177,16 @@ public class TagSeeder {
                         .storybook(storybook.get("당신 사용설명서"))
                         .tag(tag.get("부모님을 더 알고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("부모님을 더 알고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("당신 사용설명서"))
                         .tag(tag.get("같이 보내는 시간을 만들고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 같이 보내는 시간을 만들고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("당신 사용설명서"))
                         .tag(tag.get("특별한 날이나 응원을 준비하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 특별한 날이나 응원을 준비하고 싶어요")
                         .build(),
 
                 // 가족의 온도
@@ -200,19 +194,16 @@ public class TagSeeder {
                         .storybook(storybook.get("가족의 온도"))
                         .tag(tag.get("부모님을 더 알고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("부모님을 더 알고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("가족의 온도"))
                         .tag(tag.get("마음을 표현해보고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 마음을 표현해보고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("가족의 온도"))
                         .tag(tag.get("어색하지 않게 이야기하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 어색하지 않게 이야기하고 싶어요")
                         .build(),
 
                 // 취향이 닿는 날
@@ -220,19 +211,16 @@ public class TagSeeder {
                         .storybook(storybook.get("취향이 닿는 날"))
                         .tag(tag.get("같이 보내는 시간을 만들고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("같이 보내는 시간을 만들고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("취향이 닿는 날"))
                         .tag(tag.get("어색하지 않게 이야기하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("같이 보내는 시간을 만들고, 어색하지 않게 이야기하고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("취향이 닿는 날"))
                         .tag(tag.get("특별한 날이나 응원을 준비하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("같이 보내는 시간을 만들고, 특별한 날이나 응원을 준비하고 싶어요")
                         .build(),
 
                 // 나란히 걷는 날
@@ -240,19 +228,16 @@ public class TagSeeder {
                         .storybook(storybook.get("나란히 걷는 날"))
                         .tag(tag.get("같이 보내는 시간을 만들고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("같이 보내는 시간을 만들고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("나란히 걷는 날"))
                         .tag(tag.get("마음을 표현해보고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("같이 보내는 시간을 만들고, 마음을 표현해보고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("나란히 걷는 날"))
                         .tag(tag.get("부모님을 더 알고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("부모님을 더 알고, 같이 보내는 시간을 만들고 싶어요")
                         .build(),
 
                 // 오늘은 내가 먼저
@@ -260,19 +245,16 @@ public class TagSeeder {
                         .storybook(storybook.get("오늘은 내가 먼저"))
                         .tag(tag.get("마음을 표현해보고 싶어요"))
                         .priorityLevel(PriorityLevel.PRIMARY)
-                        .phrase("마음을 표현해보고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("오늘은 내가 먼저"))
                         .tag(tag.get("특별한 날이나 응원을 준비하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("마음을 표현해보고, 특별한 날이나 응원을 준비하고 싶어요")
                         .build(),
                 StorybookTag.builder()
                         .storybook(storybook.get("오늘은 내가 먼저"))
                         .tag(tag.get("어색하지 않게 이야기하고 싶어요"))
                         .priorityLevel(PriorityLevel.SECONDARY)
-                        .phrase("어색하지 않게 이야기하고, 마음을 표현해보고 싶어요")
                         .build()
         );
 

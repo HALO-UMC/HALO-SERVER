@@ -105,7 +105,7 @@ public interface OnboardingControllerDocs {
                     3. step 3(부모님 성향 태그, 최대 3개)/step 4(현재 관계 상태 태그, 1개)/step 5(목표 관계 태그, 1~2개)는 각각 해당 카테고리의 태그인지 확인하고, 존재하지 않는 태그면 404(ONBOARDING404_1)를 반환합니다.
                     4. 태그가 포함된 step은 기존 태그를 삭제하고 새로 저장합니다.
                     5. 회원의 온보딩 단계(onboardingStep)를 갱신합니다.
-                    6. step이 5(마지막 단계)이면 온보딩을 완료 처리합니다.
+                    6. step이 5(마지막 단계)이면 온보딩을 완료 처리하고, 등록된 캐릭터 중 하나를 무작위로 배정합니다.
                     7. 저장된 단계와 완료 여부를 반환합니다.
                     """
     )
@@ -166,6 +166,21 @@ public interface OnboardingControllerDocs {
                                       "isSuccess": false,
                                       "code": "AUTH401_1",
                                       "message": "토큰이 만료되었습니다.",
+                                      "result": null
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "500",
+                    description = "배정 가능한 캐릭터 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": false,
+                                      "code": "ONBOARDING500_1",
+                                      "message": "배정 가능한 캐릭터가 존재하지 않습니다.",
                                       "result": null
                                     }
                                     """)
@@ -242,4 +257,44 @@ public interface OnboardingControllerDocs {
     ApiResponse<OnboardingResDTO.Status> getStatus(
             @Parameter(hidden = true) Long memberId
     );
+
+    @Operation(summary = "온보딩 태그 목록 조회",
+            description = "온보딩 화면에서 선택할 태그 목록을 카테고리별로 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "온보딩 태그 목록 조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                            {
+                              "isSuccess": true,
+                              "code": "ONBOARDING200_4",
+                              "message": "온보딩 태그 목록 조회 성공",
+                              "result": {
+                                "parentPersonalityTags": [
+                                  { "tagId": 12, "title": "낙천적인", "subtitle": "POSITIVE", "description": null }
+                                ],
+                                "currentRelationStateTags": [
+                                  { "tagId": 23, "title": "매우 가까운 편이에요", "subtitle": null, "description": "부모이기 전에 친구 같은, 비밀까지 나누는 사이" }
+                                ],
+                                "goalRelationshipTags": [
+                                  { "tagId": 31, "title": "부모님을 더 알고 싶어요", "subtitle": null, "description": null }
+                                ]
+                              }
+                            }
+                            """))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "토큰 만료",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                            {
+                              "isSuccess": false,
+                              "code": "AUTH401_1",
+                              "message": "토큰이 만료되었습니다.",
+                              "result": null
+                            }
+                            """)))
+    })
+    ApiResponse<OnboardingResDTO.TagList> getTags();
 }

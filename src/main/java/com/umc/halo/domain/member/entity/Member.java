@@ -1,5 +1,6 @@
 package com.umc.halo.domain.member.entity;
 
+import com.umc.halo.domain.content.storybook.entity.StorybookCharacter;
 import com.umc.halo.domain.member.enums.*;
 import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
@@ -24,6 +25,10 @@ public class Member extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "storybook_character_id")
+    private StorybookCharacter storybookCharacter;
 
     @Column(length = 10)
     private String name;
@@ -73,6 +78,11 @@ public class Member extends BaseEntity {
     public void completeOnboarding() {
         this.onboardingCompleted = true;
     }
+
+    public void assignStorybookCharacter(StorybookCharacter storybookCharacter) {
+        this.storybookCharacter = storybookCharacter;
+    }
+
     public void deleteRefreshToken() {
         this.refreshTokenHash = null;
     }

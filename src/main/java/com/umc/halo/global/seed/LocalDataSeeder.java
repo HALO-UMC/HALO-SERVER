@@ -15,7 +15,6 @@ public class LocalDataSeeder implements CommandLineRunner {
 
     private final MemberRepository memberRepository;
     private final MemberSeeder memberSeeder;
-    private final ChapterSeeder chapterSeeder;
     private final StorybookSeeder storybookSeeder;
     private final TagSeeder tagSeeder;
     private final RecordSeeder recordSeeder;
@@ -32,10 +31,9 @@ public class LocalDataSeeder implements CommandLineRunner {
         }
 
         log.info("로컬 데이터 초기화");
-
-        memberSeeder.seed();
-        chapterSeeder.seed();
+        
         storybookSeeder.seed();
+        memberSeeder.seed();
         tagSeeder.seed();
         recordSeeder.seed();
         termSeeder.seed();

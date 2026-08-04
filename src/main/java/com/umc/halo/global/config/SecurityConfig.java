@@ -28,6 +28,9 @@ public class SecurityConfig {
             // 인증(소셜 로그인 / 토큰 재발급)
             "/api/v1/auth/login",
             "/api/v1/auth/reissue",
+            // 스레드풀 메트릭 (local/dev만 노출, prod는 management 설정으로 차단)
+            "/actuator/metrics",
+            "/actuator/metrics/**",
 
     };
 
