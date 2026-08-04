@@ -5,7 +5,6 @@ import com.umc.halo.domain.content.chapter.repository.ChapterRepository;
 import com.umc.halo.domain.content.storybook.converter.StorybookConverter;
 import com.umc.halo.domain.content.storybook.dto.StorybookResDTO;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
-import com.umc.halo.domain.content.storybook.enums.BookshelfStatus;
 import com.umc.halo.domain.content.storybook.enums.ChapterViewStatus;
 import com.umc.halo.domain.content.storybook.enums.HomeStatus;
 import com.umc.halo.domain.content.storybook.enums.StorybookStatus;
@@ -274,33 +273,17 @@ public class StorybookService {
             }
         }
 
-        List<StorybookResDTO.BookshelfItem> bookshelf = storybooks.stream()
-                .map(sb -> StorybookConverter.toBookshelfItem(sb, toBookshelfStatus(statusMap.get(sb))))
-                .toList();
-
         List<StorybookResDTO.RecommendedStorybook> recommendedStorybooks = new ArrayList<>();
         if (activeStorybooks.isEmpty()) {
-            StorybookResDTO.GetRecommendedStorybooks recommended = getRecommendedStorybooks(memberId);
-            recommendedStorybooks = recommended.storybooks().stream()
-                    .map(r -> StorybookConverter.toRecommendedStorybook(r, member.getName() + "님을 위한 추천 스토리북"))
-                    .toList();
+            recommendedStorybooks = getRecommendedStorybooks(memberId).storybooks();
         }
 
         return StorybookConverter.toHome(
                 homeStatus,
                 member.getName() + "님",
                 inProgressStorybooks,
-                bookshelf,
                 recommendedStorybooks
         );
-    }
-
-    private BookshelfStatus toBookshelfStatus(StorybookStatus status) {
-        return switch (status) {
-            case COMPLETED -> BookshelfStatus.COMPLETED;
-            case NOT_STARTED -> BookshelfStatus.NOT_STARTED;
-            case IN_PROGRESS, TODAY_DONE -> BookshelfStatus.IN_PROGRESS;
-        };
     }
 
     private StorybookResDTO.StorybookSummary buildStorybookSummary(

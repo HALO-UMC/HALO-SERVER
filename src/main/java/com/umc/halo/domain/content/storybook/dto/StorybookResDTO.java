@@ -17,7 +17,6 @@ public class StorybookResDTO {
             HomeStatus homeStatus,
             String memberName,
             List<InProgressStorybook> inProgressStorybooks,
-            List<BookshelfItem> bookshelf,
             List<RecommendedStorybook> recommendedStorybooks
     ) {
     }
@@ -26,17 +25,10 @@ public class StorybookResDTO {
     public record InProgressStorybook(
             Long storybookId,
             String title,
+            String imageUrl,
             Integer currentChapterOrder,
             int totalChapterCount,
             boolean todayAvailable
-    ) {
-    }
-
-    @Builder
-    public record BookshelfItem(
-            Long storybookId,
-            String title,
-            BookshelfStatus status
     ) {
     }
 
