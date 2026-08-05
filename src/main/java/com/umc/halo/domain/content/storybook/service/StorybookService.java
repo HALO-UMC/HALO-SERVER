@@ -263,7 +263,7 @@ public class StorybookService {
                         return StorybookConverter.toBookshelfItem(sb, null, true, sb.getRecommendationPhrase());
                     }
                     MemberStorybook ms = memberStorybookMap.get(sb.getId());
-                    Integer chapterOrder = resolveDisplayChapterOrder(ms, memberChaptersMap.get(sb.getId()));
+                    Integer chapterOrder = ms.resolveDisplayChapterOrder(memberChaptersMap.get(sb.getId()));
                     boolean todayAvailable = status == StorybookStatus.IN_PROGRESS;
                     return StorybookConverter.toBookshelfItem(sb, chapterOrder, todayAvailable, null);
                 })
@@ -293,7 +293,7 @@ public class StorybookService {
 
             for (Storybook sb : activeStorybooks) {
                 MemberStorybook memberStorybook = memberStorybookMap.get(sb.getId());
-                Integer chapterOrder = resolveDisplayChapterOrder(memberStorybook, memberChaptersMap.get(sb.getId()));
+                Integer chapterOrder = memberStorybook.resolveDisplayChapterOrder(memberChaptersMap.get(sb.getId()));
                 boolean todayAvailable = statusMap.get(sb) == StorybookStatus.IN_PROGRESS;
                 inProgressStorybooks.add(StorybookConverter.toInProgressStorybook(sb, chapterOrder, todayAvailable));
             }
@@ -336,7 +336,7 @@ public class StorybookService {
             status = StorybookStatus.IN_PROGRESS;
         }
 
-        Integer displayChapterOrder = resolveDisplayChapterOrder(memberStorybook, memberChapters);
+        Integer displayChapterOrder = memberStorybook.resolveDisplayChapterOrder(memberChapters);
         return StorybookConverter.toStorybookSummary(storybook, status, memberStorybook, displayChapterOrder);
     }
 
@@ -379,13 +379,5 @@ public class StorybookService {
                     return StorybookConverter.toSituationalRecommendation(tag.getTitle(), situationalStorybooks);
                 })
                 .toList();
-    }
-
-    private Integer resolveDisplayChapterOrder(MemberStorybook memberStorybook, List<MemberChapter> memberChapters) {
-        Integer lastChapterOrder = memberStorybook.getLastChapterOrder();
-        boolean lastCompleted = memberChapters.stream()
-                .anyMatch(mc -> lastChapterOrder.equals(mc.getChapter().getChapterOrder())
-                        && mc.getStatus() == Status.COMPLETED);
-        return (lastCompleted && lastChapterOrder < 10) ? lastChapterOrder + 1 : lastChapterOrder;
     }
 }

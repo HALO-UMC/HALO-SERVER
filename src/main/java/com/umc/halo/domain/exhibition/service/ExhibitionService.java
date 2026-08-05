@@ -122,7 +122,7 @@ public class ExhibitionService {
                 List<MemberChapter> myChapters =
                         chaptersByStorybook.getOrDefault(ms.getStorybook().getId(), List.of());
                 inProgressDtos.add(ExhibitionConverter.toInProgressStorybook(
-                        ms, resolveNextChapterOrder(ms, myChapters)));
+                        ms, ms.resolveDisplayChapterOrder(myChapters)));
             }
         } else {
             recommendedDtos = storybookService.getRecommendedStorybooks(memberId).storybooks().stream()
@@ -181,15 +181,5 @@ public class ExhibitionService {
         }
         SceneCard sceneCard = mc.getSceneCard();
         return sceneCard == null ? null : sceneCard.getImageUrl();
-    }
-
-    private Integer resolveNextChapterOrder(MemberStorybook ms, List<MemberChapter> myChapters) {
-        Integer lastChapterOrder = ms.getLastChapterOrder();
-
-        boolean lastCompleted = myChapters.stream()
-                .anyMatch(mc -> lastChapterOrder.equals(mc.getChapter().getChapterOrder())
-                        && mc.getStatus() == Status.COMPLETED);
-
-        return lastCompleted ? lastChapterOrder + 1 : lastChapterOrder;
     }
 }
