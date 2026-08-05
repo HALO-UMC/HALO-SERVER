@@ -131,16 +131,17 @@ public class AnniversaryNotificationListener {
             return;
         }
 
-        createNextNotification(anniversary);
+        createNextNotification(notification);
     }
 
-    private void createNextNotification(Anniversary anniversary) {
+    private void createNextNotification(Notification notification) {
 
+        Anniversary anniversary = notification.getAnniversary();
         MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId()).orElseThrow();
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate().plusYears(1));
+        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, notification.getScheduledAt().toLocalDate().plusDays(1));
         if (nextOccurrence == null) {
             return;
         }
