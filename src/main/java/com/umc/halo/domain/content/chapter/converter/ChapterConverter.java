@@ -20,9 +20,12 @@ public class ChapterConverter {
             String imageUrl) {
 
         return ChapterResDTO.TodayChapter.builder()
-                .chapterId(chapter.getId())
                 .storybookTitle(chapter.getStorybook().getTitle())
+                .chapterId(chapter.getId())
+                .chapterTitle(chapter.getTitle())
+                .chapterOrder(chapter.getChapterOrder())
                 .longImageUrl(chapter.getLongImageUrl())
+                .description(chapter.getDescription())
                 .guide(chapter.getGuide())
 
                 .character(
