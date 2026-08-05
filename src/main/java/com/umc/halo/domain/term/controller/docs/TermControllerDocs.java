@@ -152,9 +152,9 @@ public interface TermControllerDocs {
             description = """
                     # 약관 동의 여부 조회
 
-                    필수 약관 전체 동의 여부를 조회합니다.
-                    앱 실행 시 약관 동의 화면 노출 여부 판단에 사용합니다.
-                    필수 약관 중 하나라도 동의하지 않았으면 false를 반환합니다.
+                    필수 약관 전체 동의 여부(termsAgreed)와 약관별 동의 내역(agreements)을 조회합니다.
+                    앱 실행 시 약관 동의 화면 노출 여부 판단, 뒤로가기 시 선택 약관 체크 상태 복원에 사용합니다.
+                    필수 약관 중 하나라도 동의하지 않았으면 termsAgreed는 false를 반환합니다.
 
                     ## 요청 형식
                     - **Header**
@@ -164,6 +164,8 @@ public interface TermControllerDocs {
                     1. 인증된 회원을 조회합니다. 존재하지 않으면 404(MEMBER404_1)를 반환합니다.
                     2. 필수 약관 전체 개수와 회원이 동의한 필수 약관 개수를 비교합니다.
                     3. 두 개수가 같으면 termsAgreed를 true로, 다르면 false로 반환합니다.
+                    4. agreements는 현재 등록된 전체 약관을 약관 ID 오름차순으로 반환합니다.
+                    5. 동의 이력이 없는 약관은 isAgreed를 false로 반환합니다.                
                     """
     )
     @ApiResponses(value = {
