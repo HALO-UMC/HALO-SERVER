@@ -5,6 +5,8 @@ import com.umc.halo.domain.term.entity.MemberTerm;
 import com.umc.halo.domain.term.entity.Term;
 import com.umc.halo.domain.member.entity.Member;
 
+import java.util.List;
+
 public class TermConverter {
 
     public static TermResDTO.Info toInfo(Term term) {
@@ -18,9 +20,10 @@ public class TermConverter {
                 .build();
     }
 
-    public static TermResDTO.AgreementStatus toAgreementStatus(boolean termsAgreed) {
+    public static TermResDTO.AgreementStatus toAgreementStatus(boolean termsAgreed, List<TermResDTO.AgreementInfo> agreements) {
         return TermResDTO.AgreementStatus.builder()
                 .termsAgreed(termsAgreed)
+                .agreements(agreements)
                 .build();
     }
 

@@ -71,8 +71,8 @@ public class ExhibitionConverter {
 
 
     public static ExhibitionChapterResDTO.ChaptersInfo toChaptersInfo(
-            Long storybookId, List<ExhibitionChapterResDTO.ChapterInfo> chapters) {
-        return new ExhibitionChapterResDTO.ChaptersInfo(storybookId, chapters);
+            Long storybookId, String title, List<ExhibitionChapterResDTO.ChapterInfo> chapters) {
+        return new ExhibitionChapterResDTO.ChaptersInfo(storybookId, title, chapters);
     }
 
     public static ExhibitionChapterResDTO.ChapterInfo toChapterInfo(

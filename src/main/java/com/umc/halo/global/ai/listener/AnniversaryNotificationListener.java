@@ -143,7 +143,7 @@ public class AnniversaryNotificationListener {
             return "오늘부터 조금씩 마음을 준비해 보세요.";
         }
 
-        return "소중한 마음을 전하는 하루가 되어보세요.";
+        return "오늘의 따뜻한 안녕을 전해보세요.";
     }
 
 

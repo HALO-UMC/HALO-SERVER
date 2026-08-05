@@ -108,16 +108,26 @@ public class TermService {
             }
         }
     }
-
+    
     @Transactional(readOnly = true)
     public TermResDTO.AgreementStatus getAgreementStatus(Long memberId) {
-
-        if (!memberRepository.existsById(memberId)) {
-            throw new MemberException(MemberErrorCode.NOT_FOUND);
-        }
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         boolean termsAgreed = memberTermRepository.areAllRequiredTermsAgreed(memberId);
 
-        return TermConverter.toAgreementStatus(termsAgreed);
+        Set<Long> agreedTermIds = memberTermRepository.findAllByMember(member).stream()
+                .filter(mt -> Boolean.TRUE.equals(mt.getIsAgreed()))
+                .map(mt -> mt.getTerm().getId())
+                .collect(Collectors.toSet());
+
+        List<TermResDTO.AgreementInfo> agreements = termRepository.findAllByOrderByIdAsc().stream()
+                .map(term -> TermResDTO.AgreementInfo.builder()
+                        .termId(term.getId())
+                        .isAgreed(agreedTermIds.contains(term.getId()))
+                        .build())
+                .toList();
+
+        return TermConverter.toAgreementStatus(termsAgreed, agreements);
     }
 }

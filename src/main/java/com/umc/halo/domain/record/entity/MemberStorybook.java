@@ -35,6 +35,9 @@ public class MemberStorybook extends BaseEntity {
     @Column(name = "last_chapter_order", nullable = false)
     private Integer lastChapterOrder;
 
+    @Column(name = "started_date", nullable = false)
+    private LocalDate startedDate;
+
     @Column(name = "last_completed_date")
     private LocalDate lastCompletedDate;
 

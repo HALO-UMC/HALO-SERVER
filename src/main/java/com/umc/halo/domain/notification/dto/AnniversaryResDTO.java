@@ -46,7 +46,8 @@ public class AnniversaryResDTO {
             Integer day,
             Boolean isLunar,
             Boolean sevenDaysAlarmEnabled,
-            Boolean dayAlarmEnabled
+            Boolean dayAlarmEnabled,
+            String memo
     ) {}
 
     @Builder
