@@ -3,9 +3,7 @@ package com.umc.halo.domain.notification.service;
 import com.umc.halo.domain.notification.entity.Notification;
 import com.umc.halo.domain.notification.enums.NotificationStatus;
 import com.umc.halo.domain.notification.repository.NotificationRepository;
-import com.umc.halo.global.ai.event.NotificationSentEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +16,6 @@ import java.util.UUID;
 public class NotificationTransactionService {
 
     private final NotificationRepository notificationRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public List<Notification> claimNotifications() {
@@ -37,7 +34,6 @@ public class NotificationTransactionService {
     public void completeSend(Long notificationId, UUID leaseId){
         Notification notification = notificationRepository.findById(notificationId).orElseThrow();
         notification.send(leaseId);
-        applicationEventPublisher.publishEvent(new NotificationSentEvent(notificationId));
     }
 
 

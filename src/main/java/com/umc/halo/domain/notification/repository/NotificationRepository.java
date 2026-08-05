@@ -42,4 +42,14 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
         )
     """)
     List<Notification> findTargetsForUpdate( @Param("scheduled") NotificationStatus scheduled, @Param("processing") NotificationStatus processing, @Param("now") LocalDateTime now, @Param("timeout") LocalDateTime timeout);
+    @Query("""
+        SELECT n
+        FROM Notification n
+        JOIN FETCH n.anniversary a
+        WHERE n.notificationType = :notificationType
+        AND a.isRepeated = true
+        AND n.scheduledAt >= :start
+        AND n.scheduledAt < :end
+    """)
+    List<Notification> findYesterdayRecurringDdayNotifications(@Param("notificationType") NotificationType notificationType, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

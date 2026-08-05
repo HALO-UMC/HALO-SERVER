@@ -15,7 +15,6 @@ import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
-import com.umc.halo.global.ai.event.NotificationSentEvent;
 import com.umc.halo.global.ai.exception.AiException;
 import com.umc.halo.global.ai.service.AiService;
 import lombok.RequiredArgsConstructor;
@@ -115,29 +114,19 @@ public class AnniversaryNotificationListener {
 
     }
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void createNextAnniversaryNotification(NotificationSentEvent event) {
-        Notification notification = notificationRepository.findById(event.notificationId()).orElseThrow();
-
-        if (!NotificationType.ANNIVERSARY_DDAY.equals(notification.getNotificationType())) {
-            return;
-        }
+    @Transactional
+    public void createNextNotification(Notification notification) {
 
         Anniversary anniversary = notification.getAnniversary();
 
-        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
+        if (!Boolean.TRUE.equals(anniversary.getIsRepeated()) || !Boolean.TRUE.equals(notification.getAnniversaryEnabled())) {
             return;
         }
 
-        createNextNotification(notification);
-    }
-
-    private void createNextNotification(Notification notification) {
-
-        Anniversary anniversary = notification.getAnniversary();
-        MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId()).orElseThrow();
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId()).orElse(null);
+        if (memberSetting == null) {
+            return;
+        }
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
         LocalDateTime now = LocalDateTime.now();
