@@ -2,6 +2,7 @@ package com.umc.halo.domain.term.dto;
 
 import lombok.Builder;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class TermResDTO {
 
@@ -17,6 +18,13 @@ public class TermResDTO {
 
     @Builder
     public record AgreementStatus(
-            Boolean termsAgreed
+            Boolean termsAgreed,
+            List<AgreementInfo> agreements
+    ) {}
+
+    @Builder
+    public record AgreementInfo(
+            Long termId,
+            Boolean isAgreed
     ) {}
 }
