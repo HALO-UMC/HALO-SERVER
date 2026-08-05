@@ -15,6 +15,7 @@ import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
+import com.umc.halo.global.ai.event.NotificationSentEvent;
 import com.umc.halo.global.ai.exception.AiException;
 import com.umc.halo.global.ai.service.AiService;
 import lombok.RequiredArgsConstructor;
@@ -112,6 +113,52 @@ public class AnniversaryNotificationListener {
         updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7, now, anniversary.getSevenDaysAlarmEnabled());
         updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday, now, anniversary.getDayAlarmEnabled());
 
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void createNextAnniversaryNotification(NotificationSentEvent event) {
+        Notification notification = notificationRepository.findById(event.notificationId()).orElseThrow();
+
+        if (!NotificationType.ANNIVERSARY_DDAY.equals(notification.getNotificationType())) {
+            return;
+        }
+
+        Anniversary anniversary = notification.getAnniversary();
+
+        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
+            return;
+        }
+
+        createNextNotification(anniversary);
+    }
+
+    private void createNextNotification(Anniversary anniversary) {
+
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId()).orElseThrow();
+        LocalTime notifyTime = memberSetting.getRegularNotificationTime();
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate().plusYears(1));
+        if (nextOccurrence == null) {
+            return;
+        }
+        LocalDateTime d7 = nextOccurrence.minusDays(7).atTime(notifyTime);
+        LocalDateTime dday = nextOccurrence.atTime(notifyTime);
+
+        String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
+        String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
+        String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
+        String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
+
+        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
+            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
+        }
+
+        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
+            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
+        }
     }
 
     private String createNotificationTitle(Anniversary anniversary, NotificationType notificationType) {
