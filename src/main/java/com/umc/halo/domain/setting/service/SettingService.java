@@ -63,6 +63,7 @@ public class SettingService {
         boolean previousAnniversaryEnabled = memberSetting.getAnniversaryNotificationEnabled();
 
         memberSetting.updateNotificationSettings(
+                dto.isAllNotificationEnabled(),
                 dto.regularNotificationTime(),
                 dto.todayChapterNotificationEnabled(),
                 dto.retentionNotificationEnabled(),

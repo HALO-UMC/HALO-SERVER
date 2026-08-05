@@ -3,6 +3,10 @@ package com.umc.halo.domain.notification.service;
 import com.umc.halo.domain.member.entity.MemberDevice;
 import com.umc.halo.domain.member.repository.MemberDeviceRepository;
 import com.umc.halo.domain.notification.entity.Notification;
+import com.umc.halo.domain.setting.entity.MemberSetting;
+import com.umc.halo.domain.setting.exception.SettingException;
+import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
+import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,6 +21,7 @@ public class NotificationService {
 
     private final NotificationTransactionService notificationTransactionService;
     private final MemberDeviceRepository memberDeviceRepository;
+    private final MemberSettingRepository memberSettingRepository;
     private final FcmService fcmService;
 
     public void sendScheduledNotifications() {
@@ -53,6 +58,12 @@ public class NotificationService {
     }
 
     private boolean canSend(Notification notification) {
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(notification.getMember().getId()).orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
+
+        if (!Boolean.TRUE.equals(memberSetting.getIsAllNotificationEnabled())) {
+            return false;
+        }
+
         return switch (notification.getNotificationType()) {
             case ANNIVERSARY_D7, ANNIVERSARY_DDAY -> Boolean.TRUE.equals(notification.getAnniversaryEnabled()) && Boolean.TRUE.equals(notification.getSettingEnabled());
             case TODAY_CHAPTER, RETENTION -> Boolean.TRUE.equals(notification.getSettingEnabled());
