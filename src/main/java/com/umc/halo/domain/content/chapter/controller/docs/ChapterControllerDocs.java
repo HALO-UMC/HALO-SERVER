@@ -53,9 +53,12 @@ public interface ChapterControllerDocs {
                                                               "code": "CHAPTER200_1",
                                                               "message": "오늘의 장을 성공적으로 조회했습니다.",
                                                               "result": {
-                                                                "chapterId": 1,
                                                                 "storybookTitle": "오래 전 당신",
+                                                                "chapterId": 1,
+                                                                "chapterTitle": "나와 같은 나이였던 시절",
+                                                                "chapterOrder": 1,
                                                                 "longImageUrl": "https://example.com/long-image.png",
+                                                                "description": "부모님을 한 사람으로 바라보는 첫 장입니다. 지금의 내 나이였을 때 부모님은 어떤 하루를 살고 있었는지 돌아봅니다.",
                                                                 "guide": "부모님이 지금 내 나이였을 땐 어떤 하루를 보냈을까요? 사진 한 장을 보며 가볍게 물어봐요.",
                                                                 "character": {
                                                                   "writingCharacterImageUrl": "https://example.com/character-writing.png",
@@ -96,9 +99,12 @@ public interface ChapterControllerDocs {
                                                               "code": "CHAPTER200_1",
                                                               "message": "오늘의 장을 성공적으로 조회했습니다.",
                                                               "result": {
-                                                                "chapterId": 1,
                                                                 "storybookTitle": "오래 전 당신",
+                                                                "chapterId": 1,
+                                                                "chapterTitle": "나와 같은 나이였던 시절",
+                                                                "chapterOrder": 1,
                                                                 "longImageUrl": "https://example.com/long-image.png",
+                                                                "description": "부모님을 한 사람으로 바라보는 첫 장입니다. 지금의 내 나이였을 때 부모님은 어떤 하루를 살고 있었는지 돌아봅니다.",
                                                                 "guide": "부모님이 지금 내 나이였을 땐 어떤 하루를 보냈을까요? 사진 한 장을 보며 가볍게 물어봐요.",
                                                                 "character": {
                                                                   "writingCharacterImageUrl": "https://example.com/character-writing.png",
