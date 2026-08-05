@@ -30,7 +30,7 @@ public interface AnniversaryControllerDocs {
                     ## 동작 방식
                     1. 로그인한 회원이 등록한 기념일 목록을 조회합니다.
                     2. 반복 여부(isRepeated)를 기준으로 다가오는 기념일의 D-day를 계산합니다.
-                    3. 음력 기반 기념일(개인 기념일 및 추석, 설날 등 기본 기념일)은 KASI(한국천문연구원) 표준 기반 음력-양력 변환 라이브러리로 실제 양력 날짜를 계산하여 D-day에 반영합니다.
+                    3. 음력 기반 기념일(사용자가 음력으로 등록한 개인 기념일)은 KASI(한국천문연구원) 표준 기반 음력-양력 변환 라이브러리로 실제 양력 날짜를 계산하여 D-day에 반영합니다.
                     4. 다가오는 기념일(upcomingAnniversaries), 내가 추가한 기념일(myAnniversaries), 기본 기념일(commonAnniversaries) 세 목록을 함께 반환합니다.
                     """)
     @ApiResponses(value = {
