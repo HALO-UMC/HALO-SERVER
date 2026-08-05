@@ -37,12 +37,13 @@ public class NotificationService {
                 continue;
             }
 
-            if (!canSend(notification)) {
-                notificationTransactionService.expireSend(notification.getId(), leaseId);
-                continue;
-            }
-
             try {
+
+                if (!canSend(notification)) {
+                    notificationTransactionService.expireSend(notification.getId(), leaseId);
+                    continue;
+                }
+
                 boolean success = send(notification);
 
                 if (success) {

@@ -21,7 +21,7 @@ public interface SettingControllerDocs {
             summary = "알림 설정 조회 API",
             description = """
                     # 알림 설정 조회
-                    현재 알림 설정을 조회합니다. (전체 알림 / 정기 알림 시간/전체 알림 / 오늘의 장 알림 / 리텐션 알림 / 기념일 알림)
+                    현재 알림 설정을 조회합니다. (전체 알림 / 정기 알림 시간 / 오늘의 장 알림 / 리텐션 알림 / 기념일 알림)
 
                     ## 요청 형식
                     - **Header**
