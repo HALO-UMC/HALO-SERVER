@@ -41,3 +41,6 @@ out/
 .env
 .env.*
 !.env.example
+
+### Firebase ###
+src/main/resources/firebase/service-account.json

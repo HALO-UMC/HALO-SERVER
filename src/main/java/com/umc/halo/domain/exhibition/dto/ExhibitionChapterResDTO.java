@@ -9,6 +9,7 @@ public class ExhibitionChapterResDTO {
 
     public record ChaptersInfo(
             Long storybookId,
+            String title,
             List<ChapterInfo> chapters
     ) {}
 

@@ -30,10 +30,37 @@ public interface AnniversaryControllerDocs {
                     ## 동작 방식
                     1. 로그인한 회원이 등록한 기념일 목록을 조회합니다.
                     2. 반복 여부(isRepeated)를 기준으로 다가오는 기념일의 D-day를 계산합니다.
-                    3. 음력 기반 기념일(개인 기념일 및 추석, 설날 등 기본 기념일)은 KASI(한국천문연구원) 표준 기반 음력-양력 변환 라이브러리로 실제 양력 날짜를 계산하여 D-day에 반영합니다.
+                    3. 음력 기반 기념일(사용자가 음력으로 등록한 개인 기념일)은 KASI(한국천문연구원) 표준 기반 음력-양력 변환 라이브러리로 실제 양력 날짜를 계산하여 D-day에 반영합니다.
                     4. 다가오는 기념일(upcomingAnniversaries), 내가 추가한 기념일(myAnniversaries), 기본 기념일(commonAnniversaries) 세 목록을 함께 반환합니다.
                     """)
     @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "기념일 목록 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                        {
+                          "isSuccess": true,
+                          "code": "ANNIVERSARY200_1",
+                          "message": "기념일 목록 조회에 성공했습니다.",
+                          "result": {
+                            "upcomingAnniversaries": [
+                              { "anniversaryId": 1, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "dDay": 38 },
+                              { "anniversaryId": null, "title": "어버이날", "anniversaryDate": "2027-05-08", "dDay": 276 }
+                            ],
+                            "myAnniversaries": [
+                              { "anniversaryId": 1, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "isLunar": false, "isRepeated": true, "sevenDaysAlarmEnabled": true, "dayAlarmEnabled": true, "memo": "아버지 생신! 열심히 준비해야겠다!" }
+                            ],
+                            "commonAnniversaries": [
+                              { "commonAnniversaryId": 1, "title": "어버이날", "month": 5, "day": 8, "isLunar": false, "sevenDaysAlarmEnabled": false, "dayAlarmEnabled": true, "memo": "늘 곁을 지켜준 부모님께 감사한 마음을 전해보세요." }
+                            ]
+                          }
+                        }
+                        """)
+                    )
+            ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "accessToken 만료·유효하지 않음",
