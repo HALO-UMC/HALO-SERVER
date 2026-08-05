@@ -68,6 +68,7 @@ public class AnniversaryConverter {
                 .isLunar(commonAnniversary.getIsLunar())
                 .sevenDaysAlarmEnabled(commonAnniversary.getSevenDaysAlarmEnabled())
                 .dayAlarmEnabled(commonAnniversary.getDayAlarmEnabled())
+                .memo(commonAnniversary.getMemo())
                 .build();
     }
 
