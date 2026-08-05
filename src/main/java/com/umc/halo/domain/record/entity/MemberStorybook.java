@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.*;
+import java.util.*;
+import com.umc.halo.domain.record.enums.*;
 
 @Entity
 @Table(
@@ -52,5 +54,12 @@ public class MemberStorybook extends BaseEntity {
 
     public boolean isCompletedToday() {
         return lastCompletedDate != null && lastCompletedDate.isEqual(LocalDate.now());
+    }
+
+    public Integer resolveDisplayChapterOrder(List<MemberChapter> memberChapters) {
+        boolean lastCompleted = memberChapters.stream()
+                .anyMatch(mc -> lastChapterOrder.equals(mc.getChapter().getChapterOrder())
+                        && mc.getStatus() == Status.COMPLETED);
+        return (lastCompleted && lastChapterOrder < 10) ? lastChapterOrder + 1 : lastChapterOrder;
     }
 }
