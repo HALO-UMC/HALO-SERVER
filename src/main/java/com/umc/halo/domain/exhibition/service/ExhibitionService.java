@@ -119,8 +119,10 @@ public class ExhibitionService {
             }
         } else if (!inProgress.isEmpty()) {
             for (MemberStorybook ms : inProgress) {
+                List<MemberChapter> myChapters =
+                        chaptersByStorybook.getOrDefault(ms.getStorybook().getId(), List.of());
                 inProgressDtos.add(ExhibitionConverter.toInProgressStorybook(
-                        ms, resolveCompletedChapterOrder(ms)));
+                        ms, resolveCompletedChapterOrder(ms, myChapters)));
             }
         } else {
             recommendedDtos = storybookService.getRecommendedStorybooks(memberId).storybooks().stream()
@@ -180,8 +182,14 @@ public class ExhibitionService {
         return sceneCard == null ? null : sceneCard.getImageUrl();
     }
 
-    private Integer resolveCompletedChapterOrder(MemberStorybook ms) {
+    private Integer resolveCompletedChapterOrder(MemberStorybook ms, List<MemberChapter> myChapters) {
         Integer lastChapterOrder = ms.getLastChapterOrder();
-        return lastChapterOrder == null ? 0 : lastChapterOrder;
+        if (lastChapterOrder == null) {
+            return 0;
+        }
+        boolean lastCompleted = myChapters.stream()
+                .anyMatch(mc -> lastChapterOrder.equals(mc.getChapter().getChapterOrder())
+                        && mc.getStatus() == Status.COMPLETED);
+        return lastCompleted ? lastChapterOrder + 1 : lastChapterOrder;
     }
 }
