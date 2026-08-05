@@ -35,6 +35,33 @@ public interface AnniversaryControllerDocs {
                     """)
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "기념일 목록 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                        {
+                          "isSuccess": true,
+                          "code": "ANNIVERSARY200_1",
+                          "message": "기념일 목록 조회에 성공했습니다.",
+                          "result": {
+                            "upcomingAnniversaries": [
+                              { "anniversaryId": 1, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "dDay": 38 },
+                              { "anniversaryId": null, "title": "어버이날", "anniversaryDate": "2027-05-08", "dDay": 276 }
+                            ],
+                            "myAnniversaries": [
+                              { "anniversaryId": 1, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "isLunar": false, "isRepeated": true, "sevenDaysAlarmEnabled": true, "dayAlarmEnabled": true, "memo": "아버지 생신! 열심히 준비해야겠다!" }
+                            ],
+                            "commonAnniversaries": [
+                              { "commonAnniversaryId": 1, "title": "어버이날", "month": 5, "day": 8, "isLunar": false, "sevenDaysAlarmEnabled": false, "dayAlarmEnabled": true, "memo": "늘 곁을 지켜준 부모님께 감사한 마음을 전해보세요." }
+                            ]
+                          }
+                        }
+                        """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "accessToken 만료·유효하지 않음",
                     content = @Content(
