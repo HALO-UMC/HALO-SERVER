@@ -255,7 +255,16 @@ public class AnniversaryNotificationListener {
         } catch (Exception e) {
             thisYear = LocalDate.of(today.getYear(), 2, 28);
         }
-        return thisYear.isBefore(today) ? anniversary.getAnniversaryDate().withYear(today.getYear() + 1) : thisYear;
+
+        if (thisYear.isBefore(today)) {
+            try {
+                return anniversaryDate.withYear(today.getYear() + 1);
+            } catch (Exception e) {
+                return LocalDate.of(today.getYear() + 1, 2, 28);
+            }
+        }
+
+        return thisYear;
     }
 
     private boolean existsNextNotification(Anniversary anniversary, NotificationType notificationType, LocalDateTime scheduledAt) {
