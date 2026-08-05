@@ -53,8 +53,8 @@ public interface ChapterControllerDocs {
                                                               "code": "CHAPTER200_1",
                                                               "message": "오늘의 장을 성공적으로 조회했습니다.",
                                                               "result": {
-                                                                "chapterId": 1,
                                                                 "storybookTitle": "오래 전 당신",
+                                                                "chapterId": 1,
                                                                 "chapterTitle": "나와 같은 나이였던 시절",
                                                                 "chapterOrder": 1,
                                                                 "longImageUrl": "https://example.com/long-image.png",
@@ -99,8 +99,8 @@ public interface ChapterControllerDocs {
                                                               "code": "CHAPTER200_1",
                                                               "message": "오늘의 장을 성공적으로 조회했습니다.",
                                                               "result": {
-                                                                "chapterId": 1,
                                                                 "storybookTitle": "오래 전 당신",
+                                                                "chapterId": 1,
                                                                 "chapterTitle": "나와 같은 나이였던 시절",
                                                                 "chapterOrder": 1,
                                                                 "longImageUrl": "https://example.com/long-image.png",
