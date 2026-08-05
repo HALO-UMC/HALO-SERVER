@@ -16,8 +16,21 @@ public class StorybookResDTO {
     public record GetHome(
             HomeStatus homeStatus,
             String memberName,
+            List<BookshelfItem> bookshelf,
             List<InProgressStorybook> inProgressStorybooks,
             List<RecommendedStorybook> recommendedStorybooks
+    ) {
+    }
+
+    @Builder
+    public record BookshelfItem(
+            Long storybookId,
+            String title,
+            String shortDescription,
+            String imageUrl,
+            Integer currentChapterOrder,
+            boolean todayAvailable,
+            String recommendationReasonText
     ) {
     }
 
