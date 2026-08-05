@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.*;
+import java.util.UUID;
 
 @Entity
 @Table(
@@ -56,8 +57,14 @@ public class Notification extends BaseEntity {
     @Column(name = "setting_enabled", nullable = false)
     private Boolean settingEnabled;
 
-    @Column(name = "anniversary_enabled", nullable = false)
+    @Column(name = "anniversary_enabled")
     private Boolean anniversaryEnabled;
+
+    @Column(name = "processing_at")
+    private LocalDateTime processingAt;
+
+    @Column(name = "processing_lease_id")
+    private UUID processingLeaseId;
 
     public void updateContent(String title, String message) {
         this.title = title;
@@ -70,6 +77,8 @@ public class Notification extends BaseEntity {
         }
         this.scheduledAt = scheduledAt;
         this.status = NotificationStatus.SCHEDULED;
+        this.processingAt = null;
+        this.processingLeaseId = null;
     }
 
     public void updateScheduledAt(LocalDateTime scheduledAt) {
@@ -77,6 +86,8 @@ public class Notification extends BaseEntity {
             return;
         }
         this.scheduledAt = scheduledAt;
+        this.processingAt = null;
+        this.processingLeaseId = null;
     }
 
     public void updateSettingEnabled(boolean enabled) {
@@ -90,6 +101,43 @@ public class Notification extends BaseEntity {
     public void expire() {
         if (this.status != NotificationStatus.SENT) {
             this.status = NotificationStatus.EXPIRED;
+            this.processingAt = null;
+            this.processingLeaseId = null;
         }
+    }
+
+    public void expireWithLease(UUID leaseId) {
+
+        if (this.processingLeaseId == null || !this.processingLeaseId.equals(leaseId)) {
+            return;
+        }
+        expire();
+    }
+
+    public void send(UUID leaseId) {
+        if(this.processingLeaseId == null || !this.processingLeaseId.equals(leaseId)){
+            return;
+        }
+
+        this.status = NotificationStatus.SENT;
+        this.sentAt = LocalDateTime.now();
+        this.processingAt = null;
+        this.processingLeaseId = null;
+    }
+
+    public void fail(UUID leaseId) {
+        if (this.processingLeaseId == null || !this.processingLeaseId.equals(leaseId)) {
+            return;
+        }
+
+        this.status = NotificationStatus.FAILED;
+        this.processingAt = null;
+        this.processingLeaseId = null;
+    }
+
+    public void startProcessing() {
+        this.status = NotificationStatus.PROCESSING;
+        this.processingAt = LocalDateTime.now();
+        this.processingLeaseId = UUID.randomUUID();
     }
 }

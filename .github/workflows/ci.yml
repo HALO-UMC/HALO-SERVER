@@ -55,5 +55,10 @@ jobs:
       - name: gradlew 실행 권한 부여
         run: chmod +x gradlew
 
+      - name: Firebase service account 생성
+        run: |
+          mkdir -p src/main/resources/firebase
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > src/main/resources/firebase/service-account.json
+
       - name: 빌드 및 테스트
         run: ./gradlew build

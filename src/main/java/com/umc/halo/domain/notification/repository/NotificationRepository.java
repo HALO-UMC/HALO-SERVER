@@ -3,10 +3,12 @@ package com.umc.halo.domain.notification.repository;
 import com.umc.halo.domain.notification.entity.*;
 import com.umc.halo.domain.notification.enums.NotificationStatus;
 import com.umc.halo.domain.notification.enums.NotificationType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,4 +26,20 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
         and n.status in :statuses
     """)
     List<Notification> findAllWithAnniversary(@Param("memberId") Long memberId, @Param("notificationTypes") List<NotificationType> notificationTypes, @Param("statuses") List<NotificationStatus> statuses);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        select n
+        from Notification n
+        where
+        (
+            n.status = :scheduled
+            and n.scheduledAt <= :now
+        )
+        or
+        (
+            n.status = :processing
+            and n.processingAt <= :timeout
+        )
+    """)
+    List<Notification> findTargetsForUpdate( @Param("scheduled") NotificationStatus scheduled, @Param("processing") NotificationStatus processing, @Param("now") LocalDateTime now, @Param("timeout") LocalDateTime timeout);
 }
