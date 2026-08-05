@@ -2,6 +2,7 @@ package com.umc.halo.domain.notification.service;
 
 import com.umc.halo.domain.member.entity.MemberDevice;
 import com.umc.halo.domain.member.repository.MemberDeviceRepository;
+import com.umc.halo.domain.notification.entity.Anniversary;
 import com.umc.halo.domain.notification.entity.Notification;
 import com.umc.halo.domain.notification.enums.NotificationStatus;
 import com.umc.halo.domain.notification.enums.NotificationType;
@@ -70,15 +71,10 @@ public class NotificationService {
     @Transactional
     public void createNextYearNotifications() {
 
-        LocalDate yesterday = LocalDate.now().minusDays(1);
+        List<Anniversary> anniversaries = notificationRepository.findAllRepeatedAnniversaries();
 
-        LocalDateTime start = yesterday.atStartOfDay();
-        LocalDateTime end = yesterday.plusDays(1).atStartOfDay();
-
-        List<Notification> notifications = notificationRepository.findYesterdayRecurringDdayNotifications(NotificationType.ANNIVERSARY_DDAY, start, end);
-
-        for (Notification notification : notifications) {
-            anniversaryNotificationListener.createNextNotification(notification);
+        for (Anniversary anniversary : anniversaries) {
+            anniversaryNotificationListener.createNextNotification(anniversary);
         }
     }
 

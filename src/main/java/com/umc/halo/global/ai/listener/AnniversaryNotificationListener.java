@@ -115,11 +115,9 @@ public class AnniversaryNotificationListener {
     }
 
     @Transactional
-    public void createNextNotification(Notification notification) {
+    public void createNextNotification(Anniversary anniversary) {
 
-        Anniversary anniversary = notification.getAnniversary();
-
-        if (!Boolean.TRUE.equals(anniversary.getIsRepeated()) || !Boolean.TRUE.equals(notification.getAnniversaryEnabled())) {
+        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
             return;
         }
 
@@ -130,12 +128,16 @@ public class AnniversaryNotificationListener {
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, notification.getScheduledAt().toLocalDate().plusDays(1));
+        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate());
         if (nextOccurrence == null) {
             return;
         }
         LocalDateTime d7 = nextOccurrence.minusDays(7).atTime(notifyTime);
         LocalDateTime dday = nextOccurrence.atTime(notifyTime);
+
+        if (existsNextNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7) || existsNextNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, dday)) {
+            return;
+        }
 
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
@@ -254,5 +256,9 @@ public class AnniversaryNotificationListener {
             thisYear = LocalDate.of(today.getYear(), 2, 28);
         }
         return thisYear.isBefore(today) ? anniversary.getAnniversaryDate().withYear(today.getYear() + 1) : thisYear;
+    }
+
+    private boolean existsNextNotification(Anniversary anniversary, NotificationType notificationType, LocalDateTime scheduledAt) {
+        return notificationRepository.existsByAnniversaryIdAndNotificationTypeAndScheduledAt(anniversary.getId(), notificationType, scheduledAt);
     }
 }
