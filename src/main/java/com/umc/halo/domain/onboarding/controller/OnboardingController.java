@@ -25,10 +25,11 @@ public class OnboardingController implements OnboardingControllerDocs {
     // 닉네임 중복 확인
     @GetMapping("/nickname/check")
     public ApiResponse<OnboardingResDTO.NicknameCheck> checkNickname(
+            @AuthenticationPrincipal Long memberId,
             @RequestParam String nickname
     ) {
         BaseSuccessCode code = OnboardingSuccessCode.NICKNAME_AVAILABLE;
-        return ApiResponse.onSuccess(code, onboardingService.checkNickname(nickname));
+        return ApiResponse.onSuccess(code, onboardingService.checkNickname(memberId, nickname));
     }
 
     // 온보딩 정보 저장

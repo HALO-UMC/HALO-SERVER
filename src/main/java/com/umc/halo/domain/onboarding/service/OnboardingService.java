@@ -43,9 +43,15 @@ public class OnboardingService {
 
     // 닉네임 중복 확인
     @Transactional(readOnly = true)
-    public OnboardingResDTO.NicknameCheck checkNickname(String nickname) {
+    public OnboardingResDTO.NicknameCheck checkNickname(Long memberId, String nickname) {
 
         validateNicknameFormat(nickname);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new OnboardingException(OnboardingErrorCode.MISSING_REQUIRED_FIELD));
+
+        if (nickname.equals(member.getName())) {
+            return OnboardingConverter.toNicknameCheck(true);
+        }
         // 중복 조회
         boolean available = !memberRepository.existsByName(nickname);
         return OnboardingConverter.toNicknameCheck(available);
