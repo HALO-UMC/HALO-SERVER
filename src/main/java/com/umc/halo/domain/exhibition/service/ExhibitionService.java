@@ -141,10 +141,11 @@ public class ExhibitionService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
-        memberStorybookRepository.findAllByMemberWithStorybook(member).stream()
+        MemberStorybook memberStorybook = memberStorybookRepository.findAllByMemberWithStorybook(member).stream()
                 .filter(ms -> ms.getStorybook().getId().equals(storybookId))
                 .findFirst()
                 .orElseThrow(() -> new ExhibitionException(ExhibitionErrorCode.NOT_FOUND));
+        String title = memberStorybook.getStorybook().getTitle();
 
 
         List<Chapter> chapters = chapterRepository
@@ -171,7 +172,7 @@ public class ExhibitionService {
                 })
                 .toList();
 
-        return ExhibitionConverter.toChaptersInfo(storybookId, chapterInfos);
+        return ExhibitionConverter.toChaptersInfo(storybookId, title, chapterInfos);
     }
 
     private String resolveChapterImageUrl(MemberChapter mc) {
