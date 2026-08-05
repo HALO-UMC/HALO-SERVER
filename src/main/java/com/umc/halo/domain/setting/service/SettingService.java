@@ -75,7 +75,7 @@ public class SettingService {
             updateAnniversaryNotificationScheduledTime(memberId, dto.regularNotificationTime());
         }
 
-        if (previousAnniversaryEnabled != dto.anniversaryNotificationEnabled() || previousAllNotificationEnabled != dto.isAllNotificationEnabled()) {
+        if (previousAnniversaryEnabled != dto.anniversaryNotificationEnabled() || (!previousAllNotificationEnabled && dto.isAllNotificationEnabled())) {
             updateAnniversaryNotifications(memberId, dto.anniversaryNotificationEnabled(), memberSetting);
         }
 
