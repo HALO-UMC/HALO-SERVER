@@ -27,9 +27,10 @@ public class SettingConverter {
                 .build();
     }
 
-    public static MemberSetting toMemberSetting(Member member) {
+    public static MemberSetting toMemberSetting(Member member, Bgm bgm) {
         return MemberSetting.builder()
                 .member(member)
+                .bgm(bgm)
                 .build();
     }
 
@@ -38,7 +39,6 @@ public class SettingConverter {
                 .bgmId(bgm.getId())
                 .title(bgm.getTitle())
                 .fileName(bgm.getFileName())
-                .imageName(bgm.getImageName())
                 .build();
     }
 

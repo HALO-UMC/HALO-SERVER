@@ -27,8 +27,7 @@ public class SettingResDTO {
     public record BgmInfo(
             Long bgmId,
             String title,
-            String fileName,
-            String imageName
+            String fileName
     ) {}
 
     @Builder

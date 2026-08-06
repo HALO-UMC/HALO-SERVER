@@ -21,7 +21,11 @@ import com.umc.halo.domain.record.repository.MemberChapterAnswerRepository;
 import com.umc.halo.domain.record.repository.MemberChapterRepository;
 import com.umc.halo.domain.record.repository.MemberStorybookRepository;
 import com.umc.halo.domain.setting.converter.SettingConverter;
+import com.umc.halo.domain.setting.entity.Bgm;
 import com.umc.halo.domain.setting.entity.MemberSetting;
+import com.umc.halo.domain.setting.exception.SettingException;
+import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
+import com.umc.halo.domain.setting.repository.BgmRepository;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.domain.tag.repository.MemberTagRepository;
 import com.umc.halo.domain.term.repository.MemberTermRepository;
@@ -52,6 +56,7 @@ public class MemberService {
     private final MemberTagRepository memberTagRepository;
     private final StorybookCharacterVariantRepository storybookCharacterVariantRepository;
     private final MemberDeviceRepository memberDeviceRepository;
+    private final BgmRepository bgmRepository;
     private final JwtUtil jwtUtil;
     private final HashUtil hashUtil;
     private final OidcProviderFactory oidcProviderFactory;
@@ -78,7 +83,9 @@ public class MemberService {
                 member = MemberConverter.toMember(provider, oidcUserInfo);
                 memberRepository.save(member);
 
-                MemberSetting memberSetting = SettingConverter.toMemberSetting(member);
+                Bgm defaultBgm = bgmRepository.findById(1L).orElseThrow(() -> new SettingException(SettingErrorCode.BGM_NOT_FOUND));
+
+                MemberSetting memberSetting = SettingConverter.toMemberSetting(member, defaultBgm);
                 memberSettingRepository.save(memberSetting);
 
                 isNewUser = true;

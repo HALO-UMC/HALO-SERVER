@@ -39,6 +39,7 @@ public class MemberConverter {
                 .name(member.getName())
                 .gender(member.getGender())
                 .birthDate(member.getBirthDate())
+                .email(member.getEmail())
                 .provider(member.getProvider())
                 .onboardingCompleted(member.getOnboardingCompleted())
                 .createdAt(member.getCreatedAt())

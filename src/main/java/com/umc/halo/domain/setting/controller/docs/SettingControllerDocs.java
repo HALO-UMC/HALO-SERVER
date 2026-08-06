@@ -180,7 +180,7 @@ public interface SettingControllerDocs {
 
                     ## 동작 방식
                     1. 서버에 등록된 BGM 메타데이터를 조회합니다.
-                    2. 각 BGM의 제목, 파일명, 이미지 정보를 반환합니다.
+                    2. 각 BGM의 제목, 파일명을 반환합니다.
                     3. 클라이언트는 fileName을 이용하여 앱에 내장된 BGM을 재생합니다.
                     """
     )
@@ -199,21 +199,18 @@ public interface SettingControllerDocs {
                                          "bgms": [
                                            {
                                              "bgmId": 1,
-                                             "title": "산들바람1",
-                                             "fileName": "http://www.bgm-example1.com",
-                                             "imageName": "http://www.img-example1.com"
+                                             "title": "아침",
+                                             "fileName": "bgm_01.mp3"
                                            },
                                            {
                                              "bgmId": 2,
-                                             "title": "산들바람2",
-                                             "fileName": "http://www.bgm-example2.com",
-                                             "imageName": "http://www.img-example2.com"
+                                             "title": "오후",
+                                             "fileName": "bgm_02.mp3"
                                            },
                                            {
                                              "bgmId": 3,
-                                             "title": "산들바람3",
-                                             "fileName": "http://www.bgm-example3.com",
-                                             "imageName": "http://www.img-example3.com"
+                                             "title": "밤",
+                                             "fileName": "bgm_03.mp3"
                                            }
                                          ]
                                        }
