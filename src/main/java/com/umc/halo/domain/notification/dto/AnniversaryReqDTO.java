@@ -30,9 +30,10 @@ public class AnniversaryReqDTO {
             @NotNull(message = "당일 알림 여부는 필수입니다.")
             Boolean dayAlarmEnabled,
 
-            @Size(max = 255, message = "메모는 255자 이하로 입력해주세요.")
+            @Size(max = 50, message = "메모는 50자 이하로 입력해주세요.")
             String memo
-    ) {}
+    ) {
+    }
 
     public record Update(
             @NotBlank(message = "기념일명은 필수입니다.")
@@ -54,12 +55,14 @@ public class AnniversaryReqDTO {
             @NotNull(message = "당일 알림 여부는 필수입니다.")
             Boolean dayAlarmEnabled,
 
-            @Size(max = 255, message = "메모는 255자 이하로 입력해주세요.")
+            @Size(max = 50, message = "메모는 50자 이하로 입력해주세요.")
             String memo
-    ) {}
+    ) {
+    }
 
     public record Delete(
             @NotEmpty(message = "삭제할 기념일 ID 목록은 필수입니다.")
             List<Long> anniversaryIds
-    ) {}
+    ) {
+    }
 }
