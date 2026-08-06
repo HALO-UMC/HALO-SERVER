@@ -204,7 +204,7 @@ public class AnniversaryService {
         boolean hasUnauthorized = anniversaries.stream()
                 .anyMatch(anniversary -> !anniversary.getMember().getId().equals(memberId));
         if (hasUnauthorized) {
-            throw new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_ACCESS_DENIED);
+            throw new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND);
         }
 
         notificationRepository.deleteAllByAnniversaryIdIn(distinctIds);
@@ -239,7 +239,7 @@ public class AnniversaryService {
         Anniversary anniversary = anniversaryRepository.findById(anniversaryId)
                 .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
         if (!anniversary.getMember().getId().equals(memberId)) {
-            throw new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_ACCESS_DENIED);
+            throw new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND);
         }
         return anniversary;
     }
