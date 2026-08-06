@@ -363,6 +363,7 @@ public interface MemberControllerDocs {
                                             "name": "신재현",
                                             "gender": "MALE",
                                             "birthDate": "2002-02-25",
+                                            "email": "jaehyun@naver.com",
                                             "provider": "KAKAO",
                                             "onboardingCompleted": true,
                                             "createdAt": "2026-06-30T14:20:00",

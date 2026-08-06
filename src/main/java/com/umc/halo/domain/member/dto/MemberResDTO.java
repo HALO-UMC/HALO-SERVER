@@ -34,6 +34,7 @@ public class MemberResDTO {
             String name,
             Gender gender,
             LocalDate birthDate,
+            String email,
             Provider provider,
             Boolean onboardingCompleted,
             String characterImageUrl,
