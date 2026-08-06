@@ -21,7 +21,7 @@ public class NotificationScheduler {
         notificationService.createNextYearNotifications();
     }
 
-    @Scheduled(cron = "0 59 23 * * *")
+    @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Seoul")
     public void createTodayChapterNotification() {
         notificationService.createTodayChapterNotifications();
     }

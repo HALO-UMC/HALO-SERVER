@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,8 @@ public class NotificationService {
     private final FcmService fcmService;
     private final AnniversaryNotificationListener anniversaryNotificationListener;
     private final StorybookService storybookService;
+
+    private static final ZoneId ZONE_ID = ZoneId.of("Asia/Seoul");
 
     public void sendScheduledNotifications() {
 
@@ -129,7 +132,7 @@ public class NotificationService {
                         c -> c
                 ));
 
-        LocalDateTime scheduledAt = LocalDate.now().plusDays(1).atStartOfDay();
+        LocalDateTime scheduledAt = LocalDate.now(ZONE_ID).plusDays(1).atStartOfDay();
 
         for (MemberSetting memberSetting : memberSettings) {
 
