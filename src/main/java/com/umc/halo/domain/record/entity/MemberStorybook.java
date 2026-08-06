@@ -57,22 +57,17 @@ public class MemberStorybook extends BaseEntity {
     }
 
     public Integer resolveDisplayChapterOrder(List<MemberChapter> memberChapters) {
-        boolean lastCompleted = memberChapters.stream()
-                .anyMatch(mc -> lastChapterOrder.equals(mc.getChapter().getChapterOrder())
-                        && mc.getStatus() == Status.COMPLETED);
-        return (lastCompleted && lastChapterOrder < 10) ? lastChapterOrder + 1 : lastChapterOrder;
+        return (isLastChapterCompleted(memberChapters) && lastChapterOrder < 10) ? lastChapterOrder + 1 : lastChapterOrder;
     }
 
     public Integer resolveTodayChapterOrder(List<MemberChapter> memberChapters) {
-        boolean lastCompleted = memberChapters.stream()
+        return !isLastChapterCompleted(memberChapters) ? lastChapterOrder : lastChapterOrder < 10 ? lastChapterOrder + 1 : null;
+    }
+
+    private boolean isLastChapterCompleted(List<MemberChapter> memberChapters) {
+        return memberChapters.stream()
                 .anyMatch(mc -> lastChapterOrder.equals(mc.getChapter().getChapterOrder())
-                        && mc.getStatus() == Status.COMPLETED);
-        if (lastCompleted) {
-            if (lastChapterOrder >= 10) {
-                return null;
-            }
-            return lastChapterOrder + 1;
-        }
-        return lastChapterOrder;
+                        && mc.getStatus() == Status.COMPLETED
+                );
     }
 }
