@@ -234,13 +234,13 @@ public interface RecordControllerDocs {
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "403",
-                            description = "아직 열리지 않았거나 이미 완료한 장",
+                            description = "아직 시작하지 않은 스토리북이거나, 아직 열리지 않았거나 이미 완료한 장",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = {
                                             @ExampleObject(
-                                                    name = "아직 열리지 않은 장",
+                                                    name = "아직 시작하지 않은 스토리북 / 아직 열리지 않은 장",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
@@ -266,7 +266,7 @@ public interface RecordControllerDocs {
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
                             responseCode = "404",
-                            description = "존재하지 않는 회원 / 장 / 장 질문 / 장면 카드 / S3 이미지",
+                            description = "존재하지 않는 회원 / 장 / 장 질문 / 장면 카드 / 존재하지 않거나 본인 소유가 아닌 이미지",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ApiResponse.class),
@@ -316,7 +316,7 @@ public interface RecordControllerDocs {
                                                             """
                                             ),
                                             @ExampleObject(
-                                                    name = "S3에 해당 이미지가 존재하지 않음(imageKey)",
+                                                    name = "존재하지 않거나 본인 소유가 아닌 이미지(imageKey)",
                                                     value = """
                                                             {
                                                                 "isSuccess": false,
