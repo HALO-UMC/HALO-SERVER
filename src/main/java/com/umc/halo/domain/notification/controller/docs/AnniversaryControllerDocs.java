@@ -197,9 +197,8 @@ public interface AnniversaryControllerDocs {
                         - memo : 메모 (선택, 255자 이하)
 
                     ## 동작 방식
-                    1. 요청한 기념일이 존재하는지 확인하고, 존재하지 않으면 404 예외를 반환합니다.
-                    2. 해당 기념일이 로그인한 회원 소유인지 확인하고, 본인 소유가 아니면 403 예외를 반환합니다.
-                    3. 검증을 통과하면 요청 값으로 기념일 정보를 갱신합니다.
+                    1. 요청한 기념일이 존재하는지 확인하고, 존재하지 않거나 본인 소유가 아니면 404 예외를 반환합니다.
+                    2. 검증을 통과하면 요청 값으로 기념일 정보를 갱신합니다.
                     """)
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -265,21 +264,6 @@ public interface AnniversaryControllerDocs {
                                     )
                             }
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "403",
-                    description = "본인 소유가 아닌 기념일",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "ANNIVERSARY403_1",
-                                      "message": "해당 기념일에 대한 권한이 없습니다.",
-                                      "result": null
-                                    }
-                                    """)
-                    )
             )
     })
     ApiResponse<AnniversaryResDTO.UpdateAnniversary> updateAnniversary(
@@ -303,7 +287,7 @@ public interface AnniversaryControllerDocs {
 
                     ## 동작 방식
                     1. 요청한 ID 목록이 모두 존재하는지 확인하고, 하나라도 존재하지 않으면 404 예외를 반환합니다.
-                    2. 요청한 ID가 모두 로그인한 회원 소유인지 확인하고, 하나라도 본인 소유가 아니면 403 예외를 반환합니다.
+                    2. 요청한 ID가 모두 로그인한 회원 소유인지 확인하고, 하나라도 본인 소유가 아니면 404 예외를 반환합니다.
                     3. 검증을 통과하면 요청한 기념일을 모두 삭제합니다. (부분 삭제는 지원하지 않으며, 검증 실패 시 전체가 실패합니다.)
                     """)
     @ApiResponses(value = {
@@ -367,21 +351,6 @@ public interface AnniversaryControllerDocs {
                                                     """
                                     )
                             }
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "403",
-                    description = "본인 소유가 아닌 기념일 포함",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "ANNIVERSARY403_1",
-                                      "message": "해당 기념일에 대한 권한이 없습니다.",
-                                      "result": null
-                                    }
-                                    """)
                     )
             )
     })
