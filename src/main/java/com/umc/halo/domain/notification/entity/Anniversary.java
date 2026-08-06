@@ -46,7 +46,7 @@ public class Anniversary extends BaseEntity {
     @Builder.Default
     private Boolean dayAlarmEnabled = true;
 
-    @Column(length = 255)
+    @Column(length = 50)
     private String memo;
 
     public void update(String title, LocalDate anniversaryDate, Boolean isLunar, Boolean isRepeated,

@@ -38,6 +38,6 @@ public class CommonAnniversary extends BaseEntity {
     @Builder.Default
     private Boolean dayAlarmEnabled = true;
 
-    @Column(length = 255)
+    @Column(length = 50)
     private String memo;
 }
