@@ -25,4 +25,6 @@ public interface MemberStorybookRepository extends JpaRepository<MemberStorybook
             "join fetch ms.storybook " +
             "where ms.member = :member")
     List<MemberStorybook> findAllByMemberWithStorybook(@Param("member") Member member);
+
+    List<MemberStorybook> findAllByMemberIn(List<Member> members);
 }

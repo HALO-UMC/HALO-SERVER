@@ -20,4 +20,9 @@ public class NotificationScheduler {
     public void createNextYearNotifications() {
         notificationService.createNextYearNotifications();
     }
+
+    @Scheduled(cron = "0 59 23 * * *")
+    public void createTodayChapterNotification() {
+        notificationService.createTodayChapterNotifications();
+    }
 }
