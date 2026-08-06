@@ -1,5 +1,6 @@
 package com.umc.halo.domain.notification.repository;
 
+import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.notification.entity.*;
 import com.umc.halo.domain.notification.enums.NotificationStatus;
 import com.umc.halo.domain.notification.enums.NotificationType;
@@ -49,4 +50,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
         WHERE a.isRepeated = true
     """)
     List<Anniversary> findAllRepeatedAnniversaries();
+    boolean existsByMemberAndNotificationTypeAndScheduledAt(Member member, NotificationType notificationType, LocalDateTime scheduledAt);
+
+    List<Notification> findByMemberIdAndNotificationTypeAndStatusIn(Long memberId, NotificationType notificationType, List<NotificationStatus> scheduled);
 }

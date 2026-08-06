@@ -1,6 +1,7 @@
 package com.umc.halo.domain.content.chapter.repository;
 
 import com.umc.halo.domain.content.chapter.entity.*;
+import com.umc.halo.domain.content.storybook.entity.Storybook;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.*;
 
@@ -13,4 +14,6 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     Optional<Chapter> findByStorybook_IdAndChapterOrder(Long storybookId, Integer chapterOrder);
 
     List<Chapter> findByStorybook_IdIn(List<Long> storybookIds);
+
+    List<Chapter> findByStorybookIn(List<Storybook> storybooks);
 }
