@@ -73,4 +73,8 @@ public class MemberChapter extends BaseEntity {
     public void updateSummary(String summary) {
         this.summary = summary;
     }
+
+    public void updateImageKey(String imageKey) {
+        this.imageKey = imageKey;
+    }
 }
