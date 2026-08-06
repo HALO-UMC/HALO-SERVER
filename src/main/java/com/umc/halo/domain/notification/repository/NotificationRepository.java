@@ -51,4 +51,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     """)
     List<Anniversary> findAllRepeatedAnniversaries();
     boolean existsByMemberAndNotificationTypeAndScheduledAt(Member member, NotificationType notificationType, LocalDateTime scheduledAt);
+
+    List<Notification> findByMemberIdAndNotificationTypeAndStatusIn(Long memberId, NotificationType notificationType, List<NotificationStatus> scheduled);
 }

@@ -62,6 +62,7 @@ public class SettingService {
         LocalTime previousNotificationTime = memberSetting.getRegularNotificationTime();
         boolean previousAllNotificationEnabled = memberSetting.getIsAllNotificationEnabled();
         boolean previousAnniversaryEnabled = memberSetting.getAnniversaryNotificationEnabled();
+        boolean previousTodayChapterEnabled = memberSetting.getTodayChapterNotificationEnabled();
 
         memberSetting.updateNotificationSettings(
                 dto.isAllNotificationEnabled(),
@@ -77,6 +78,10 @@ public class SettingService {
 
         if (previousAnniversaryEnabled != dto.anniversaryNotificationEnabled() || (!previousAllNotificationEnabled && dto.isAllNotificationEnabled())) {
             updateAnniversaryNotifications(memberId, dto.anniversaryNotificationEnabled(), memberSetting);
+        }
+
+        if (previousTodayChapterEnabled != dto.todayChapterNotificationEnabled() || (!previousAllNotificationEnabled && dto.isAllNotificationEnabled())) {
+            updateTodayChapterNotifications(memberId, dto.todayChapterNotificationEnabled());
         }
 
         return SettingConverter.toNotificationSettings(memberSetting);
@@ -199,6 +204,14 @@ public class SettingService {
             } else {
                 notification.updateScheduledAt(scheduledAt);
             }
+        }
+    }
+
+    private void updateTodayChapterNotifications(Long memberId, boolean enabled) {
+        List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.TODAY_CHAPTER, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
+
+        for (Notification notification : notifications) {
+            notification.updateSettingEnabled(enabled);
         }
     }
 
