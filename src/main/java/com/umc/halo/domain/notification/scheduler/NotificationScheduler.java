@@ -15,4 +15,9 @@ public class NotificationScheduler {
     public void sendScheduledNotification() {
         notificationService.sendScheduledNotifications();
     }
+
+    @Scheduled(cron = "0 5 0 * * *")
+    public void createNextYearNotifications() {
+        notificationService.createNextYearNotifications();
+    }
 }

@@ -60,9 +60,11 @@ public class SettingService {
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
         LocalTime previousNotificationTime = memberSetting.getRegularNotificationTime();
+        boolean previousAllNotificationEnabled = memberSetting.getIsAllNotificationEnabled();
         boolean previousAnniversaryEnabled = memberSetting.getAnniversaryNotificationEnabled();
 
         memberSetting.updateNotificationSettings(
+                dto.isAllNotificationEnabled(),
                 dto.regularNotificationTime(),
                 dto.todayChapterNotificationEnabled(),
                 dto.retentionNotificationEnabled(),
@@ -73,7 +75,7 @@ public class SettingService {
             updateAnniversaryNotificationScheduledTime(memberId, dto.regularNotificationTime());
         }
 
-        if (previousAnniversaryEnabled != dto.anniversaryNotificationEnabled()) {
+        if (previousAnniversaryEnabled != dto.anniversaryNotificationEnabled() || (!previousAllNotificationEnabled && dto.isAllNotificationEnabled())) {
             updateAnniversaryNotifications(memberId, dto.anniversaryNotificationEnabled(), memberSetting);
         }
 

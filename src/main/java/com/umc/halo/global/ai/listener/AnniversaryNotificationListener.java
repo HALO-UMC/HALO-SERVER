@@ -114,6 +114,45 @@ public class AnniversaryNotificationListener {
 
     }
 
+    @Transactional
+    public void createNextNotification(Anniversary anniversary) {
+
+        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
+            return;
+        }
+
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId()).orElse(null);
+        if (memberSetting == null) {
+            return;
+        }
+        LocalTime notifyTime = memberSetting.getRegularNotificationTime();
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate());
+        if (nextOccurrence == null) {
+            return;
+        }
+        LocalDateTime d7 = nextOccurrence.minusDays(7).atTime(notifyTime);
+        LocalDateTime dday = nextOccurrence.atTime(notifyTime);
+
+        if (existsNextNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7) || existsNextNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, dday)) {
+            return;
+        }
+
+        String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
+        String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
+        String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
+        String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
+
+        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
+            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
+        }
+
+        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
+            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
+        }
+    }
+
     private String createNotificationTitle(Anniversary anniversary, NotificationType notificationType) {
         if (notificationType == NotificationType.ANNIVERSARY_D7) {
             return anniversary.getTitle() + "까지 7일 남았어요.";
@@ -216,6 +255,19 @@ public class AnniversaryNotificationListener {
         } catch (Exception e) {
             thisYear = LocalDate.of(today.getYear(), 2, 28);
         }
-        return thisYear.isBefore(today) ? anniversary.getAnniversaryDate().withYear(today.getYear() + 1) : thisYear;
+
+        if (thisYear.isBefore(today)) {
+            try {
+                return anniversaryDate.withYear(today.getYear() + 1);
+            } catch (Exception e) {
+                return LocalDate.of(today.getYear() + 1, 2, 28);
+            }
+        }
+
+        return thisYear;
+    }
+
+    private boolean existsNextNotification(Anniversary anniversary, NotificationType notificationType, LocalDateTime scheduledAt) {
+        return notificationRepository.existsByAnniversaryIdAndNotificationTypeAndScheduledAt(anniversary.getId(), notificationType, scheduledAt);
     }
 }

@@ -10,17 +10,12 @@ import java.util.List;
 public class SettingConverter {
 
     public static SettingResDTO.NotificationSettings toNotificationSettings(MemberSetting memberSetting) {
-        boolean isAllNotificationEnabled =
-                memberSetting.getTodayChapterNotificationEnabled()
-                && memberSetting.getRetentionNotificationEnabled()
-                && memberSetting.getAnniversaryNotificationEnabled();
-
         return SettingResDTO.NotificationSettings.builder()
+                .isAllNotificationEnabled(memberSetting.getIsAllNotificationEnabled())
                 .regularNotificationTime(memberSetting.getRegularNotificationTime())
                 .todayChapterNotificationEnabled(memberSetting.getTodayChapterNotificationEnabled())
                 .retentionNotificationEnabled(memberSetting.getRetentionNotificationEnabled())
                 .anniversaryNotificationEnabled(memberSetting.getAnniversaryNotificationEnabled())
-                .isAllNotificationEnabled(isAllNotificationEnabled)
                 .build();
     }
 
