@@ -10,6 +10,7 @@ public class RelationshipConverter {
         return RelationshipResDTO.TagInfo.builder()
                 .tagId(tag.getId())
                 .title(tag.getTitle())
+                .description(tag.getDescription())
                 .build();
     }
     public static RelationshipResDTO.Info toInfo(

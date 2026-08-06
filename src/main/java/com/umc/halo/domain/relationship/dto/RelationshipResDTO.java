@@ -15,6 +15,7 @@ public class RelationshipResDTO {
     @Builder
     public record TagInfo(
             Long tagId,
-            String title
+            String title,
+            String description
     ) {}
 }
