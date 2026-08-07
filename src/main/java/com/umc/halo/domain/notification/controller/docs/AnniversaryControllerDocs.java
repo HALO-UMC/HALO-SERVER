@@ -259,6 +259,17 @@ public interface AnniversaryControllerDocs {
                                                       "result": null
                                                     }
                                                     """
+                                    ),
+                                    @ExampleObject(
+                                            name = "반복하지 않는 기념일 과거 날짜",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ANNIVERSARY400_2",
+                                                      "message": "반복하지 않는 기념일은 지난 날짜로 등록할 수 없습니다.",
+                                                      "result": null
+                                                    }
+                                                    """
                                     )
                             }
                     )
@@ -460,6 +471,17 @@ public interface AnniversaryControllerDocs {
                                                       "isSuccess": false,
                                                       "code": "ANNIVERSARY400_1",
                                                       "message": "존재하지 않는 음력 날짜입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "반복하지 않는 기념일 과거 날짜",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ANNIVERSARY400_2",
+                                                      "message": "반복하지 않는 기념일은 지난 날짜로 등록할 수 없습니다.",
                                                       "result": null
                                                     }
                                                     """

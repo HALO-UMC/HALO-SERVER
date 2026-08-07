@@ -153,6 +153,25 @@ public class AnniversaryService {
                 .orElse(null);
     }
 
+    // 생성/수정 시 반복하지 않는 기념일이 과거 날짜인지 검증
+    private void validatePastDateNotRepeated(LocalDate anniversaryDate, Boolean isRepeated, Boolean isLunar) {
+        if (Boolean.TRUE.equals(isRepeated)) {
+            return;
+        }
+        LocalDate targetDate = anniversaryDate;
+        if (Boolean.TRUE.equals(isLunar)) {
+            LocalDate converted = convertLunarToSolar(
+                    anniversaryDate.getYear(), anniversaryDate.getMonthValue(), anniversaryDate.getDayOfMonth());
+            if (converted == null) {
+                return;
+            }
+            targetDate = converted;
+        }
+        if (targetDate.isBefore(LocalDate.now())) {
+            throw new AnniversaryException(AnniversaryErrorCode.PAST_DATE_NOT_REPEATED);
+        }
+    }
+
     // 생성/수정 시 음력 날짜가 실제로 존재하는 날짜인지 검증
     private void validateLunarDate(LocalDate anniversaryDate, Boolean isLunar) {
         if (!Boolean.TRUE.equals(isLunar)) {
@@ -185,6 +204,7 @@ public class AnniversaryService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         validateLunarDate(request.anniversaryDate(), request.isLunar());
+        validatePastDateNotRepeated(request.anniversaryDate(), request.isRepeated(), request.isLunar());
 
         Anniversary anniversary = AnniversaryConverter.toAnniversary(member, request);
         Anniversary savedAnniversary = anniversaryRepository.save(anniversary);
@@ -202,6 +222,7 @@ public class AnniversaryService {
         Anniversary anniversary = getOwnedAnniversary(memberId, anniversaryId);
 
         validateLunarDate(request.anniversaryDate(), request.isLunar());
+        validatePastDateNotRepeated(request.anniversaryDate(), request.isRepeated(), request.isLunar());
 
         boolean titleChanged = !Objects.equals(anniversary.getTitle(), request.title());
         boolean memoChanged = !Objects.equals(anniversary.getMemo(), request.memo());
