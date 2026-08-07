@@ -154,11 +154,20 @@ public class AnniversaryService {
     }
 
     // 생성/수정 시 반복하지 않는 기념일이 과거 날짜인지 검증
-    private void validatePastDateNotRepeated(LocalDate anniversaryDate, Boolean isRepeated) {
+    private void validatePastDateNotRepeated(LocalDate anniversaryDate, Boolean isRepeated, Boolean isLunar) {
         if (Boolean.TRUE.equals(isRepeated)) {
             return;
         }
-        if (anniversaryDate.isBefore(LocalDate.now())) {
+        LocalDate targetDate = anniversaryDate;
+        if (Boolean.TRUE.equals(isLunar)) {
+            LocalDate converted = convertLunarToSolar(
+                    anniversaryDate.getYear(), anniversaryDate.getMonthValue(), anniversaryDate.getDayOfMonth());
+            if (converted == null) {
+                return;
+            }
+            targetDate = converted;
+        }
+        if (targetDate.isBefore(LocalDate.now())) {
             throw new AnniversaryException(AnniversaryErrorCode.PAST_DATE_NOT_REPEATED);
         }
     }
@@ -194,8 +203,8 @@ public class AnniversaryService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
-        validatePastDateNotRepeated(request.anniversaryDate(), request.isRepeated());
         validateLunarDate(request.anniversaryDate(), request.isLunar());
+        validatePastDateNotRepeated(request.anniversaryDate(), request.isRepeated(), request.isLunar());
 
         Anniversary anniversary = AnniversaryConverter.toAnniversary(member, request);
         Anniversary savedAnniversary = anniversaryRepository.save(anniversary);
@@ -210,11 +219,10 @@ public class AnniversaryService {
         memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
-        validatePastDateNotRepeated(request.anniversaryDate(), request.isRepeated());
-
         Anniversary anniversary = getOwnedAnniversary(memberId, anniversaryId);
 
         validateLunarDate(request.anniversaryDate(), request.isLunar());
+        validatePastDateNotRepeated(request.anniversaryDate(), request.isRepeated(), request.isLunar());
 
         boolean titleChanged = !Objects.equals(anniversary.getTitle(), request.title());
         boolean memoChanged = !Objects.equals(anniversary.getMemo(), request.memo());
