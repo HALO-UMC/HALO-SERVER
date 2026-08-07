@@ -141,6 +141,16 @@ public class AnniversaryService {
                 .orElse(null);
     }
 
+    // 생성/수정 시 반복하지 않는 기념일이 과거 날짜인지 검증
+    private void validatePastDateNotRepeated(LocalDate anniversaryDate, Boolean isRepeated) {
+        if (Boolean.TRUE.equals(isRepeated)) {
+            return;
+        }
+        if (anniversaryDate.isBefore(LocalDate.now())) {
+            throw new AnniversaryException(AnniversaryErrorCode.PAST_DATE_NOT_REPEATED);
+        }
+    }
+
     // 음력 날짜(윤달 아님)를 해당 연도의 양력 날짜로 변환. 지원 범위를 벗어나거나 변환 실패 시 null 반환
     private LocalDate convertLunarToSolar(int lunarYear, int lunarMonth, int lunarDay) {
         KoreanLunarCalendar calendar = KoreanLunarCalendar.getInstance();
@@ -156,6 +166,8 @@ public class AnniversaryService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
+        validatePastDateNotRepeated(request.anniversaryDate(), request.isRepeated());
+
         Anniversary anniversary = AnniversaryConverter.toAnniversary(member, request);
         Anniversary savedAnniversary = anniversaryRepository.save(anniversary);
 
@@ -168,6 +180,8 @@ public class AnniversaryService {
     public AnniversaryResDTO.UpdateAnniversary updateAnniversary(Long memberId, Long anniversaryId, AnniversaryReqDTO.Update request) {
         memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
+        validatePastDateNotRepeated(request.anniversaryDate(), request.isRepeated());
 
         Anniversary anniversary = getOwnedAnniversary(memberId, anniversaryId);
 

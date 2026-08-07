@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum AnniversaryErrorCode implements BaseErrorCode {
 
-    ANNIVERSARY_NOT_FOUND(HttpStatus.NOT_FOUND, "ANNIVERSARY404_1", "존재하지 않는 기념일입니다.");
+    ANNIVERSARY_NOT_FOUND(HttpStatus.NOT_FOUND, "ANNIVERSARY404_1", "존재하지 않는 기념일입니다."),
+    PAST_DATE_NOT_REPEATED(HttpStatus.BAD_REQUEST, "ANNIVERSARY400_2", "반복하지 않는 기념일은 지난 날짜로 등록할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
