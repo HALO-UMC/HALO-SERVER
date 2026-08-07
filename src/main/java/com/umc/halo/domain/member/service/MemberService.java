@@ -63,7 +63,6 @@ public class MemberService {
 
     private static final ZoneId ZONE_ID = ZoneId.of("Asia/Seoul");
 
-    @Transactional
     public MemberResDTO.Login login(MemberReqDTO.Login dto) {
 
         Provider provider;
