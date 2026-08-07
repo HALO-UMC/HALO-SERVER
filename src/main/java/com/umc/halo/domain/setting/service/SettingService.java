@@ -14,6 +14,7 @@ import com.umc.halo.domain.setting.exception.SettingException;
 import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.BgmRepository;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +64,7 @@ public class SettingService {
         boolean previousAllNotificationEnabled = memberSetting.getIsAllNotificationEnabled();
         boolean previousAnniversaryEnabled = memberSetting.getAnniversaryNotificationEnabled();
         boolean previousTodayChapterEnabled = memberSetting.getTodayChapterNotificationEnabled();
+        boolean previousRetentionEnabled = memberSetting.getRetentionNotificationEnabled();
 
         memberSetting.updateNotificationSettings(
                 dto.isAllNotificationEnabled(),
@@ -82,6 +84,10 @@ public class SettingService {
 
         if (previousTodayChapterEnabled != dto.todayChapterNotificationEnabled() || (!previousAllNotificationEnabled && dto.isAllNotificationEnabled())) {
             updateTodayChapterNotifications(memberId, dto.todayChapterNotificationEnabled());
+        }
+
+        if (previousRetentionEnabled != dto.retentionNotificationEnabled() || (!previousAllNotificationEnabled && dto.isAllNotificationEnabled())) {
+            updateRetentionNotifications(memberId, dto.retentionNotificationEnabled());
         }
 
         return SettingConverter.toNotificationSettings(memberSetting);
@@ -209,6 +215,14 @@ public class SettingService {
 
     private void updateTodayChapterNotifications(Long memberId, boolean enabled) {
         List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.TODAY_CHAPTER, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
+
+        for (Notification notification : notifications) {
+            notification.updateSettingEnabled(enabled);
+        }
+    }
+
+    private void updateRetentionNotifications(Long memberId, Boolean enabled) {
+        List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.RETENTION, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
 
         for (Notification notification : notifications) {
             notification.updateSettingEnabled(enabled);
