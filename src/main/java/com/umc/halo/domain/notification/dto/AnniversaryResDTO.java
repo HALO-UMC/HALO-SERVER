@@ -21,6 +21,7 @@ public class AnniversaryResDTO {
     @Builder
     public record Upcoming(
             Long anniversaryId,
+            Long commonAnniversaryId,
             String title,
             LocalDate anniversaryDate,
             Integer dDay
@@ -31,6 +32,7 @@ public class AnniversaryResDTO {
             Long anniversaryId,
             String title,
             LocalDate anniversaryDate,
+            LocalDate displayDate,
             Boolean isLunar,
             Boolean isRepeated,
             Boolean sevenDaysAlarmEnabled,
