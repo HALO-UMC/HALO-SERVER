@@ -84,7 +84,7 @@ public class RecordService {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
                 // 기존 기록의 imageKey와 동일하면 그대로 사용
-                if (memberChapter != null && recordReqDTO.imageKey().equals(memberChapter.getImageKey())) {
+                if (memberChapter != null && imageService.isSameImage(recordReqDTO.imageKey(), memberChapter.getImageKey())) {
                     imageKey = memberChapter.getImageKey();
                 } else {
                     imageKey = imageService.finalizeImage(memberId, recordReqDTO.imageKey()).finalKey();
