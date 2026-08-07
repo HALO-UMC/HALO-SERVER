@@ -21,6 +21,7 @@ public class AnniversaryResDTO {
     @Builder
     public record Upcoming(
             Long anniversaryId,
+            Long commonAnniversaryId,
             String title,
             LocalDate anniversaryDate,
             Integer dDay

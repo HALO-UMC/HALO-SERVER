@@ -31,6 +31,7 @@ public class AnniversaryConverter {
     public static AnniversaryResDTO.Upcoming toUpcoming(Anniversary anniversary, LocalDate nextOccurrence, LocalDate today) {
         return AnniversaryResDTO.Upcoming.builder()
                 .anniversaryId(anniversary.getId())
+                .commonAnniversaryId(null)
                 .title(anniversary.getTitle())
                 .anniversaryDate(nextOccurrence)
                 .dDay((int) ChronoUnit.DAYS.between(today, nextOccurrence))
@@ -40,6 +41,7 @@ public class AnniversaryConverter {
     public static AnniversaryResDTO.Upcoming toUpcomingFromCommon(CommonAnniversary commonAnniversary, LocalDate nextOccurrence, LocalDate today) {
         return AnniversaryResDTO.Upcoming.builder()
                 .anniversaryId(null)
+                .commonAnniversaryId(commonAnniversary.getId())
                 .title(commonAnniversary.getTitle())
                 .anniversaryDate(nextOccurrence)
                 .dDay((int) ChronoUnit.DAYS.between(today, nextOccurrence))
