@@ -7,6 +7,8 @@ import com.umc.halo.domain.content.storybook.entity.Storybook;
 import com.umc.halo.domain.content.storybook.service.StorybookService;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.entity.MemberDevice;
+import com.umc.halo.domain.member.exception.MemberException;
+import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.repository.MemberDeviceRepository;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.notification.converter.NotificationConverter;
@@ -33,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -171,56 +172,10 @@ public class NotificationService {
     @Transactional
     public void createRetentionNotifications() {
 
-        List<Member> members = memberRepository.findAll();
+        List<Long> memberIds = memberRepository.findAllIds();
 
-        LocalDate today = LocalDate.now(ZONE_ID);
-        LocalDateTime scheduledAt = today.atTime(9, 0);
-
-        for (Member member : members) {
-
-            MemberSetting memberSetting = memberSettingRepository.findByMemberId(member.getId()).orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
-
-            LocalDateTime lastAccessAt = member.getLastAccessAt();
-
-            if (lastAccessAt == null) {
-                continue;
-            }
-
-            long inactiveDays = ChronoUnit.DAYS.between(lastAccessAt.toLocalDate(), today);
-
-            String title = resolveRetentionTitle(inactiveDays);
-            String message = resolveRetentionMessage(inactiveDays);
-
-            if (title == null || message == null) {
-                continue;
-            }
-
-            LocalDateTime latestLastAccessAt = memberRepository.findById(member.getId()).orElseThrow().getLastAccessAt();
-
-            if (latestLastAccessAt == null) {
-                continue;
-            }
-
-            long latestInactiveDays = ChronoUnit.DAYS.between(latestLastAccessAt.toLocalDate(), today);
-
-            if (latestInactiveDays < 1) {
-                continue;
-            }
-
-            boolean exists = notificationRepository.existsByMemberAndNotificationTypeAndScheduledAt(member, NotificationType.RETENTION, scheduledAt);
-
-            if (exists) {
-                continue;
-            }
-
-            List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(member.getId(), NotificationType.RETENTION, List.of(NotificationStatus.SCHEDULED));
-
-            notifications.forEach(Notification::expire);
-
-            Notification notification = NotificationConverter.toRetentionNotification(member, title, message, scheduledAt, memberSetting.getRetentionNotificationEnabled());
-
-            notificationRepository.save(notification);
-
+        for (Long memberId : memberIds) {
+            notificationTransactionService.createRetentionNotification(memberId);
         }
     }
 
@@ -329,39 +284,5 @@ public class NotificationService {
         Notification notification = NotificationConverter.toTodayChapterNotification(member, title, message, scheduledAt, memberSetting.getTodayChapterNotificationEnabled());
 
         notificationRepository.save(notification);
-    }
-
-    private String resolveRetentionTitle(long inactiveDays) {
-        if (inactiveDays >= 14 && inactiveDays % 7 == 0) {
-            return "부모님과의 이야기는 언제든 이어갈 수 있어요.";
-        }
-        if (inactiveDays >= 7) {
-            return "다시 시작해 볼까요?";
-        }
-        if (inactiveDays >= 3) {
-            return "부모님과의 이야기가 잠시 멈춰있어요.";
-        }
-        if (inactiveDays >= 1) {
-            return "오늘의 이야기가 기다리고 있어요.";
-        }
-
-        return null;
-    }
-
-    private String resolveRetentionMessage(long inactiveDays) {
-        if (inactiveDays >= 14 && inactiveDays % 7 == 0) {
-            return "오늘 한 장으로 다시 시작해 보세요.";
-        }
-        if (inactiveDays >= 7) {
-            return "오늘 한 장이면 충분해요.";
-        }
-        if (inactiveDays >= 3) {
-            return "오늘 한 장으로 다시 이어가 보세요.";
-        }
-        if (inactiveDays >= 1) {
-            return "오늘도 부모님과의 이야기를 이어가 볼까요?";
-        }
-
-        return null;
     }
 }
