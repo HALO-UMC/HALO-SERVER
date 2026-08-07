@@ -237,11 +237,6 @@ public class SettingService {
     private void updateCommonAnniversaryNotificationScheduledTime(Long memberId, LocalTime notifyTime) {
         List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.COMMON_ANNIVERSARY, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
 
-        if (notifyTime == null) {
-            notifications.forEach(Notification::expire);
-            return;
-        }
-
         LocalDateTime now = LocalDateTime.now(ZONE_ID);
 
         for (Notification notification : notifications) {
