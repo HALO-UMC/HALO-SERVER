@@ -216,7 +216,7 @@ public class NotificationService {
 
         for (MemberDevice memberDevice : memberDevices) {
             try {
-                fcmService.send(memberDevice.getFcmToken(), notification.getTitle(), notification.getMessage());
+                fcmService.send(memberDevice, notification.getTitle(), notification.getMessage());
                 successCount++;
             } catch (Exception e) {
                 log.error("FCM 전송 실패 memberId={}, deviceId={}, notificationId={}", notification.getMember().getId(), memberDevice.getId(), notification.getId(), e);
