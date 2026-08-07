@@ -39,4 +39,16 @@ public class NotificationConverter {
                 .settingEnabled(settingEnabled)
                 .build();
     }
+
+    public static Notification toRetentionNotification(Member member, String title, String message, LocalDateTime scheduledAt, Boolean settingEnabled) {
+        return Notification.builder()
+                .member(member)
+                .notificationType(NotificationType.RETENTION)
+                .title(title)
+                .message(message)
+                .scheduledAt(scheduledAt)
+                .status(NotificationStatus.SCHEDULED)
+                .settingEnabled(settingEnabled)
+                .build();
+    }
 }

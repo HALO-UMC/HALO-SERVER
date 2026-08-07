@@ -408,4 +408,74 @@ public interface MemberControllerDocs {
             )
     })
     ApiResponse<MemberResDTO.MyInfo> getMyInfo(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId);
+
+    // 접속 시간 update
+    @Operation(
+            summary = "회원 접속 시간 갱신 API",
+            description = """
+                    # 회원 접속 시간 갱신
+                    인증된 사용자의 접속 시간을 현재 시간으로 갱신합니다.
+                    
+                    ## 요청 형식
+                    - **Header**
+                        - Content-Type: application/json
+                        - Authorization: Bearer {Access Token}
+                    
+                    ## 동작 방식
+                    1. Access Token으로 현재 회원을 인증합니다.
+                    2. 회원의 lastAccessAt을 현재 시간으로 업데이트합니다.
+                    3. 예약된 리텐션 알림이 존재하는 경우 만료 처리합니다.
+                    """
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "성공 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": true,
+                                        "code": "MEMBER200_3",
+                                        "message": "접속 시간 갱신 성공",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "accessToken 만료",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "AUTH401_1",
+                                        "message": "토큰이 만료되었습니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "해당 member 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "MEMBER404_1",
+                                        "message": "존재하지 않는 회원입니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            )
+    })
+    ApiResponse<Void> updateAccess(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId);
 }
