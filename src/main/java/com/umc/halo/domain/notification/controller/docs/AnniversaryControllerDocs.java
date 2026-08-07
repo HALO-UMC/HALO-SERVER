@@ -108,7 +108,7 @@ public interface AnniversaryControllerDocs {
                         - Authorization: Bearer {accessToken}
                     - **Body**
                         - title : 기념일명 (필수, 20자 이하)
-                        - anniversaryDate : 날짜 (필수)
+                        - anniversaryDate : 날짜 (필수, 음력 등록 시 지원 범위 1000-01-01~2050-11-18)
                         - isLunar : 음력 여부 (필수)
                         - isRepeated : 반복 여부 (필수)
                         - sevenDaysAlarmEnabled : D-7 알림 여부 (필수)
@@ -313,7 +313,7 @@ public interface AnniversaryControllerDocs {
                         - anniversaryId : 수정할 기념일 ID
                     - **Body**
                         - title : 기념일명 (필수, 20자 이하)
-                        - anniversaryDate : 날짜 (필수)
+                        - anniversaryDate : 날짜 (필수, 음력 등록 시 지원 범위 1000-01-01~2050-11-18)
                         - isLunar : 음력 여부 (필수)
                         - isRepeated : 반복 여부 (필수)
                         - sevenDaysAlarmEnabled : D-7 알림 여부 (필수)
