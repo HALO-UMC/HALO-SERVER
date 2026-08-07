@@ -195,6 +195,18 @@ public class NotificationService {
                 continue;
             }
 
+            LocalDateTime latestLastAccessAt = memberRepository.findById(member.getId()).orElseThrow().getLastAccessAt();
+
+            if (latestLastAccessAt == null) {
+                continue;
+            }
+
+            long latestInactiveDays = ChronoUnit.DAYS.between(latestLastAccessAt.toLocalDate(), today);
+
+            if (latestInactiveDays < 1) {
+                continue;
+            }
+
             boolean exists = notificationRepository.existsByMemberAndNotificationTypeAndScheduledAt(member, NotificationType.RETENTION, scheduledAt);
 
             if (exists) {

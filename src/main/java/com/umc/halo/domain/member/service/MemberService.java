@@ -188,7 +188,7 @@ public class MemberService {
     @Transactional
     public void updateLastAccess(Long memberId) {
 
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+        Member member = memberRepository.findByIdForUpdate(memberId).orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         member.updateLastAccessAt(LocalDateTime.now(ZONE_ID));
 
