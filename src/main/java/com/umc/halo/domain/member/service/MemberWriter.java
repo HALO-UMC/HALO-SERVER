@@ -6,13 +6,6 @@ import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.enums.Provider;
 import com.umc.halo.domain.member.oauth.OidcUserInfo;
 import com.umc.halo.domain.member.repository.MemberRepository;
-import com.umc.halo.domain.setting.converter.SettingConverter;
-import com.umc.halo.domain.setting.entity.Bgm;
-import com.umc.halo.domain.setting.entity.MemberSetting;
-import com.umc.halo.domain.setting.exception.SettingException;
-import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
-import com.umc.halo.domain.setting.repository.BgmRepository;
-import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.domain.term.repository.MemberTermRepository;
 import com.umc.halo.global.security.JwtUtil;
 import com.umc.halo.global.util.HashUtil;
@@ -26,33 +19,24 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberWriter {
 
     private final MemberRepository memberRepository;
-    private final MemberSettingRepository memberSettingRepository;
-    private final BgmRepository bgmRepository;
     private final MemberTermRepository memberTermRepository;
     private final JwtUtil jwtUtil;
     private final HashUtil hashUtil;
+    private final MemberCreator memberCreator;
 
     @Transactional
     public MemberResDTO.Login persist(Provider provider, OidcUserInfo oidcUserInfo) {
 
-        Member member = memberRepository.findByProviderAndProviderIdForUpdate(provider, oidcUserInfo.providerId()).orElse(null);
+        Member member = memberRepository.findByProviderAndProviderId(provider, oidcUserInfo.providerId()).orElse(null);
         boolean isNewUser = false;
 
         if (member == null) {
             try {
-                member = MemberConverter.toMember(provider, oidcUserInfo);
-                memberRepository.save(member);
-
-                Bgm defaultBgm = bgmRepository.findById(1L).orElseThrow(() -> new SettingException(SettingErrorCode.BGM_NOT_FOUND));
-
-                MemberSetting memberSetting = SettingConverter.toMemberSetting(member, defaultBgm);
-                memberSettingRepository.save(memberSetting);
-
+                member = memberCreator.create(provider, oidcUserInfo);
                 isNewUser = true;
             } catch (DataIntegrityViolationException e) {
                 member = memberRepository.findByProviderAndProviderIdForUpdate(provider, oidcUserInfo.providerId()).orElseThrow(() -> e);
             }
-
         }
 
         String accessToken = jwtUtil.createAccessToken(member.getId());

@@ -30,15 +30,13 @@ import java.util.stream.*;
 public class RecordService {
 
     private final MemberRepository memberRepository;
-    private final ChapterRepository chapterRepository;
     private final MemberChapterRepository memberChapterRepository;
     private final SceneCardRepository sceneCardRepository;
-    private final MemberStorybookRepository memberStorybookRepository;
     private final MemberChapterAnswerRepository memberChapterAnswerRepository;
     private final ChapterQuestionRepository chapterQuestionRepository;
-    private final ChapterService chapterService;
     private final ImageService imageService;
     private final ChapterRecordWriter chapterRecordWriter;
+    private final RecordValidationReader recordValidationReader;
 
     public RecordResDTO.WriteChapterRecord writeChapterRecord(Long memberId, RecordReqDTO.WriteChapterRecord recordReqDTO) {
         ValidatedChapterRecord validated = validate(memberId, recordReqDTO);
@@ -48,32 +46,11 @@ public class RecordService {
     // 조회, coverType 구조 검증, 이미지 소유권 및 실재 여부 검증(S3 HEAD)
     private ValidatedChapterRecord validate(Long memberId, RecordReqDTO.WriteChapterRecord recordReqDTO) {
 
-        // member 조회
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
-
-        // chapter 조회
-        Chapter chapter = chapterRepository.findById(recordReqDTO.chapterId())
-                .orElseThrow(() -> new ChapterException(ChapterErrorCode.NOT_FOUND_CHAPTER));
-
-        Storybook storybook = chapter.getStorybook();
-
-        // memberStorybook 조회
-        MemberStorybook memberStorybook = memberStorybookRepository.findByStorybookAndMember(storybook, member)
-                .orElseThrow(() -> new ChapterException(ChapterErrorCode.UNOPENED_CHAPTER));
-
-        // memberChapter 조회
-        MemberChapter memberChapter = memberChapterRepository.findByMemberAndChapter(member, chapter);
-
-        // 오늘 이미 장을 완료했는지 검증
-        if (memberStorybook.isCompletedToday()) {
-            throw new RecordException(RecordErrorCode.ALREADY_COMPLETED_TODAY);
-        }
-
-        // 아직 열리지 않은 장 / 이미 완료한 장인지 검증
-        chapterService.validateChapterStatus(
-                member, storybook,
-                chapter.getChapterOrder(), memberChapter, memberStorybook);
+        // member/chapter/memberStorybook 조회
+        RecordValidationReader.LoadedRecordContext context =
+                recordValidationReader.load(memberId, recordReqDTO.chapterId());
+        Chapter chapter = context.chapter();
+        MemberChapter memberChapter = context.memberChapter();
 
         // CoverType 확인
         String imageKey = null;

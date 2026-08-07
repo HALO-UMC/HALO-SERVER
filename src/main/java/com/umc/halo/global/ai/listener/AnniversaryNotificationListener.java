@@ -1,9 +1,6 @@
 package com.umc.halo.global.ai.listener;
 
-import com.umc.halo.domain.notification.converter.NotificationConverter;
 import com.umc.halo.domain.notification.entity.Anniversary;
-import com.umc.halo.domain.notification.entity.Notification;
-import com.umc.halo.domain.notification.enums.NotificationStatus;
 import com.umc.halo.domain.notification.enums.NotificationType;
 import com.umc.halo.domain.notification.exception.code.AnniversaryErrorCode;
 import com.umc.halo.domain.notification.exception.AnniversaryException;
@@ -17,6 +14,9 @@ import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
 import com.umc.halo.global.ai.exception.AiException;
 import com.umc.halo.global.ai.service.AiService;
+import com.umc.halo.global.ai.service.AnniversaryNotificationWriter;
+import com.umc.halo.global.ai.service.AnniversaryNotificationWriter.NotificationContent;
+import com.umc.halo.global.ai.service.AnniversaryNotificationWriter.UpdateContent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -28,7 +28,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -39,6 +38,7 @@ public class AnniversaryNotificationListener {
     private final NotificationRepository notificationRepository;
     private final MemberSettingRepository memberSettingRepository;
     private final AiService aiService;
+    private final AnniversaryNotificationWriter anniversaryNotificationWriter;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -64,15 +64,15 @@ public class AnniversaryNotificationListener {
         String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
 
+        NotificationContent d7Content = (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now))
+                ? new NotificationContent(d7Title, d7Message, d7)
+                : null;
+        NotificationContent ddayContent = (anniversary.getDayAlarmEnabled() && dday.isAfter(now))
+                ? new NotificationContent(ddayTitle, ddayMessage, dday)
+                : null;
 
-        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
-            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
-        }
-
-        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
-            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
-        }
-
+        // D7/DDay 저장을 하나의 트랜잭션으로
+        anniversaryNotificationWriter.saveGenerated(event.anniversaryId(), d7Content, ddayContent);
     }
 
     @Async
@@ -89,8 +89,7 @@ public class AnniversaryNotificationListener {
 
         LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate());
         if (nextOccurrence == null) {
-            cancelNotification(anniversary, NotificationType.ANNIVERSARY_D7);
-            cancelNotification(anniversary, NotificationType.ANNIVERSARY_DDAY);
+            anniversaryNotificationWriter.cancelBoth(event.anniversaryId());
             return;
         }
         LocalDateTime d7 = nextOccurrence.minusDays(7).atTime(notifyTime);
@@ -101,14 +100,15 @@ public class AnniversaryNotificationListener {
         String d7Message = null;
         String ddayMessage = null;
 
-        if(event.titleChanged() || event.memoChanged()) {
+        if (event.titleChanged() || event.memoChanged()) {
             d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
             ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
         }
 
-        updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7, now, anniversary.getSevenDaysAlarmEnabled());
-        updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday, now, anniversary.getDayAlarmEnabled());
+        UpdateContent d7Content = new UpdateContent(d7Title, d7Message, d7, anniversary.getSevenDaysAlarmEnabled());
+        UpdateContent ddayContent = new UpdateContent(ddayTitle, ddayMessage, dday, anniversary.getDayAlarmEnabled());
 
+        anniversaryNotificationWriter.updateGenerated(event.anniversaryId(), now, d7Content, ddayContent);
     }
 
     @Transactional
@@ -141,13 +141,14 @@ public class AnniversaryNotificationListener {
         String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
 
-        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
-            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
-        }
+        NotificationContent d7Content = (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now))
+                ? new NotificationContent(d7Title, d7Message, d7)
+                : null;
+        NotificationContent ddayContent = (anniversary.getDayAlarmEnabled() && dday.isAfter(now))
+                ? new NotificationContent(ddayTitle, ddayMessage, dday)
+                : null;
 
-        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
-            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
-        }
+        anniversaryNotificationWriter.saveGenerated(anniversary.getId(), d7Content, ddayContent);
     }
 
     private String createNotificationTitle(Anniversary anniversary, NotificationType notificationType) {
@@ -180,65 +181,6 @@ public class AnniversaryNotificationListener {
         }
 
         return "오늘의 따뜻한 안녕을 전해보세요.";
-    }
-
-
-
-    private void saveOrUpdateNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt) {
-
-        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
-
-        boolean anniversaryEnabled = notificationType == NotificationType.ANNIVERSARY_D7 ? anniversary.getSevenDaysAlarmEnabled() : anniversary.getDayAlarmEnabled();
-
-        if(notification == null) {
-            notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, notificationType, title, message, scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), anniversaryEnabled));
-            return;
-        }
-
-        notification.updateSettingEnabled(memberSetting.getAnniversaryNotificationEnabled());
-        notification.updateAnniversaryEnabled(anniversaryEnabled);
-        notification.updateContent(title, message);
-        notification.reserve(scheduledAt);
-        notificationRepository.save(notification);
-    }
-
-    private void updateOrCancelNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt, LocalDateTime now, boolean enabled) {
-
-        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
-
-        if (notification == null) {
-            if (!enabled || !scheduledAt.isAfter(now)) {
-                return;
-            }
-            notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, notificationType, title, message != null ? message : createDefaultNotificationMessage(notificationType), scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), enabled));
-            return;
-        }
-
-        notification.updateSettingEnabled(memberSetting.getAnniversaryNotificationEnabled());
-        notification.updateAnniversaryEnabled(enabled);
-
-        if (!scheduledAt.isAfter(now)) {
-            notification.expire();
-            notificationRepository.save(notification);
-            return;
-        }
-
-        if (message != null) {
-            notification.updateContent(title, message);
-        }
-
-        notification.reserve(scheduledAt);
-        notificationRepository.save(notification);
-    }
-
-    private void cancelNotification(Anniversary anniversary, NotificationType notificationType) {
-
-        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
-
-        if(notification != null) {
-            notification.updateAnniversaryEnabled(false);
-            notificationRepository.save(notification);
-        }
     }
 
     private LocalDate resolveNextOccurrence(Anniversary anniversary, LocalDate today) {

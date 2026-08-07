@@ -6,6 +6,7 @@ import com.umc.halo.domain.image.event.ImageFinalizeRequestedEvent;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.record.dto.RecordReqDTO;
+import com.umc.halo.domain.record.entity.MemberChapter;
 import com.umc.halo.domain.record.entity.MemberStorybook;
 import com.umc.halo.domain.record.enums.Status;
 import com.umc.halo.domain.record.exception.RecordException;
@@ -133,5 +134,40 @@ class ChapterRecordWriterTest {
                 .satisfies(e -> assertThat(((RecordException) e).getErrorCode()).isEqualTo(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER));
 
         verify(applicationEventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    void 확정_리스너가_먼저_final키로_바꿔놨으면_다시_읽은_값이_final이라_pending으로_되돌리지_않는다() {
+        stubCommonLookups();
+        MemberChapter existing = MemberChapter.builder().id(50L).imageKey("images/1/a.png").build();
+        given(memberChapterRepository.findById(50L)).willReturn(Optional.of(existing));
+
+        // validate() 시점에 pending 키를 재사용하려 했지만(경합), findById로 다시 읽은
+        // memberChapter.imageKey는 이미 확정 리스너가 final로 갱신해둔 상태
+        RecordReqDTO.WriteChapterRecord dto =
+                new RecordReqDTO.WriteChapterRecord(10L, null, null, null, null, null, Status.DRAFT);
+        ValidatedChapterRecord validated =
+                new ValidatedChapterRecord(50L, null, "pending/images/1/a.png", null, null);
+
+        chapterRecordWriter.persist(1L, dto, validated);
+
+        assertThat(existing.getImageKey()).isEqualTo("images/1/a.png");
+    }
+
+    @Test
+    void 새로_업로드해서_S3검증까지_마친_pending키는_기존_final키가_있어도_그대로_반영된다() {
+        stubCommonLookups();
+        MemberChapter existing = MemberChapter.builder().id(50L).imageKey("images/1/old.png").build();
+        given(memberChapterRepository.findById(50L)).willReturn(Optional.of(existing));
+
+        // 기존 imageKey가 이미 final(images/1/old.png)이어도 다른 업로드라 되돌리면 안 됨
+        RecordReqDTO.WriteChapterRecord dto =
+                new RecordReqDTO.WriteChapterRecord(10L, null, null, null, null, null, Status.DRAFT);
+        ValidatedChapterRecord validated = new ValidatedChapterRecord(
+                50L, null, "pending/images/1/new.png", "pending/images/1/new.png", "images/1/new.png");
+
+        chapterRecordWriter.persist(1L, dto, validated);
+
+        assertThat(existing.getImageKey()).isEqualTo("pending/images/1/new.png");
     }
 }

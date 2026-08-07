@@ -50,4 +50,8 @@ public interface MemberChapterRepository extends JpaRepository<MemberChapter, Lo
     List<MemberChapter> findByMember(Member member);
 
     List<MemberChapter> findAllByMemberIn(List<Member> members);
+
+    @Modifying
+    @Query("update MemberChapter mc set mc.imageKey = :finalKey where mc.id = :id and mc.imageKey = :pendingKey")
+    int updateImageKeyIfPending(@Param("id") Long id, @Param("pendingKey") String pendingKey, @Param("finalKey") String finalKey);
 }

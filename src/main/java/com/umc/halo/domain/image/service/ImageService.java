@@ -22,7 +22,7 @@ public class ImageService {
 
     private static final Duration EXPIRATION = Duration.ofMinutes(5);
     private static final Duration READ_EXPIRATION = Duration.ofHours(1);
-    private static final String PENDING_PREFIX = "pending/";
+    public static final String PENDING_PREFIX = "pending/";
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     private final S3Presigner s3Presigner;

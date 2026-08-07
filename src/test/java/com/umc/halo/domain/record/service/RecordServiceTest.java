@@ -3,32 +3,25 @@ package com.umc.halo.domain.record.service;
 import com.umc.halo.domain.content.chapter.entity.Chapter;
 import com.umc.halo.domain.content.chapter.entity.SceneCard;
 import com.umc.halo.domain.content.chapter.repository.ChapterQuestionRepository;
-import com.umc.halo.domain.content.chapter.repository.ChapterRepository;
 import com.umc.halo.domain.content.chapter.repository.SceneCardRepository;
-import com.umc.halo.domain.content.chapter.service.ChapterService;
 import com.umc.halo.domain.content.storybook.entity.Storybook;
 import com.umc.halo.domain.image.service.ImageService;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.record.dto.RecordReqDTO;
 import com.umc.halo.domain.record.dto.RecordResDTO;
-import com.umc.halo.domain.record.entity.MemberStorybook;
 import com.umc.halo.domain.record.enums.CoverType;
 import com.umc.halo.domain.record.enums.Status;
 import com.umc.halo.domain.record.exception.RecordException;
 import com.umc.halo.domain.record.exception.code.RecordErrorCode;
 import com.umc.halo.domain.record.repository.MemberChapterAnswerRepository;
 import com.umc.halo.domain.record.repository.MemberChapterRepository;
-import com.umc.halo.domain.record.repository.MemberStorybookRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,23 +42,19 @@ class RecordServiceTest {
     @Mock
     private MemberRepository memberRepository;
     @Mock
-    private ChapterRepository chapterRepository;
-    @Mock
     private MemberChapterRepository memberChapterRepository;
     @Mock
     private SceneCardRepository sceneCardRepository;
-    @Mock
-    private MemberStorybookRepository memberStorybookRepository;
     @Mock
     private MemberChapterAnswerRepository memberChapterAnswerRepository;
     @Mock
     private ChapterQuestionRepository chapterQuestionRepository;
     @Mock
-    private ChapterService chapterService;
-    @Mock
     private ImageService imageService;
     @Mock
     private ChapterRecordWriter chapterRecordWriter;
+    @Mock
+    private RecordValidationReader recordValidationReader;
 
     @InjectMocks
     private RecordService recordService;
@@ -75,16 +64,9 @@ class RecordServiceTest {
     private final Chapter chapter = Chapter.builder().id(10L).storybook(storybook).chapterOrder(1).build();
 
     @Test
-    void 오늘_이미_완료했으면_검증에서_바로_예외를_던지고_실제_쓰기는_시도하지_않는다() {
-        MemberStorybook memberStorybook = MemberStorybook.builder()
-                .id(1000L)
-                .lastCompletedDate(LocalDate.now())
-                .build();
-
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-        given(chapterRepository.findById(10L)).willReturn(Optional.of(chapter));
-        given(memberStorybookRepository.findByStorybookAndMember(storybook, member))
-                .willReturn(Optional.of(memberStorybook));
+    void 검증에서_예외가_나면_실제_쓰기는_시도하지_않는다() {
+        given(recordValidationReader.load(1L, 10L))
+                .willThrow(new RecordException(RecordErrorCode.ALREADY_COMPLETED_TODAY));
 
         RecordReqDTO.WriteChapterRecord dto =
                 new RecordReqDTO.WriteChapterRecord(10L, null, null, null, null, null, Status.DRAFT);
@@ -99,14 +81,11 @@ class RecordServiceTest {
 
     @Test
     void 정상_흐름이면_검증된_값을_그대로_ChapterRecordWriter로_전달한다() {
-        MemberStorybook memberStorybook = MemberStorybook.builder().id(1000L).build();
         SceneCard sceneCard = SceneCard.builder().id(5L).chapter(chapter).build();
 
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-        given(chapterRepository.findById(10L)).willReturn(Optional.of(chapter));
-        given(memberStorybookRepository.findByStorybookAndMember(storybook, member))
-                .willReturn(Optional.of(memberStorybook));
-        given(sceneCardRepository.findById(5L)).willReturn(Optional.of(sceneCard));
+        given(recordValidationReader.load(1L, 10L))
+                .willReturn(new RecordValidationReader.LoadedRecordContext(member, chapter, null));
+        given(sceneCardRepository.findById(5L)).willReturn(java.util.Optional.of(sceneCard));
 
         RecordReqDTO.WriteChapterRecord dto =
                 new RecordReqDTO.WriteChapterRecord(10L, null, CoverType.SCENE_CARD, null, 5L, null, Status.DRAFT);
@@ -128,12 +107,8 @@ class RecordServiceTest {
 
     @Test
     void 새_pending_이미지면_finalizeImage_결과가_검증결과에_pendingKey로_담겨_전달된다() {
-        MemberStorybook memberStorybook = MemberStorybook.builder().id(1000L).build();
-
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-        given(chapterRepository.findById(10L)).willReturn(Optional.of(chapter));
-        given(memberStorybookRepository.findByStorybookAndMember(storybook, member))
-                .willReturn(Optional.of(memberStorybook));
+        given(recordValidationReader.load(1L, 10L))
+                .willReturn(new RecordValidationReader.LoadedRecordContext(member, chapter, null));
         given(imageService.finalizeImage(1L, "pending/images/1/a.png"))
                 .willReturn(new ImageService.FinalizedImage("images/1/a.png", "pending/images/1/a.png"));
 

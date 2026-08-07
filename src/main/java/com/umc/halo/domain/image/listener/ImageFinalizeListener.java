@@ -26,12 +26,15 @@ public class ImageFinalizeListener {
             // pending -> final 복제
             imageService.copyToFinal(event.pendingKey(), event.finalKey());
 
-            // DB 저장
-            memberChapterRepository.findById(event.memberChapterId())
-                    .ifPresent(memberChapter -> {
-                        memberChapter.updateImageKey(event.finalKey());
-                        memberChapterRepository.save(memberChapter);
-                    });
+            // imageKey가 여전히 pendingKey일 때만 finalKey로 갱신
+            int updated = memberChapterRepository.updateImageKeyIfPending(
+                    event.memberChapterId(), event.pendingKey(), event.finalKey());
+
+            if (updated == 0) {
+                log.warn("이미지 확정 경합 또는 대상 없음, pending 삭제 건너뜀. memberChapterId={}, pendingKey={}",
+                        event.memberChapterId(), event.pendingKey());
+                return;
+            }
 
             // pending 삭제
             imageService.deleteObject(event.pendingKey());

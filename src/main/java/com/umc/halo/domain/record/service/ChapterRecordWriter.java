@@ -6,6 +6,7 @@ import com.umc.halo.domain.content.chapter.exception.code.*;
 import com.umc.halo.domain.content.chapter.repository.*;
 import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.image.event.ImageFinalizeRequestedEvent;
+import com.umc.halo.domain.image.service.ImageService;
 import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.member.exception.*;
 import com.umc.halo.domain.member.exception.code.*;
@@ -19,6 +20,7 @@ import com.umc.halo.domain.record.exception.code.*;
 import com.umc.halo.domain.record.repository.*;
 import com.umc.halo.global.ai.event.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.*;
 import org.springframework.dao.*;
 import org.springframework.stereotype.*;
@@ -28,6 +30,7 @@ import java.util.*;
 import java.util.stream.*;
 
 // writeChapterRecord의 실제 DB 작성, RecordService.validate()가 검증을 다 마친 뒤 호출
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ChapterRecordWriter {
@@ -77,6 +80,16 @@ public class ChapterRecordWriter {
                 throw new RecordException(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER);
             }
         } else {
+            // pendingImageKey가 null일 경우 기존 ImageKey 재사용, 다시 읽은 값과 비교해 역행을 막음
+            if (validated.pendingImageKey() == null
+                    && imageKey != null && imageKey.startsWith(ImageService.PENDING_PREFIX)
+                    && memberChapter.getImageKey() != null
+                    && !memberChapter.getImageKey().startsWith(ImageService.PENDING_PREFIX)) {
+                log.warn("이미지 확정 경합 감지, pending 키로 되돌리지 않음. memberChapterId={}, 시도된키={}, 유지되는키={}",
+                        memberChapter.getId(), imageKey, memberChapter.getImageKey());
+                imageKey = memberChapter.getImageKey();
+            }
+
             memberChapter.updateRecord(chapter, sceneCard, recordReqDTO.emotion(),
                     recordReqDTO.coverType(), imageKey, recordReqDTO.status());
         }
