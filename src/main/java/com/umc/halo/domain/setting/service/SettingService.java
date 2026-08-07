@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,6 +33,8 @@ public class SettingService {
     private final MemberSettingRepository memberSettingRepository;
     private final BgmRepository bgmRepository;
     private final NotificationRepository notificationRepository;
+
+    private static final ZoneId ZONE_ID = ZoneId.of("Asia/Seoul");
 
     @Transactional(readOnly = true)
     public SettingResDTO.NotificationSettings getNotificationSettings(Long memberId) {
@@ -234,7 +237,12 @@ public class SettingService {
     private void updateCommonAnniversaryNotificationScheduledTime(Long memberId, LocalTime notifyTime) {
         List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.COMMON_ANNIVERSARY, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
 
-        LocalDateTime now = LocalDateTime.now();
+        if (notifyTime == null) {
+            notifications.forEach(Notification::expire);
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now(ZONE_ID);
 
         for (Notification notification : notifications) {
             LocalDateTime scheduledAt = notification.getScheduledAt().toLocalDate().atTime(notifyTime);
