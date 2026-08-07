@@ -22,7 +22,12 @@ public class NotificationScheduler {
     }
 
     @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Seoul")
-    public void createTodayChapterNotification() {
+    public void createTodayChapterNotifications() {
         notificationService.createTodayChapterNotifications();
+    }
+
+    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    public void createRetentionNotifications() {
+        notificationService.createRetentionNotifications();
     }
 }

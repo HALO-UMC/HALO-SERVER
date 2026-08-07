@@ -45,7 +45,6 @@ public class MemberController implements MemberControllerDocs {
         memberService.logout(memberId);
         BaseSuccessCode code = AuthSuccessCode.LOGOUT_SUCCESS;
         return ApiResponse.onSuccess(code);
-
     }
 
     @DeleteMapping("/v1/members/me")
@@ -65,5 +64,14 @@ public class MemberController implements MemberControllerDocs {
     ) {
         BaseSuccessCode code = MemberSuccessCode.INFO_SUCCESS;
         return ApiResponse.onSuccess(code, memberService.getMyInfo(memberId));
+    }
+
+    @PostMapping("/v1/members/access")
+    public ApiResponse<Void> updateAccess(
+            @Parameter(hidden = true) @AuthenticationPrincipal Long memberId
+    ) {
+        memberService.updateLastAccess(memberId);
+        BaseSuccessCode code = MemberSuccessCode.MEMBER_ACCESS_UPDATED_SUCCESS;
+        return ApiResponse.onSuccess(code);
     }
 }
