@@ -50,8 +50,9 @@ public class CalendarConverter {
                 .build();
     }
 
-    public static CalendarDailyResDTO.ChapterInfo toChapterInfo(Storybook storybook, Integer completedChapterOrder) {
+    public static CalendarDailyResDTO.ChapterInfo toChapterInfo(Long memberChapterId, Storybook storybook, Integer completedChapterOrder) {
         return CalendarDailyResDTO.ChapterInfo.builder()
+                .memberChapterId(memberChapterId)
                 .storybookId(storybook.getId())
                 .title(storybook.getTitle())
                 .completedChapterOrder(completedChapterOrder)
