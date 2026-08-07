@@ -35,5 +35,9 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
        """)
     Optional<Member> findByIdForUpdate(@Param("id") Long id);
 
+    @Query("""
+        select m.id
+        from Member m
+    """)
     List<Long> findAllIds();
 }
