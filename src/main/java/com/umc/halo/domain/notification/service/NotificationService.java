@@ -91,6 +91,7 @@ public class NotificationService {
         }
     }
 
+    @Transactional
     public void createNextYearNotifications() {
 
         List<Anniversary> anniversaries = notificationRepository.findAllRepeatedAnniversaries();
@@ -168,7 +169,6 @@ public class NotificationService {
         }
     }
 
-    @Transactional
     public void createRetentionNotifications() {
 
         List<Long> memberIds = memberRepository.findAllIds();
