@@ -21,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -43,7 +42,6 @@ public class AnniversaryNotificationListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void generateNotificationMessage(AnniversaryCreatedEvent event) {
 
         Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId())
@@ -79,7 +77,6 @@ public class AnniversaryNotificationListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateNotificationMessage(AnniversaryUpdatedEvent event) {
 
         Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId())
@@ -202,6 +199,7 @@ public class AnniversaryNotificationListener {
         notification.updateAnniversaryEnabled(anniversaryEnabled);
         notification.updateContent(title, message);
         notification.reserve(scheduledAt);
+        notificationRepository.save(notification);
     }
 
     private void updateOrCancelNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt, LocalDateTime now, boolean enabled) {
@@ -221,6 +219,7 @@ public class AnniversaryNotificationListener {
 
         if (!scheduledAt.isAfter(now)) {
             notification.expire();
+            notificationRepository.save(notification);
             return;
         }
 
@@ -229,6 +228,7 @@ public class AnniversaryNotificationListener {
         }
 
         notification.reserve(scheduledAt);
+        notificationRepository.save(notification);
     }
 
     private void cancelNotification(Anniversary anniversary, NotificationType notificationType) {
@@ -237,6 +237,7 @@ public class AnniversaryNotificationListener {
 
         if(notification != null) {
             notification.updateAnniversaryEnabled(false);
+            notificationRepository.save(notification);
         }
     }
 
