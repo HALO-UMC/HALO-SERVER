@@ -165,14 +165,18 @@ public class AnniversaryService {
         }
     }
 
+    private static final Object LUNAR_CALENDAR_LOCK = new Object();
+
     // 음력 날짜(윤달 아님)를 해당 연도의 양력 날짜로 변환. 지원 범위를 벗어나거나 변환 실패 시 null 반환
     private LocalDate convertLunarToSolar(int lunarYear, int lunarMonth, int lunarDay) {
-        KoreanLunarCalendar calendar = KoreanLunarCalendar.getInstance();
-        boolean success = calendar.setLunarDate(lunarYear, lunarMonth, lunarDay, false);
-        if (!success) {
-            return null;
+        synchronized (LUNAR_CALENDAR_LOCK) {
+            KoreanLunarCalendar calendar = KoreanLunarCalendar.getInstance();
+            boolean success = calendar.setLunarDate(lunarYear, lunarMonth, lunarDay, false);
+            if (!success) {
+                return null;
+            }
+            return LocalDate.of(calendar.getSolarYear(), calendar.getSolarMonth(), calendar.getSolarDay());
         }
-        return LocalDate.of(calendar.getSolarYear(), calendar.getSolarMonth(), calendar.getSolarDay());
     }
 
     @Transactional
