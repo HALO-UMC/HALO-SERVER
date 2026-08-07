@@ -76,10 +76,12 @@ public class SettingService {
 
         if (!Objects.equals(previousNotificationTime, dto.regularNotificationTime())) {
             updateAnniversaryNotificationScheduledTime(memberId, dto.regularNotificationTime());
+            updateCommonAnniversaryNotificationScheduledTime(memberId, dto.regularNotificationTime());
         }
 
         if (previousAnniversaryEnabled != dto.anniversaryNotificationEnabled() || (!previousAllNotificationEnabled && dto.isAllNotificationEnabled())) {
             updateAnniversaryNotifications(memberId, dto.anniversaryNotificationEnabled(), memberSetting);
+            updateCommonAnniversaryNotifications(memberId, dto.anniversaryNotificationEnabled());
         }
 
         if (previousTodayChapterEnabled != dto.todayChapterNotificationEnabled() || (!previousAllNotificationEnabled && dto.isAllNotificationEnabled())) {
@@ -226,6 +228,35 @@ public class SettingService {
 
         for (Notification notification : notifications) {
             notification.updateSettingEnabled(enabled);
+        }
+    }
+
+    private void updateCommonAnniversaryNotificationScheduledTime(Long memberId, LocalTime notifyTime) {
+        List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.COMMON_ANNIVERSARY, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
+
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Notification notification : notifications) {
+            LocalDateTime scheduledAt = notification.getScheduledAt().toLocalDate().atTime(notifyTime);
+
+            if (!scheduledAt.isAfter(now)) {
+                notification.expire();
+                continue;
+            }
+
+            if (notification.getStatus() == NotificationStatus.EXPIRED) {
+                notification.reserve(scheduledAt);
+            } else {
+                notification.updateScheduledAt(scheduledAt);
+            }
+        }
+    }
+
+    private void updateCommonAnniversaryNotifications(Long memberId, boolean enabled) {
+        List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.COMMON_ANNIVERSARY, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
+
+        for (Notification notification : notifications) {
+                notification.updateSettingEnabled(enabled);
         }
     }
 
