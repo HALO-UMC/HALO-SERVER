@@ -53,6 +53,7 @@ class MemberWriterTest {
         given(memberRepository.findByProviderAndProviderId(provider, oidcUserInfo.providerId()))
                 .willReturn(Optional.empty());
         given(memberCreator.create(provider, oidcUserInfo)).willReturn(created);
+        given(memberRepository.findByIdForUpdate(99L)).willReturn(Optional.of(created));
         given(jwtUtil.createAccessToken(99L)).willReturn("access-token");
         given(jwtUtil.createRefreshToken(99L)).willReturn("refresh-token");
         given(hashUtil.hash("refresh-token")).willReturn("hashed-refresh-token");
@@ -83,7 +84,7 @@ class MemberWriterTest {
 
         assertThat(response.isNewUser()).isFalse();
         assertThat(existing.getRefreshTokenHash()).isEqualTo("hashed-refresh-token");
-        verify(memberRepository, never()).save(any());
+        verify(memberRepository).save(existing);
         verify(memberCreator, never()).create(any(), any());
     }
 

@@ -10,6 +10,7 @@ import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.record.dto.RecordReqDTO;
 import com.umc.halo.domain.record.dto.RecordResDTO;
+import com.umc.halo.domain.record.entity.MemberChapter;
 import com.umc.halo.domain.record.enums.CoverType;
 import com.umc.halo.domain.record.enums.Status;
 import com.umc.halo.domain.record.exception.RecordException;
@@ -128,5 +129,31 @@ class RecordServiceTest {
         // 검증 단계에서는 실재 여부 확인(HEAD)만 하고, 실제 copy/delete(mutation)는 절대 호출하지 않는다
         verify(imageService, never()).copyToFinal(any(), any());
         verify(imageService, never()).deleteObject(any());
+    }
+
+    @Test
+    void 기존_기록과_같은_이미지면_reuseExistingImage_플래그만_전달하고_imageKey는_직접_고정하지_않는다() {
+        MemberChapter memberChapter = MemberChapter.builder().id(50L).imageKey("images/1/a.png").build();
+        given(recordValidationReader.load(1L, 10L))
+                .willReturn(new RecordValidationReader.LoadedRecordContext(member, chapter, memberChapter));
+        given(imageService.isSameImage("images/1/a.png", "images/1/a.png")).willReturn(true);
+
+        RecordReqDTO.WriteChapterRecord dto = new RecordReqDTO.WriteChapterRecord(
+                10L, null, CoverType.IMAGE, "images/1/a.png", null, null, Status.DRAFT);
+
+        given(chapterRecordWriter.persist(eq(1L), eq(dto), any()))
+                .willReturn(new RecordResDTO.WriteChapterRecord(50L, false));
+
+        recordService.writeChapterRecord(1L, dto);
+
+        ArgumentCaptor<ValidatedChapterRecord> captor = ArgumentCaptor.forClass(ValidatedChapterRecord.class);
+        verify(chapterRecordWriter).persist(eq(1L), eq(dto), captor.capture());
+        // imageKey를 validate() 시점 스냅샷으로 고정하면 persist()의 락 재조회 사이에
+        // 다른 요청이 이미지를 바꿔도 옛 값으로 덮어쓸 수 있으므로, 플래그만 넘기고 값은 비워둠
+        assertThat(captor.getValue().reuseExistingImage()).isTrue();
+        assertThat(captor.getValue().imageKey()).isNull();
+
+        // finalizeImage(S3 HEAD 등)는 재사용 경로에서 호출될 필요가 없다
+        verify(imageService, never()).finalizeImage(any(), any());
     }
 }

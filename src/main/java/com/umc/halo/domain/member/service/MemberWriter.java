@@ -4,6 +4,8 @@ import com.umc.halo.domain.member.converter.MemberConverter;
 import com.umc.halo.domain.member.dto.MemberResDTO;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.enums.Provider;
+import com.umc.halo.domain.member.exception.MemberException;
+import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.oauth.OidcUserInfo;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.term.repository.MemberTermRepository;
@@ -33,6 +35,8 @@ public class MemberWriter {
         if (member == null) {
             try {
                 member = memberCreator.create(provider, oidcUserInfo);
+                member = memberRepository.findByIdForUpdate(member.getId())
+                        .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
                 isNewUser = true;
             } catch (DataIntegrityViolationException e) {
                 member = memberRepository.findByProviderAndProviderIdForUpdate(provider, oidcUserInfo.providerId()).orElseThrow(() -> e);
@@ -42,6 +46,7 @@ public class MemberWriter {
         String accessToken = jwtUtil.createAccessToken(member.getId());
         String refreshToken = jwtUtil.createRefreshToken(member.getId());
         member.updateRefreshTokenToHash(hashUtil.hash(refreshToken));
+        memberRepository.save(member);
 
         boolean termsAgreed = memberTermRepository.areAllRequiredTermsAgreed(member.getId());
 

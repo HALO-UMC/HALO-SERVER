@@ -59,6 +59,7 @@ public class RecordService {
         String imageKey = null;
         String pendingImageKey = null;
         String finalImageKey = null;
+        boolean reuseExistingImage = false;
         if (recordReqDTO.coverType() != null) {
             if (recordReqDTO.coverType() == CoverType.IMAGE) {
                 if (recordReqDTO.sceneCardId() != null) {
@@ -67,9 +68,9 @@ public class RecordService {
                 if (recordReqDTO.imageKey() == null || recordReqDTO.imageKey().isBlank()) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
-                // 기존 기록의 imageKey와 동일하면 그대로 사용
+                // 기존 기록의 imageKey와 동일하면 그대로 사용, 락이 없기에 실제 값은 persist()가 다시 읽어서 채움
                 if (memberChapter != null && imageService.isSameImage(recordReqDTO.imageKey(), memberChapter.getImageKey())) {
-                    imageKey = memberChapter.getImageKey();
+                    reuseExistingImage = true;
                 } else {
                     ImageService.FinalizedImage resolvedImage =
                             imageService.finalizeImage(memberId, recordReqDTO.imageKey());
@@ -135,7 +136,8 @@ public class RecordService {
                 sceneCard != null ? sceneCard.getId() : null,
                 imageKey,
                 pendingImageKey,
-                finalImageKey
+                finalImageKey,
+                reuseExistingImage
         );
     }
 

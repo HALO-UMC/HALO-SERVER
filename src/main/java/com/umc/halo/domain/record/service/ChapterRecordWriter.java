@@ -4,6 +4,7 @@ import com.umc.halo.domain.content.chapter.entity.*;
 import com.umc.halo.domain.content.chapter.exception.*;
 import com.umc.halo.domain.content.chapter.exception.code.*;
 import com.umc.halo.domain.content.chapter.repository.*;
+import com.umc.halo.domain.content.chapter.service.ChapterService;
 import com.umc.halo.domain.content.storybook.entity.*;
 import com.umc.halo.domain.image.event.ImageFinalizeRequestedEvent;
 import com.umc.halo.domain.image.service.ImageService;
@@ -42,6 +43,7 @@ public class ChapterRecordWriter {
     private final MemberStorybookRepository memberStorybookRepository;
     private final MemberChapterAnswerRepository memberChapterAnswerRepository;
     private final ChapterQuestionRepository chapterQuestionRepository;
+    private final ChapterService chapterService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
@@ -60,9 +62,14 @@ public class ChapterRecordWriter {
                 .orElseThrow(() -> new ChapterException(ChapterErrorCode.UNOPENED_CHAPTER));
 
         MemberChapter memberChapter = validated.memberChapterId() != null
-                ? memberChapterRepository.findById(validated.memberChapterId())
+                ? memberChapterRepository.findByIdForUpdate(validated.memberChapterId())
                 .orElseThrow(() -> new RecordException(RecordErrorCode.NOT_FOUND_MEMBER_CHAPTER))
                 : null;
+
+        if (memberStorybook.isCompletedToday()) {
+            throw new RecordException(RecordErrorCode.ALREADY_COMPLETED_TODAY);
+        }
+        chapterService.validateChapterStatus(member, storybook, chapter.getChapterOrder(), memberChapter, memberStorybook);
 
         SceneCard sceneCard = validated.sceneCardId() != null
                 ? sceneCardRepository.findById(validated.sceneCardId())
@@ -80,8 +87,9 @@ public class ChapterRecordWriter {
                 throw new RecordException(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER);
             }
         } else {
-            // pendingImageKey가 null일 경우 기존 ImageKey 재사용, 다시 읽은 값과 비교해 역행을 막음
-            if (validated.pendingImageKey() == null
+            if (validated.reuseExistingImage()) {
+                imageKey = memberChapter.getImageKey();
+            } else if (validated.pendingImageKey() == null
                     && imageKey != null && imageKey.startsWith(ImageService.PENDING_PREFIX)
                     && memberChapter.getImageKey() != null
                     && !memberChapter.getImageKey().startsWith(ImageService.PENDING_PREFIX)) {

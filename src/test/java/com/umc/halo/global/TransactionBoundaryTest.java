@@ -9,6 +9,7 @@ import com.umc.halo.domain.member.service.MemberCreator;
 import com.umc.halo.domain.member.service.MemberService;
 import com.umc.halo.domain.member.service.MemberWriter;
 import com.umc.halo.domain.record.dto.RecordReqDTO;
+import com.umc.halo.domain.record.repository.MemberChapterRepository;
 import com.umc.halo.domain.record.service.ChapterRecordWriter;
 import com.umc.halo.domain.record.service.RecordService;
 import com.umc.halo.domain.record.service.RecordValidationReader;
@@ -105,6 +106,20 @@ class TransactionBoundaryTest {
                 .isNotNull();
         assertThat(annotation.propagation())
                 .as("%s는 실패 시 이 트랜잭션만 롤백되어야 하므로 REQUIRES_NEW여야 함", method)
+                .isEqualTo(Propagation.REQUIRES_NEW);
+    }
+
+    @org.junit.jupiter.api.Test
+    void updateImageKeyIfPending은_REQUIRES_NEW로_명시적_트랜잭션이_있어야_한다() throws NoSuchMethodException {
+        Method method = MemberChapterRepository.class.getDeclaredMethod(
+                "updateImageKeyIfPending", Long.class, String.class, String.class);
+        Transactional annotation = method.getAnnotation(Transactional.class);
+
+        assertThat(annotation)
+                .as("%s는 @Async 리스너(앰비언트 트랜잭션 없음)에서 호출되므로 명시적 @Transactional이 필요함 (실측: 없으면 TransactionRequiredException)", method)
+                .isNotNull();
+        assertThat(annotation.propagation())
+                .as("%s는 REQUIRES_NEW여야 함", method)
                 .isEqualTo(Propagation.REQUIRES_NEW);
     }
 }
