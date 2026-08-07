@@ -47,8 +47,8 @@ public interface AnniversaryControllerDocs {
                                       "message": "기념일 목록 조회에 성공했습니다.",
                                       "result": {
                                         "upcomingAnniversaries": [
-                                          { "anniversaryId": 1, "commonAnniversaryId": null, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "dDay": 38 },
-                                          { "anniversaryId": null, "commonAnniversaryId": 1, "title": "어버이날", "anniversaryDate": "2027-05-08", "dDay": 276 }
+                                          { "anniversaryId": 1, "commonAnniversaryId": null, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "dDay": 36 },
+                                          { "anniversaryId": null, "commonAnniversaryId": 1, "title": "어버이날", "anniversaryDate": "2027-05-08", "dDay": 274 }
                                         ],
                                         "myAnniversaries": [
                                           { "anniversaryId": 1, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "displayDate": "2026-09-12", "isLunar": false, "isRepeated": true, "sevenDaysAlarmEnabled": true, "dayAlarmEnabled": true, "memo": "아버지 생신! 열심히 준비해야겠다!" }
