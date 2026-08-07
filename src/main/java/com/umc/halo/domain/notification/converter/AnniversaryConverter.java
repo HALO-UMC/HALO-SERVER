@@ -31,6 +31,7 @@ public class AnniversaryConverter {
     public static AnniversaryResDTO.Upcoming toUpcoming(Anniversary anniversary, LocalDate nextOccurrence, LocalDate today) {
         return AnniversaryResDTO.Upcoming.builder()
                 .anniversaryId(anniversary.getId())
+                .commonAnniversaryId(null)
                 .title(anniversary.getTitle())
                 .anniversaryDate(nextOccurrence)
                 .dDay((int) ChronoUnit.DAYS.between(today, nextOccurrence))
@@ -40,17 +41,19 @@ public class AnniversaryConverter {
     public static AnniversaryResDTO.Upcoming toUpcomingFromCommon(CommonAnniversary commonAnniversary, LocalDate nextOccurrence, LocalDate today) {
         return AnniversaryResDTO.Upcoming.builder()
                 .anniversaryId(null)
+                .commonAnniversaryId(commonAnniversary.getId())
                 .title(commonAnniversary.getTitle())
                 .anniversaryDate(nextOccurrence)
                 .dDay((int) ChronoUnit.DAYS.between(today, nextOccurrence))
                 .build();
     }
 
-    public static AnniversaryResDTO.MyAnniversary toMyAnniversary(Anniversary anniversary) {
+    public static AnniversaryResDTO.MyAnniversary toMyAnniversary(Anniversary anniversary, LocalDate displayDate) {
         return AnniversaryResDTO.MyAnniversary.builder()
                 .anniversaryId(anniversary.getId())
                 .title(anniversary.getTitle())
                 .anniversaryDate(anniversary.getAnniversaryDate())
+                .displayDate(displayDate)
                 .isLunar(anniversary.getIsLunar())
                 .isRepeated(anniversary.getIsRepeated())
                 .sevenDaysAlarmEnabled(anniversary.getSevenDaysAlarmEnabled())
