@@ -126,6 +126,17 @@ public class ImageService {
         s3Client.deleteObject(deleteObjectRequest);
     }
 
+    // pending prefix 유무와 무관하게 같은 이미지인지 비교
+    public boolean isSameImage(String requestImageKey, String storedImageKey) {
+        if (requestImageKey == null || storedImageKey == null) {
+            return false;
+        }
+        String normalizedKey = requestImageKey.startsWith(PENDING_PREFIX)
+                ? requestImageKey.substring(PENDING_PREFIX.length())
+                : requestImageKey;
+        return normalizedKey.equals(storedImageKey);
+    }
+
     // imageKey로 조회용 presigned URL 발급
     public String getImage(String imageKey) {
         GetObjectRequest getObjectRequest = ImageConverter.toGetObjectRequest(bucket, imageKey);

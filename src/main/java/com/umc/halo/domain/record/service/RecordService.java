@@ -18,7 +18,10 @@ import com.umc.halo.domain.record.enums.*;
 import com.umc.halo.domain.record.exception.*;
 import com.umc.halo.domain.record.exception.code.*;
 import com.umc.halo.domain.record.repository.*;
+import com.umc.halo.global.ai.event.*;
 import lombok.*;
+import org.springframework.context.*;
+import org.springframework.dao.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
 
@@ -64,8 +67,8 @@ public class RecordService {
                 if (recordReqDTO.imageKey() == null || recordReqDTO.imageKey().isBlank()) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
-                // 기존 기록의 imageKey와 동일하면 그대로 사용(소유권, 실재 여부, 용량 확인)
-                if (memberChapter != null && recordReqDTO.imageKey().equals(memberChapter.getImageKey())) {
+                // 기존 기록의 imageKey와 동일하면 그대로 사용
+                if (memberChapter != null && imageService.isSameImage(recordReqDTO.imageKey(), memberChapter.getImageKey())) {
                     imageKey = memberChapter.getImageKey();
                 } else {
                     ImageService.FinalizedImage resolvedImage =

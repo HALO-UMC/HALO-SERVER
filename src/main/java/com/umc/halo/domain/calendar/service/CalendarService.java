@@ -114,7 +114,7 @@ public class CalendarService {
             if (chapterOrderOfDay == TOTAL_CHAPTER_COUNT) {
                 storybooks.add(CalendarConverter.toStorybookInfo(storybook));
             } else {
-                chapters.add(CalendarConverter.toChapterInfo(storybook, chapterOrderOfDay));
+                chapters.add(CalendarConverter.toChapterInfo(mc.getId(), storybook, chapterOrderOfDay));
             }
         }
 

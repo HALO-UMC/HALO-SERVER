@@ -21,6 +21,7 @@ public class CalendarDailyResDTO {
 
     @Builder
     public record ChapterInfo(
+            Long memberChapterId,
             Long storybookId,
             String title,
             Integer completedChapterOrder
