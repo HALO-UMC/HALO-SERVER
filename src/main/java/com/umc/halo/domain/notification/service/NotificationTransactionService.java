@@ -5,6 +5,7 @@ import com.umc.halo.domain.member.exception.MemberException;
 import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.notification.converter.NotificationConverter;
+import com.umc.halo.domain.notification.entity.CommonAnniversary;
 import com.umc.halo.domain.notification.entity.Notification;
 import com.umc.halo.domain.notification.enums.NotificationStatus;
 import com.umc.halo.domain.notification.enums.NotificationType;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -85,6 +87,31 @@ public class NotificationTransactionService {
         Notification notification = NotificationConverter.toRetentionNotification(member, title, message, scheduledAt, memberSetting.getRetentionNotificationEnabled());
 
         notificationRepository.save(notification);
+    }
+
+    @Transactional
+    public void createCommonAnniversaryNotification(MemberSetting memberSetting, List<CommonAnniversary> commonAnniversaries, LocalDate today) {
+
+        Member member = memberSetting.getMember();
+
+        LocalTime notifyTime = memberSetting.getRegularNotificationTime();
+        if (notifyTime == null) {
+            return;
+        }
+        LocalDateTime scheduledAt = today.atTime(notifyTime);
+
+        for (CommonAnniversary commonAnniversary : commonAnniversaries) {
+
+            boolean exists = notificationRepository.existsByMemberAndNotificationTypeAndScheduledAt(member, NotificationType.COMMON_ANNIVERSARY, scheduledAt);
+
+            if (exists) {
+                continue;
+            }
+
+            Notification notification = NotificationConverter.toCommonAnniversaryNotification(member, commonAnniversary.getTitle(), commonAnniversary.getMemo(), scheduledAt, memberSetting.getAnniversaryNotificationEnabled());
+
+            notificationRepository.save(notification);
+        }
     }
 
     @Transactional

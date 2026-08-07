@@ -11,8 +11,10 @@ import com.umc.halo.domain.member.repository.MemberDeviceRepository;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.notification.converter.NotificationConverter;
 import com.umc.halo.domain.notification.entity.Anniversary;
+import com.umc.halo.domain.notification.entity.CommonAnniversary;
 import com.umc.halo.domain.notification.entity.Notification;
 import com.umc.halo.domain.notification.enums.NotificationType;
+import com.umc.halo.domain.notification.repository.CommonAnniversaryRepository;
 import com.umc.halo.domain.notification.repository.NotificationRepository;
 import com.umc.halo.domain.record.entity.MemberChapter;
 import com.umc.halo.domain.record.entity.MemberStorybook;
@@ -48,6 +50,7 @@ public class NotificationService {
     private final MemberChapterRepository memberChapterRepository;
     private final MemberStorybookRepository memberStorybookRepository;
     private final ChapterRepository chapterRepository;
+    private final CommonAnniversaryRepository commonAnniversaryRepository;
     private final FcmService fcmService;
     private final AnniversaryNotificationListener anniversaryNotificationListener;
     private final StorybookService storybookService;
@@ -175,6 +178,24 @@ public class NotificationService {
         }
     }
 
+    @Transactional
+    public void createCommonAnniversaryNotifications() {
+
+        LocalDate today = LocalDate.now(ZONE_ID);
+
+        List<CommonAnniversary> commonAnniversaries = commonAnniversaryRepository.findByMonthAndDay(today.getMonthValue(), today.getDayOfMonth());
+
+        if (commonAnniversaries.isEmpty()) {
+            return;
+        }
+
+        List<MemberSetting> memberSettings = memberSettingRepository.findAllWithMember();
+
+        for (MemberSetting memberSetting : memberSettings) {
+            notificationTransactionService.createCommonAnniversaryNotification(memberSetting, commonAnniversaries, today);
+        }
+    }
+
     private boolean canSend(Notification notification) {
         MemberSetting memberSetting = memberSettingRepository.findByMemberId(notification.getMember().getId()).orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
@@ -184,7 +205,7 @@ public class NotificationService {
 
         return switch (notification.getNotificationType()) {
             case ANNIVERSARY_D7, ANNIVERSARY_DDAY -> Boolean.TRUE.equals(notification.getAnniversaryEnabled()) && Boolean.TRUE.equals(notification.getSettingEnabled());
-            case TODAY_CHAPTER, RETENTION -> Boolean.TRUE.equals(notification.getSettingEnabled());
+            case TODAY_CHAPTER, RETENTION, COMMON_ANNIVERSARY -> Boolean.TRUE.equals(notification.getSettingEnabled());
         };
     }
 

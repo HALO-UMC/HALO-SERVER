@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,6 +33,8 @@ public class SettingService {
     private final MemberSettingRepository memberSettingRepository;
     private final BgmRepository bgmRepository;
     private final NotificationRepository notificationRepository;
+
+    private static final ZoneId ZONE_ID = ZoneId.of("Asia/Seoul");
 
     @Transactional(readOnly = true)
     public SettingResDTO.NotificationSettings getNotificationSettings(Long memberId) {
@@ -76,10 +79,12 @@ public class SettingService {
 
         if (!Objects.equals(previousNotificationTime, dto.regularNotificationTime())) {
             updateAnniversaryNotificationScheduledTime(memberId, dto.regularNotificationTime());
+            updateCommonAnniversaryNotificationScheduledTime(memberId, dto.regularNotificationTime());
         }
 
         if (previousAnniversaryEnabled != dto.anniversaryNotificationEnabled() || (!previousAllNotificationEnabled && dto.isAllNotificationEnabled())) {
             updateAnniversaryNotifications(memberId, dto.anniversaryNotificationEnabled(), memberSetting);
+            updateCommonAnniversaryNotifications(memberId, dto.anniversaryNotificationEnabled());
         }
 
         if (previousTodayChapterEnabled != dto.todayChapterNotificationEnabled() || (!previousAllNotificationEnabled && dto.isAllNotificationEnabled())) {
@@ -226,6 +231,35 @@ public class SettingService {
 
         for (Notification notification : notifications) {
             notification.updateSettingEnabled(enabled);
+        }
+    }
+
+    private void updateCommonAnniversaryNotificationScheduledTime(Long memberId, LocalTime notifyTime) {
+        List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.COMMON_ANNIVERSARY, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
+
+        LocalDateTime now = LocalDateTime.now(ZONE_ID);
+
+        for (Notification notification : notifications) {
+            LocalDateTime scheduledAt = notification.getScheduledAt().toLocalDate().atTime(notifyTime);
+
+            if (!scheduledAt.isAfter(now)) {
+                notification.expire();
+                continue;
+            }
+
+            if (notification.getStatus() == NotificationStatus.EXPIRED) {
+                notification.reserve(scheduledAt);
+            } else {
+                notification.updateScheduledAt(scheduledAt);
+            }
+        }
+    }
+
+    private void updateCommonAnniversaryNotifications(Long memberId, boolean enabled) {
+        List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.COMMON_ANNIVERSARY, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
+
+        for (Notification notification : notifications) {
+                notification.updateSettingEnabled(enabled);
         }
     }
 

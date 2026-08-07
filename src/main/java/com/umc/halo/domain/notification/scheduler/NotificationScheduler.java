@@ -30,4 +30,9 @@ public class NotificationScheduler {
     public void createRetentionNotifications() {
         notificationService.createRetentionNotifications();
     }
+
+    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    public void createCommonAnniversaryNotifications() {
+        notificationService.createCommonAnniversaryNotifications();
+    }
 }
