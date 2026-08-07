@@ -141,6 +141,18 @@ public class AnniversaryService {
                 .orElse(null);
     }
 
+    // 생성/수정 시 음력 날짜가 실제로 존재하는 날짜인지 검증
+    private void validateLunarDate(LocalDate anniversaryDate, Boolean isLunar) {
+        if (!Boolean.TRUE.equals(isLunar)) {
+            return;
+        }
+        LocalDate converted = convertLunarToSolar(
+                anniversaryDate.getYear(), anniversaryDate.getMonthValue(), anniversaryDate.getDayOfMonth());
+        if (converted == null) {
+            throw new AnniversaryException(AnniversaryErrorCode.INVALID_LUNAR_DATE);
+        }
+    }
+
     // 음력 날짜(윤달 아님)를 해당 연도의 양력 날짜로 변환. 지원 범위를 벗어나거나 변환 실패 시 null 반환
     private LocalDate convertLunarToSolar(int lunarYear, int lunarMonth, int lunarDay) {
         KoreanLunarCalendar calendar = KoreanLunarCalendar.getInstance();
@@ -156,6 +168,8 @@ public class AnniversaryService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
+        validateLunarDate(request.anniversaryDate(), request.isLunar());
+
         Anniversary anniversary = AnniversaryConverter.toAnniversary(member, request);
         Anniversary savedAnniversary = anniversaryRepository.save(anniversary);
 
@@ -170,6 +184,8 @@ public class AnniversaryService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         Anniversary anniversary = getOwnedAnniversary(memberId, anniversaryId);
+
+        validateLunarDate(request.anniversaryDate(), request.isLunar());
 
         boolean titleChanged = !Objects.equals(anniversary.getTitle(), request.title());
         boolean memoChanged = !Objects.equals(anniversary.getMemo(), request.memo());
