@@ -32,6 +32,7 @@ public class AnniversaryResDTO {
             Long anniversaryId,
             String title,
             LocalDate anniversaryDate,
+            LocalDate displayDate,
             Boolean isLunar,
             Boolean isRepeated,
             Boolean sevenDaysAlarmEnabled,

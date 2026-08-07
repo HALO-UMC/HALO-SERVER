@@ -48,11 +48,12 @@ public class AnniversaryConverter {
                 .build();
     }
 
-    public static AnniversaryResDTO.MyAnniversary toMyAnniversary(Anniversary anniversary) {
+    public static AnniversaryResDTO.MyAnniversary toMyAnniversary(Anniversary anniversary, LocalDate displayDate) {
         return AnniversaryResDTO.MyAnniversary.builder()
                 .anniversaryId(anniversary.getId())
                 .title(anniversary.getTitle())
                 .anniversaryDate(anniversary.getAnniversaryDate())
+                .displayDate(displayDate)
                 .isLunar(anniversary.getIsLunar())
                 .isRepeated(anniversary.getIsRepeated())
                 .sevenDaysAlarmEnabled(anniversary.getSevenDaysAlarmEnabled())

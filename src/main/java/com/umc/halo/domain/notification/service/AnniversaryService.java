@@ -52,7 +52,7 @@ public class AnniversaryService {
                 myAnniversaryEntities, commonAnniversaryEntities, today);
 
         List<AnniversaryResDTO.MyAnniversary> myAnniversaries = myAnniversaryEntities.stream()
-                .map(AnniversaryConverter::toMyAnniversary)
+                .map(a -> AnniversaryConverter.toMyAnniversary(a, resolveDisplayDate(a)))
                 .toList();
 
         List<AnniversaryResDTO.CommonAnniversaryInfo> commonAnniversaries = commonAnniversaryEntities.stream()
@@ -92,6 +92,18 @@ public class AnniversaryService {
         return java.util.stream.Stream.concat(upcomingFromMyAnniversaries.stream(), upcomingFromCommonAnniversaries.stream())
                 .sorted(Comparator.comparing(AnniversaryResDTO.Upcoming::dDay))
                 .toList();
+    }
+
+    // 목록 표시용 양력 날짜 계산 (isLunar=false면 원본 그대로, true면 저장된 연/월/일 기준 양력 변환)
+    private LocalDate resolveDisplayDate(Anniversary anniversary) {
+        if (!Boolean.TRUE.equals(anniversary.getIsLunar())) {
+            return anniversary.getAnniversaryDate();
+        }
+        LocalDate converted = convertLunarToSolar(
+                anniversary.getAnniversaryDate().getYear(),
+                anniversary.getAnniversaryDate().getMonthValue(),
+                anniversary.getAnniversaryDate().getDayOfMonth());
+        return converted != null ? converted : anniversary.getAnniversaryDate();
     }
 
     private LocalDate resolveNextOccurrence(Anniversary anniversary, LocalDate today) {
