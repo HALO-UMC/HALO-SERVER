@@ -58,6 +58,9 @@ public class Member extends BaseEntity {
     @Column(name = "onboarding_step")
     private Integer onboardingStep;
 
+    @Column(name = "last_access_at")
+    private LocalDateTime lastAccessAt;
+
     public void updateRefreshTokenToHash(String refreshTokenHash) {
         this.refreshTokenHash = refreshTokenHash;
     }
@@ -85,5 +88,9 @@ public class Member extends BaseEntity {
 
     public void deleteRefreshToken() {
         this.refreshTokenHash = null;
+    }
+
+    public void updateLastAccessAt(LocalDateTime lastAccessAt) {
+        this.lastAccessAt = lastAccessAt;
     }
 }

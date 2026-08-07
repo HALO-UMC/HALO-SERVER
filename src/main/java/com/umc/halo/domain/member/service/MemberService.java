@@ -8,6 +8,7 @@ import com.umc.halo.domain.member.dto.MemberReqDTO;
 import com.umc.halo.domain.member.dto.MemberResDTO;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.enums.Provider;
+import com.umc.halo.domain.member.exception.MemberException;
 import com.umc.halo.domain.member.exception.code.AuthErrorCode;
 import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.oauth.AbstractOidcProvider;
@@ -15,6 +16,9 @@ import com.umc.halo.domain.member.oauth.OidcProviderFactory;
 import com.umc.halo.domain.member.oauth.OidcUserInfo;
 import com.umc.halo.domain.member.repository.MemberDeviceRepository;
 import com.umc.halo.domain.member.repository.MemberRepository;
+import com.umc.halo.domain.notification.entity.Notification;
+import com.umc.halo.domain.notification.enums.NotificationStatus;
+import com.umc.halo.domain.notification.enums.NotificationType;
 import com.umc.halo.domain.notification.repository.AnniversaryRepository;
 import com.umc.halo.domain.notification.repository.NotificationRepository;
 import com.umc.halo.domain.record.repository.MemberChapterAnswerRepository;
@@ -31,6 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -54,6 +61,9 @@ public class MemberService {
     private final OidcProviderFactory oidcProviderFactory;
     private final MemberWriter memberWriter;
 
+    private static final ZoneId ZONE_ID = ZoneId.of("Asia/Seoul");
+
+    @Transactional
     public MemberResDTO.Login login(MemberReqDTO.Login dto) {
 
         Provider provider;
@@ -141,5 +151,17 @@ public class MemberService {
         }
 
         return MemberConverter.toMyInfo(member, characterImageUrl);
+    }
+
+    @Transactional
+    public void updateLastAccess(Long memberId) {
+
+        Member member = memberRepository.findByIdForUpdate(memberId).orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
+        member.updateLastAccessAt(LocalDateTime.now(ZONE_ID));
+
+        List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.RETENTION, List.of(NotificationStatus.SCHEDULED));
+
+        notifications.forEach(Notification::expire);
     }
 }

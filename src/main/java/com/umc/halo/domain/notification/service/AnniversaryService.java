@@ -52,7 +52,7 @@ public class AnniversaryService {
                 myAnniversaryEntities, commonAnniversaryEntities, today);
 
         List<AnniversaryResDTO.MyAnniversary> myAnniversaries = myAnniversaryEntities.stream()
-                .map(AnniversaryConverter::toMyAnniversary)
+                .map(a -> AnniversaryConverter.toMyAnniversary(a, resolveDisplayDate(a)))
                 .toList();
 
         List<AnniversaryResDTO.CommonAnniversaryInfo> commonAnniversaries = commonAnniversaryEntities.stream()
@@ -92,6 +92,18 @@ public class AnniversaryService {
         return java.util.stream.Stream.concat(upcomingFromMyAnniversaries.stream(), upcomingFromCommonAnniversaries.stream())
                 .sorted(Comparator.comparing(AnniversaryResDTO.Upcoming::dDay))
                 .toList();
+    }
+
+    // 목록 표시용 양력 날짜 계산 (isLunar=false면 원본 그대로, true면 저장된 연/월/일 기준 양력 변환)
+    private LocalDate resolveDisplayDate(Anniversary anniversary) {
+        if (!Boolean.TRUE.equals(anniversary.getIsLunar())) {
+            return anniversary.getAnniversaryDate();
+        }
+        LocalDate converted = convertLunarToSolar(
+                anniversary.getAnniversaryDate().getYear(),
+                anniversary.getAnniversaryDate().getMonthValue(),
+                anniversary.getAnniversaryDate().getDayOfMonth());
+        return converted != null ? converted : anniversary.getAnniversaryDate();
     }
 
     private LocalDate resolveNextOccurrence(Anniversary anniversary, LocalDate today) {
@@ -141,20 +153,38 @@ public class AnniversaryService {
                 .orElse(null);
     }
 
+    // 생성/수정 시 음력 날짜가 실제로 존재하는 날짜인지 검증
+    private void validateLunarDate(LocalDate anniversaryDate, Boolean isLunar) {
+        if (!Boolean.TRUE.equals(isLunar)) {
+            return;
+        }
+        LocalDate converted = convertLunarToSolar(
+                anniversaryDate.getYear(), anniversaryDate.getMonthValue(), anniversaryDate.getDayOfMonth());
+        if (converted == null) {
+            throw new AnniversaryException(AnniversaryErrorCode.INVALID_LUNAR_DATE);
+        }
+    }
+
+    private static final Object LUNAR_CALENDAR_LOCK = new Object();
+
     // 음력 날짜(윤달 아님)를 해당 연도의 양력 날짜로 변환. 지원 범위를 벗어나거나 변환 실패 시 null 반환
     private LocalDate convertLunarToSolar(int lunarYear, int lunarMonth, int lunarDay) {
-        KoreanLunarCalendar calendar = KoreanLunarCalendar.getInstance();
-        boolean success = calendar.setLunarDate(lunarYear, lunarMonth, lunarDay, false);
-        if (!success) {
-            return null;
+        synchronized (LUNAR_CALENDAR_LOCK) {
+            KoreanLunarCalendar calendar = KoreanLunarCalendar.getInstance();
+            boolean success = calendar.setLunarDate(lunarYear, lunarMonth, lunarDay, false);
+            if (!success) {
+                return null;
+            }
+            return LocalDate.of(calendar.getSolarYear(), calendar.getSolarMonth(), calendar.getSolarDay());
         }
-        return LocalDate.of(calendar.getSolarYear(), calendar.getSolarMonth(), calendar.getSolarDay());
     }
 
     @Transactional
     public AnniversaryResDTO.CreateAnniversary createAnniversary(Long memberId, AnniversaryReqDTO.Create request) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+
+        validateLunarDate(request.anniversaryDate(), request.isLunar());
 
         Anniversary anniversary = AnniversaryConverter.toAnniversary(member, request);
         Anniversary savedAnniversary = anniversaryRepository.save(anniversary);
@@ -170,6 +200,8 @@ public class AnniversaryService {
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         Anniversary anniversary = getOwnedAnniversary(memberId, anniversaryId);
+
+        validateLunarDate(request.anniversaryDate(), request.isLunar());
 
         boolean titleChanged = !Objects.equals(anniversary.getTitle(), request.title());
         boolean memoChanged = !Objects.equals(anniversary.getMemo(), request.memo());

@@ -47,11 +47,11 @@ public interface AnniversaryControllerDocs {
                                       "message": "기념일 목록 조회에 성공했습니다.",
                                       "result": {
                                         "upcomingAnniversaries": [
-                                          { "anniversaryId": 1, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "dDay": 38 },
-                                          { "anniversaryId": null, "title": "어버이날", "anniversaryDate": "2027-05-08", "dDay": 276 }
+                                          { "anniversaryId": 1, "commonAnniversaryId": null, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "dDay": 36 },
+                                          { "anniversaryId": null, "commonAnniversaryId": 1, "title": "어버이날", "anniversaryDate": "2027-05-08", "dDay": 274 }
                                         ],
                                         "myAnniversaries": [
-                                          { "anniversaryId": 1, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "isLunar": false, "isRepeated": true, "sevenDaysAlarmEnabled": true, "dayAlarmEnabled": true, "memo": "아버지 생신! 열심히 준비해야겠다!" }
+                                          { "anniversaryId": 1, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "displayDate": "2026-09-12", "isLunar": false, "isRepeated": true, "sevenDaysAlarmEnabled": true, "dayAlarmEnabled": true, "memo": "아버지 생신! 열심히 준비해야겠다!" }
                                         ],
                                         "commonAnniversaries": [
                                           { "commonAnniversaryId": 1, "title": "어버이날", "month": 5, "day": 8, "isLunar": false, "sevenDaysAlarmEnabled": false, "dayAlarmEnabled": true, "memo": "늘 곁을 지켜준 부모님께 감사한 마음을 전해보세요." }
@@ -108,7 +108,7 @@ public interface AnniversaryControllerDocs {
                         - Authorization: Bearer {accessToken}
                     - **Body**
                         - title : 기념일명 (필수, 20자 이하)
-                        - anniversaryDate : 날짜 (필수)
+                        - anniversaryDate : 날짜 (필수, 음력 등록 시 지원 범위 1000-01-01~2050-11-18)
                         - isLunar : 음력 여부 (필수)
                         - isRepeated : 반복 여부 (필수)
                         - sevenDaysAlarmEnabled : D-7 알림 여부 (필수)
@@ -248,6 +248,17 @@ public interface AnniversaryControllerDocs {
                                                       }
                                                     }
                                                     """
+                                    ),
+                                    @ExampleObject(
+                                            name = "존재하지 않는 음력 날짜",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ANNIVERSARY400_1",
+                                                      "message": "존재하지 않는 음력 날짜입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
                                     )
                             }
                     )
@@ -302,7 +313,7 @@ public interface AnniversaryControllerDocs {
                         - anniversaryId : 수정할 기념일 ID
                     - **Body**
                         - title : 기념일명 (필수, 20자 이하)
-                        - anniversaryDate : 날짜 (필수)
+                        - anniversaryDate : 날짜 (필수, 음력 등록 시 지원 범위 1000-01-01~2050-11-18)
                         - isLunar : 음력 여부 (필수)
                         - isRepeated : 반복 여부 (필수)
                         - sevenDaysAlarmEnabled : D-7 알림 여부 (필수)
@@ -439,6 +450,17 @@ public interface AnniversaryControllerDocs {
                                                       "result": {
                                                         "dayAlarmEnabled": "당일 알림 여부는 필수입니다."
                                                       }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "존재하지 않는 음력 날짜",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ANNIVERSARY400_1",
+                                                      "message": "존재하지 않는 음력 날짜입니다.",
+                                                      "result": null
                                                     }
                                                     """
                                     )

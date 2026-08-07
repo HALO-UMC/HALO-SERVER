@@ -14,7 +14,11 @@ public enum MemberSuccessCode implements BaseSuccessCode {
             "내 정보 조회 성공"),
     DELETE_SUCCESS(HttpStatus.OK,
             "MEMBER200_2",
-            "회원 탈퇴가 완료되었습니다.")
+            "회원 탈퇴가 완료되었습니다."),
+    MEMBER_ACCESS_UPDATED_SUCCESS(HttpStatus.OK,
+            "MEMBER200_3",
+            "접속 시간 갱신 성공"
+    );
     ;
 
     private final HttpStatus status;
