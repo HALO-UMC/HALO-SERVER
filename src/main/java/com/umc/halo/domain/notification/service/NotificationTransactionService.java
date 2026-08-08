@@ -123,7 +123,7 @@ public class NotificationTransactionService {
         boolean anniversaryEnabled = notificationType == NotificationType.ANNIVERSARY_D7 ? anniversary.getSevenDaysAlarmEnabled() : anniversary.getDayAlarmEnabled();
 
         if(notification == null) {
-            notificationRepository.insertAnniversaryNotificationIfAbsent(anniversary.getId(), anniversary.getMember().getId(), notificationType, title, message, scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), anniversaryEnabled);
+            notificationRepository.insertAnniversaryNotificationIfAbsent(anniversary.getId(), anniversary.getMember().getId(), notificationType.name(), title, message, scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), anniversaryEnabled);
             return;
         }
 
