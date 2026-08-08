@@ -124,7 +124,9 @@ public class AnniversaryNotificationListener {
             return;
         }
 
-        MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId()).orElse(null);
+        Long memberId = anniversaryRepository.findMemberIdById(anniversary.getId()).orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
+
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId).orElse(null);
         if (memberSetting == null) {
             return;
         }

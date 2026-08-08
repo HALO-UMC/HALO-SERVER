@@ -16,8 +16,6 @@ import com.umc.halo.domain.setting.exception.SettingException;
 import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +29,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class NotificationTransactionService {
 
     private final NotificationRepository notificationRepository;
@@ -126,11 +123,7 @@ public class NotificationTransactionService {
         boolean anniversaryEnabled = notificationType == NotificationType.ANNIVERSARY_D7 ? anniversary.getSevenDaysAlarmEnabled() : anniversary.getDayAlarmEnabled();
 
         if(notification == null) {
-            try {
-                notificationRepository.saveAndFlush(NotificationConverter.toAnniversaryNotification(anniversary, notificationType, title, message, scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), anniversaryEnabled));
-            } catch (DataIntegrityViolationException e) {
-                log.debug("중복 알림 생성 요청 무시. anniversaryId={}, type={}, scheduledAt={}", anniversary.getId(), notificationType, scheduledAt);
-            }
+            notificationRepository.insertAnniversaryNotificationIfAbsent(anniversary.getId(), anniversary.getMember().getId(), notificationType.name(), title, message, scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), anniversaryEnabled);
             return;
         }
 
