@@ -140,7 +140,7 @@ class ChapterRecordWriterIntegrationTest {
             Future<Object> f1 = executor.submit(task);
             Future<Object> f2 = executor.submit(task);
 
-            ready.await(5, TimeUnit.SECONDS);
+            assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
             start.countDown();
 
             for (Future<Object> f : List.of(f1, f2)) {
@@ -156,6 +156,7 @@ class ChapterRecordWriterIntegrationTest {
             }
         } finally {
             executor.shutdown();
+            assertThat(executor.awaitTermination(15, TimeUnit.SECONDS)).isTrue();
         }
 
         assertThat(successCount).isEqualTo(1);

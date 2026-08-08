@@ -80,7 +80,7 @@ class MemberWriterIntegrationTest {
             Future<MemberResDTO.Login> f1 = executor.submit(task);
             Future<MemberResDTO.Login> f2 = executor.submit(task);
 
-            ready.await(5, TimeUnit.SECONDS);
+            assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
             start.countDown();
 
             // 실패했다면 여기서 ExecutionException(UnexpectedRollbackException 등)이 그대로 터짐
@@ -91,6 +91,7 @@ class MemberWriterIntegrationTest {
             assertThat(result2.accessToken()).isNotBlank();
         } finally {
             executor.shutdown();
+            assertThat(executor.awaitTermination(15, TimeUnit.SECONDS)).isTrue();
         }
 
         List<Member> created = memberRepository.findAll().stream()
@@ -129,7 +130,7 @@ class MemberWriterIntegrationTest {
             Future<Member> f1 = executor.submit(task);
             Future<Member> f2 = executor.submit(task);
 
-            ready.await(5, TimeUnit.SECONDS);
+            assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
             start.countDown();
 
             for (Future<Member> f : List.of(f1, f2)) {
@@ -143,6 +144,7 @@ class MemberWriterIntegrationTest {
             }
         } finally {
             executor.shutdown();
+            assertThat(executor.awaitTermination(15, TimeUnit.SECONDS)).isTrue();
         }
 
         // 한쪽만 생성에 성공하고 한쪽은 유니크 제약 위반으로 실패해야 함
