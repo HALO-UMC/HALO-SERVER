@@ -29,7 +29,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ProjectException.class)
     public ResponseEntity<ApiResponse<Void>> handleProjectException(ProjectException ex) {
         BaseErrorCode errorCode = ex.getErrorCode();
-        log.warn("[{}] {}: {}", ex.getClass().getSimpleName(), errorCode.getCode(), errorCode.getMessage());
+        log.warn("[{}] {}: {}", ex.getClass().getSimpleName(), errorCode.getCode(), errorCode.getMessage(), ex);
         return ResponseEntity.status(errorCode.getStatus())
                 .body(ApiResponse.onFailure(errorCode, null));
     }
@@ -54,7 +54,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     // 유니크 제약
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Object> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        log.warn("[DataIntegrityViolationException] DB 제약조건 위배: {}", ex.getMessage());
+        log.warn("[DataIntegrityViolationException] DB 제약조건 위배: {}", ex.getMessage(), ex);
 
         BaseErrorCode errorCode = GeneralErrorCode.CONFLICT;
         return ResponseEntity.status(errorCode.getStatus())
@@ -106,7 +106,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleHttpMessageNotReadable(
             HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        log.warn("[HttpMessageNotReadableException] JSON 파싱 실패: {}", ex.getMessage());
+        log.warn("[HttpMessageNotReadableException] JSON 파싱 실패: {}", ex.getMessage(), ex);
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(errorCode.getStatus())
@@ -155,9 +155,9 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     protected @Nullable ResponseEntity<Object> handleTypeMismatch(
             TypeMismatchException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         if (ex instanceof MethodArgumentTypeMismatchException matEx) {
-            log.warn("[MethodArgumentTypeMismatchException] 타입 불일치: parameter={}, value={}", matEx.getName(), matEx.getValue());
+            log.warn("[MethodArgumentTypeMismatchException] 타입 불일치: parameter={}, value={}", matEx.getName(), matEx.getValue(), ex);
         } else {
-            log.warn("[TypeMismatchException] 타입 불일치: property={}", ex.getPropertyName());
+            log.warn("[TypeMismatchException] 타입 불일치: property={}", ex.getPropertyName(), ex);
         }
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
@@ -201,7 +201,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleExceptionInternal(
             Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
-        log.warn("[{}] {} - {}", ex.getClass().getSimpleName(), statusCode, ex.getMessage());
+        log.warn("[{}] {} - {}", ex.getClass().getSimpleName(), statusCode, ex.getMessage(), ex);
 
         ApiResponse<Object> response = new ApiResponse<>(
                 false,
