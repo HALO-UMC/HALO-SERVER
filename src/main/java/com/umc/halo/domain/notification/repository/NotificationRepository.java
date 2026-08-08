@@ -82,5 +82,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     ON DUPLICATE KEY UPDATE
         notification_id = notification_id
     """, nativeQuery = true)
-    void insertAnniversaryNotificationIfAbsent(@Param("anniversaryId") Long anniversaryId, @Param("memberId") Long memberId, @Param("notificationType") String notificationType, @Param("title") String title, @Param("message") String message, @Param("scheduledAt") LocalDateTime scheduledAt, @Param("settingEnabled") boolean settingEnabled, @Param("anniversaryEnabled") boolean anniversaryEnabled);
+    void insertAnniversaryNotificationIfAbsent(@Param("anniversaryId") Long anniversaryId, @Param("memberId") Long memberId, @Param("notificationType") NotificationType notificationType, @Param("title") String title, @Param("message") String message, @Param("scheduledAt") LocalDateTime scheduledAt, @Param("settingEnabled") boolean settingEnabled, @Param("anniversaryEnabled") boolean anniversaryEnabled);
 }
