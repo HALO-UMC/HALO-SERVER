@@ -141,12 +141,12 @@ public class AnniversaryNotificationListener {
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
 
-        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now) && !existsNextNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7)) {
+        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
             String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
             notificationTransactionService.saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
         }
 
-        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now) && !existsNextNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, dday)) {
+        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
             String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
             notificationTransactionService.saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
         }
@@ -209,9 +209,5 @@ public class AnniversaryNotificationListener {
         }
 
         return thisYear;
-    }
-
-    private boolean existsNextNotification(Anniversary anniversary, NotificationType notificationType, LocalDateTime scheduledAt) {
-        return notificationRepository.existsByAnniversaryIdAndNotificationTypeAndScheduledAt(anniversary.getId(), notificationType, scheduledAt);
     }
 }
