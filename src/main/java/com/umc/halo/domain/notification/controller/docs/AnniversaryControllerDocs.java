@@ -20,20 +20,47 @@ public interface AnniversaryControllerDocs {
     @Operation(summary = "기념일 목록 조회 API",
             description = """
                     # 기념일 목록 조회
-
+                    
                     마이페이지 내 기념일 관리 화면에서 사용자의 기념일 정보를 조회합니다.
-
+                    
                     ## 요청 형식
                     - **Header**
                         - Authorization: Bearer {accessToken}
-
+                    
                     ## 동작 방식
                     1. 로그인한 회원이 등록한 기념일 목록을 조회합니다.
                     2. 반복 여부(isRepeated)를 기준으로 다가오는 기념일의 D-day를 계산합니다.
-                    3. 음력 기반 기념일(개인 기념일 및 추석, 설날 등 기본 기념일)은 KASI(한국천문연구원) 표준 기반 음력-양력 변환 라이브러리로 실제 양력 날짜를 계산하여 D-day에 반영합니다.
+                    3. 음력 기반 기념일(사용자가 음력으로 등록한 개인 기념일)은 KASI(한국천문연구원) 표준 기반 음력-양력 변환 라이브러리로 실제 양력 날짜를 계산하여 D-day에 반영합니다.
                     4. 다가오는 기념일(upcomingAnniversaries), 내가 추가한 기념일(myAnniversaries), 기본 기념일(commonAnniversaries) 세 목록을 함께 반환합니다.
                     """)
     @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "기념일 목록 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "isSuccess": true,
+                                      "code": "ANNIVERSARY200_1",
+                                      "message": "기념일 목록 조회에 성공했습니다.",
+                                      "result": {
+                                        "upcomingAnniversaries": [
+                                          { "anniversaryId": 1, "commonAnniversaryId": null, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "dDay": 36 },
+                                          { "anniversaryId": null, "commonAnniversaryId": 1, "title": "어버이날", "anniversaryDate": "2027-05-08", "dDay": 274 }
+                                        ],
+                                        "myAnniversaries": [
+                                          { "anniversaryId": 1, "title": "아버지 생신", "anniversaryDate": "2026-09-12", "displayDate": "2026-09-12", "isLunar": false, "isRepeated": true, "sevenDaysAlarmEnabled": true, "dayAlarmEnabled": true, "memo": "아버지 생신! 열심히 준비해야겠다!" }
+                                        ],
+                                        "commonAnniversaries": [
+                                          { "commonAnniversaryId": 1, "title": "어버이날", "month": 5, "day": 8, "isLunar": false, "sevenDaysAlarmEnabled": false, "dayAlarmEnabled": true, "memo": "늘 곁을 지켜준 부모님께 감사한 마음을 전해보세요." }
+                                        ]
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "accessToken 만료·유효하지 않음",
@@ -72,25 +99,25 @@ public interface AnniversaryControllerDocs {
     @Operation(summary = "기념일 추가 API",
             description = """
                     # 기념일 추가
-
+                    
                     사용자가 새로운 기념일을 등록합니다.
-
+                    
                     ## 요청 형식
                     - **Header**
                         - Content-Type: application/json
                         - Authorization: Bearer {accessToken}
                     - **Body**
                         - title : 기념일명 (필수, 20자 이하)
-                        - anniversaryDate : 날짜 (필수)
+                        - anniversaryDate : 날짜 (필수, 음력 등록 시 지원 범위 1000-01-01~2050-11-18)
                         - isLunar : 음력 여부 (필수)
                         - isRepeated : 반복 여부 (필수)
                         - sevenDaysAlarmEnabled : D-7 알림 여부 (필수)
                         - dayAlarmEnabled : 당일 알림 여부 (필수)
-                        - memo : 메모 (선택, 255자 이하)
-
+                        - memo : 메모 (선택, 50자 이하)
+                    
                     ## 동작 방식
                     1. 기념일명, 날짜, 알림 설정을 필수로 입력받습니다.
-                    2. 메모는 선택 입력이며 255자 이하로 제한됩니다.
+                    2. 메모는 선택 입력이며 50자 이하로 제한됩니다.
                     3. 요청 값을 기반으로 기념일을 저장하고, 생성된 기념일의 ID를 반환합니다.
                     """)
     @ApiResponses(value = {
@@ -110,6 +137,141 @@ public interface AnniversaryControllerDocs {
                                       }
                                     }
                                     """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "요청 값 누락 또는 형식 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "기념일명 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "title": "기념일명은 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "기념일명 길이 초과",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "title": "기념일명은 20자 이하로 입력해주세요."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "메모 길이 초과",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "memo": "메모는 50자 이하로 입력해주세요."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "날짜 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "anniversaryDate": "날짜는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "음력 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "isLunar": "음력 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "반복 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "isRepeated": "반복 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "D-7 알림 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "sevenDaysAlarmEnabled": "D-7 알림 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "당일 알림 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "dayAlarmEnabled": "당일 알림 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "존재하지 않는 음력 날짜",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ANNIVERSARY400_1",
+                                                      "message": "존재하지 않는 음력 날짜입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "반복하지 않는 기념일 과거 날짜",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ANNIVERSARY400_2",
+                                                      "message": "반복하지 않는 기념일은 지난 날짜로 등록할 수 없습니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -151,9 +313,9 @@ public interface AnniversaryControllerDocs {
     @Operation(summary = "기념일 수정 API",
             description = """
                     # 기념일 수정
-
+                    
                     사용자가 등록한 기념일 정보를 수정합니다.
-
+                    
                     ## 요청 형식
                     - **Header**
                         - Content-Type: application/json
@@ -162,17 +324,16 @@ public interface AnniversaryControllerDocs {
                         - anniversaryId : 수정할 기념일 ID
                     - **Body**
                         - title : 기념일명 (필수, 20자 이하)
-                        - anniversaryDate : 날짜 (필수)
+                        - anniversaryDate : 날짜 (필수, 음력 등록 시 지원 범위 1000-01-01~2050-11-18)
                         - isLunar : 음력 여부 (필수)
                         - isRepeated : 반복 여부 (필수)
                         - sevenDaysAlarmEnabled : D-7 알림 여부 (필수)
                         - dayAlarmEnabled : 당일 알림 여부 (필수)
-                        - memo : 메모 (선택, 255자 이하)
-
+                        - memo : 메모 (선택, 50자 이하)
+                    
                     ## 동작 방식
-                    1. 요청한 기념일이 존재하는지 확인하고, 존재하지 않으면 404 예외를 반환합니다.
-                    2. 해당 기념일이 로그인한 회원 소유인지 확인하고, 본인 소유가 아니면 403 예외를 반환합니다.
-                    3. 검증을 통과하면 요청 값으로 기념일 정보를 갱신합니다.
+                    1. 요청한 기념일이 존재하는지 확인하고, 존재하지 않거나 본인 소유가 아니면 404 예외를 반환합니다.
+                    2. 검증을 통과하면 요청 값으로 기념일 정보를 갱신합니다.
                     """)
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -191,6 +352,141 @@ public interface AnniversaryControllerDocs {
                                       }
                                     }
                                     """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "요청 값 누락 또는 형식 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "기념일명 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "title": "기념일명은 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "기념일명 길이 초과",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "title": "기념일명은 20자 이하로 입력해주세요."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "메모 길이 초과",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "memo": "메모는 50자 이하로 입력해주세요."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "날짜 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "anniversaryDate": "날짜는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "음력 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "isLunar": "음력 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "반복 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "isRepeated": "반복 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "D-7 알림 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "sevenDaysAlarmEnabled": "D-7 알림 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "당일 알림 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "dayAlarmEnabled": "당일 알림 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "존재하지 않는 음력 날짜",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ANNIVERSARY400_1",
+                                                      "message": "존재하지 않는 음력 날짜입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "반복하지 않는 기념일 과거 날짜",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ANNIVERSARY400_2",
+                                                      "message": "반복하지 않는 기념일은 지난 날짜로 등록할 수 없습니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -238,21 +534,6 @@ public interface AnniversaryControllerDocs {
                                     )
                             }
                     )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "403",
-                    description = "본인 소유가 아닌 기념일",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "ANNIVERSARY403_1",
-                                      "message": "해당 기념일에 대한 권한이 없습니다.",
-                                      "result": null
-                                    }
-                                    """)
-                    )
             )
     })
     ApiResponse<AnniversaryResDTO.UpdateAnniversary> updateAnniversary(
@@ -264,19 +545,19 @@ public interface AnniversaryControllerDocs {
     @Operation(summary = "기념일 삭제 API",
             description = """
                     # 기념일 삭제
-
+                    
                     사용자가 등록한 기념일을 하나 이상 선택하여 한 번에 삭제합니다.
-
+                    
                     ## 요청 형식
                     - **Header**
                         - Content-Type: application/json
                         - Authorization: Bearer {accessToken}
                     - **Body**
                         - anniversaryIds : 삭제할 기념일 ID 목록 (필수, 예: [1, 2, 5])
-
+                    
                     ## 동작 방식
                     1. 요청한 ID 목록이 모두 존재하는지 확인하고, 하나라도 존재하지 않으면 404 예외를 반환합니다.
-                    2. 요청한 ID가 모두 로그인한 회원 소유인지 확인하고, 하나라도 본인 소유가 아니면 403 예외를 반환합니다.
+                    2. 요청한 ID가 모두 로그인한 회원 소유인지 확인하고, 하나라도 본인 소유가 아니면 404 예외를 반환합니다.
                     3. 검증을 통과하면 요청한 기념일을 모두 삭제합니다. (부분 삭제는 지원하지 않으며, 검증 실패 시 전체가 실패합니다.)
                     """)
     @ApiResponses(value = {
@@ -294,6 +575,26 @@ public interface AnniversaryControllerDocs {
                                       "result": null
                                     }
                                     """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "요청 값 누락",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    name = "anniversaryIds 누락",
+                                    value = """
+                                            {
+                                              "isSuccess": false,
+                                              "code": "COMMON400_1",
+                                              "message": "잘못된 요청입니다.",
+                                              "result": {
+                                                "anniversaryIds": "삭제할 기념일 ID 목록은 필수입니다."
+                                              }
+                                            }
+                                            """
+                            )
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -340,21 +641,6 @@ public interface AnniversaryControllerDocs {
                                                     """
                                     )
                             }
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "403",
-                    description = "본인 소유가 아닌 기념일 포함",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "ANNIVERSARY403_1",
-                                      "message": "해당 기념일에 대한 권한이 없습니다.",
-                                      "result": null
-                                    }
-                                    """)
                     )
             )
     })

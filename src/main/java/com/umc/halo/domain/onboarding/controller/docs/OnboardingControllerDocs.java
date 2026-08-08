@@ -80,6 +80,7 @@ public interface OnboardingControllerDocs {
             )
     })
     ApiResponse<OnboardingResDTO.NicknameCheck> checkNickname(
+            @Parameter(hidden = true) Long memberId,
             @Parameter(description = "확인할 닉네임", example = "정민") String nickname
     );
 

@@ -72,7 +72,7 @@ public class ImageService {
         // 이미 finalize된 imageKey인 경우 소유권 및 실재 여부 확인
         if (!imageKey.startsWith(PENDING_PREFIX)) {
             if (!imageKey.startsWith("images/" + memberId + "/")) {
-                throw new ImageException(ImageErrorCode.FORBIDDEN_IMAGE_KEY);
+                throw new ImageException(ImageErrorCode.NOT_FOUND_IN_S3);
             }
             try {
                 s3Client.headObject(ImageConverter.toHeadObjectRequest(bucket, imageKey));
@@ -84,7 +84,7 @@ public class ImageService {
 
         // 자신의 imageKey가 아닐 경우
         if (!imageKey.startsWith(PENDING_PREFIX + "images/" + memberId + "/")) {
-            throw new ImageException(ImageErrorCode.FORBIDDEN_IMAGE_KEY);
+            throw new ImageException(ImageErrorCode.NOT_FOUND_IN_S3);
         }
 
         // 실제로 업로드된 파일인지 확인
@@ -112,6 +112,17 @@ public class ImageService {
         s3Client.deleteObject(deleteObjectRequest);
 
         return new FinalizedImage(finalKey, buildImageUrl(finalKey));
+    }
+
+    // pending prefix 유무와 무관하게 같은 이미지인지 비교
+    public boolean isSameImage(String requestImageKey, String storedImageKey) {
+        if (requestImageKey == null || storedImageKey == null) {
+            return false;
+        }
+        String normalizedKey = requestImageKey.startsWith(PENDING_PREFIX)
+                ? requestImageKey.substring(PENDING_PREFIX.length())
+                : requestImageKey;
+        return normalizedKey.equals(storedImageKey);
     }
 
     // imageKey로 조회용 presigned URL 발급

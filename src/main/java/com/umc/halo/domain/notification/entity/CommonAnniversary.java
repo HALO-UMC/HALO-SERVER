@@ -32,9 +32,12 @@ public class CommonAnniversary extends BaseEntity {
 
     @Column(name = "seven_days_alarm_enabled", nullable = false)
     @Builder.Default
-    private Boolean sevenDaysAlarmEnabled = true;
+    private Boolean sevenDaysAlarmEnabled = false;
 
     @Column(name = "day_alarm_enabled", nullable = false)
     @Builder.Default
     private Boolean dayAlarmEnabled = true;
+
+    @Column(length = 50)
+    private String memo;
 }

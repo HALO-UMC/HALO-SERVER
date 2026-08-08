@@ -45,13 +45,13 @@ public interface RelationshipControllerDocs {
                                       "message": "관계 정보 조회 성공",
                                       "result": {
                                         "parentPersonalityTags": [
-                                          { "tagId": 12, "title": "다정하게 표현하는 편" },
-                                          { "tagId": 15, "title": "걱정이 많은 편" }
+                                          { "tagId": 12, "title": "다정하게 표현하는 편", "description": null },
+                                          { "tagId": 15, "title": "걱정이 많은 편", "description": null }
                                         ],
-                                        "currentRelationState": { "tagId": 23, "title": "안부는 하지만 조금 어색한 편" },
+                                        "currentRelationState": { "tagId": 23, "title": "안부는 하지만 조금 어색한 편", "description": "일상적인 안부를 나누며 서로를 존중해요" },
                                         "goalRelationships": [
-                                          { "tagId": 31, "title": "어색하지 않게 이야기하고 싶어요" },
-                                          { "tagId": 33, "title": "부모님을 더 알고 싶어요" }
+                                          { "tagId": 31, "title": "어색하지 않게 이야기하고 싶어요", "description": null },
+                                          { "tagId": 33, "title": "부모님을 더 알고 싶어요", "description": null }
                                         ]
                                       }
                                     }

@@ -21,7 +21,7 @@ public interface SettingControllerDocs {
             summary = "알림 설정 조회 API",
             description = """
                     # 알림 설정 조회
-                    현재 알림 설정을 조회합니다. (정기 알림/정기 알림 시간/전체 알림/오늘의 장 알림/리텐션 알림/기념일 알림)
+                    현재 알림 설정을 조회합니다. (전체 알림 / 정기 알림 시간 / 오늘의 장 알림 / 리텐션 알림 / 기념일 알림)
 
                     ## 요청 형식
                     - **Header**
@@ -31,8 +31,7 @@ public interface SettingControllerDocs {
                     ## 동작 방식
                     1. Access Token으로 현재 회원을 인증합니다.
                     2. 회원의 알림 설정 정보를 조회합니다.
-                    3. 전체 알림 활성화 여부(isAllNotificationEnabled)를 계산합니다.
-                    4. 알림 설정 정보를 반환합니다.
+                    3. 조회한 알림 설정 정보를 반환합니다.
                     """
     )
     @ApiResponses(value = {
@@ -47,11 +46,11 @@ public interface SettingControllerDocs {
                                         "code": "NOTIFICATION200_1",
                                         "message": "알림 설정을 성공적으로 조회했습니다.",
                                         "result": {
+                                            "isAllNotificationEnabled": true,
                                             "regularNotificationTime": "10:00",
                                             "todayChapterNotificationEnabled": true,
                                             "retentionNotificationEnabled": false,
-                                            "anniversaryNotificationEnabled": true,
-                                            "isAllNotificationEnabled": false
+                                            "anniversaryNotificationEnabled": true
                                         }
                                     }
                                     """
@@ -181,7 +180,7 @@ public interface SettingControllerDocs {
 
                     ## 동작 방식
                     1. 서버에 등록된 BGM 메타데이터를 조회합니다.
-                    2. 각 BGM의 제목, 파일명, 이미지 정보를 반환합니다.
+                    2. 각 BGM의 제목, 파일명을 반환합니다.
                     3. 클라이언트는 fileName을 이용하여 앱에 내장된 BGM을 재생합니다.
                     """
     )
@@ -200,21 +199,18 @@ public interface SettingControllerDocs {
                                          "bgms": [
                                            {
                                              "bgmId": 1,
-                                             "title": "산들바람1",
-                                             "fileName": "http://www.bgm-example1.com",
-                                             "imageName": "http://www.img-example1.com"
+                                             "title": "아침",
+                                             "fileName": "bgm_01.mp3"
                                            },
                                            {
                                              "bgmId": 2,
-                                             "title": "산들바람2",
-                                             "fileName": "http://www.bgm-example2.com",
-                                             "imageName": "http://www.img-example2.com"
+                                             "title": "오후",
+                                             "fileName": "bgm_02.mp3"
                                            },
                                            {
                                              "bgmId": 3,
-                                             "title": "산들바람3",
-                                             "fileName": "http://www.bgm-example3.com",
-                                             "imageName": "http://www.img-example3.com"
+                                             "title": "밤",
+                                             "fileName": "bgm_03.mp3"
                                            }
                                          ]
                                        }
@@ -254,6 +250,7 @@ public interface SettingControllerDocs {
                         - Content-Type: application/json
                         - Authorization: Bearer {Access Token}
                     - **Body**
+                        - isAllNotificationEnabled: 전체 알림 ON/OFF 여부
                         - regularNotificationTime : 정기 알림 시간
                         - todayChapterNotificationEnabled : 오늘의 장 알림 ON/OFF 여부
                         - retentionNotificationEnabled : 리텐션 알림 ON/OFF 여부
@@ -279,11 +276,11 @@ public interface SettingControllerDocs {
                                         "code": "NOTIFICATION200_2",
                                         "message": "알림 설정을 성공적으로 수정했습니다.",
                                         "result": {
+                                            "isAllNotificationEnabled": true,
                                             "regularNotificationTime": "10:00",
                                             "todayChapterNotificationEnabled": true,
                                             "retentionNotificationEnabled": false,
-                                            "anniversaryNotificationEnabled": true,
-                                            "isAllNotificationEnabled": false
+                                            "anniversaryNotificationEnabled": true
                                         }
                                     }
                                     """

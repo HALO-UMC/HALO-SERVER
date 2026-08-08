@@ -33,7 +33,11 @@ public class MemberSetting extends BaseEntity {
 
     @Column(name = "bgm_volume", nullable = false)
     @Builder.Default
-    private Integer bgmVolume = 100;
+    private Integer bgmVolume = 50;
+
+    @Column(name = "is_all_notification_enabled", nullable = false)
+    @Builder.Default
+    private Boolean isAllNotificationEnabled = true;
 
     @Column(name = "regular_notification_time", nullable = false)
     @Builder.Default
@@ -52,11 +56,13 @@ public class MemberSetting extends BaseEntity {
     private Boolean anniversaryNotificationEnabled = true;
 
     public void updateNotificationSettings(
+            Boolean isAllNotificationEnabled,
             LocalTime regularNotificationTime,
             Boolean todayChapterNotificationEnabled,
             Boolean retentionNotificationEnabled,
             Boolean anniversaryNotificationEnabled
     ){
+        this.isAllNotificationEnabled = isAllNotificationEnabled;
         this.regularNotificationTime = regularNotificationTime;
         this.todayChapterNotificationEnabled = todayChapterNotificationEnabled;
         this.retentionNotificationEnabled = retentionNotificationEnabled;

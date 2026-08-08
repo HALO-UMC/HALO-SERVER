@@ -22,7 +22,4 @@ public class Bgm extends BaseEntity {
 
     @Column(name = "file_name", length = 255, nullable = false)
     private String fileName;
-
-    @Column(name = "image_name", length = 255)
-    private String imageName;
 }

@@ -46,4 +46,8 @@ public interface MemberChapterRepository extends JpaRepository<MemberChapter, Lo
             "where mc.member = :member and chapter.storybook.id = :storybookId")
     List<MemberChapter> findAllByMemberAndStorybookIdWithSceneCard(
             @Param("member") Member member, @Param("storybookId") Long storybookId);
+
+    List<MemberChapter> findByMember(Member member);
+
+    List<MemberChapter> findAllByMemberIn(List<Member> members);
 }

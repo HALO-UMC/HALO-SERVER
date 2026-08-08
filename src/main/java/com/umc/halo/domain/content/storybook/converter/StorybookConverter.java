@@ -63,6 +63,7 @@ public class StorybookConverter {
                 .imageUrl(storybook.getImageUrl())
                 .status(status)
                 .lastChapterOrder(displayChapterOrder)
+                .startedDate(memberStorybook == null ? null : memberStorybook.getStartedDate())
                 .lastCompletedDate(memberStorybook == null ? null : memberStorybook.getLastCompletedDate())
                 .build();
     }
@@ -132,14 +133,29 @@ public class StorybookConverter {
                 .build();
     }
 
+    public static StorybookResDTO.BookshelfItem toBookshelfItem(
+            Storybook storybook, Integer currentChapterOrder, boolean todayAvailable, String recommendationReasonText) {
+        return StorybookResDTO.BookshelfItem.builder()
+                .storybookId(storybook.getId())
+                .title(storybook.getTitle())
+                .shortDescription(storybook.getShortDescription())
+                .imageUrl(storybook.getImageUrl())
+                .currentChapterOrder(currentChapterOrder)
+                .todayAvailable(todayAvailable)
+                .recommendationReasonText(recommendationReasonText)
+                .build();
+    }
+
     public static StorybookResDTO.GetHome toHome(
             HomeStatus homeStatus,
             String memberName,
+            List<StorybookResDTO.BookshelfItem> bookshelf,
             List<StorybookResDTO.InProgressStorybook> inProgressStorybooks,
             List<StorybookResDTO.RecommendedStorybook> recommendedStorybooks) {
         return StorybookResDTO.GetHome.builder()
                 .homeStatus(homeStatus)
                 .memberName(memberName)
+                .bookshelf(bookshelf)
                 .inProgressStorybooks(inProgressStorybooks)
                 .recommendedStorybooks(recommendedStorybooks)
                 .build();

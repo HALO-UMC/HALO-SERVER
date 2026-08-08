@@ -33,6 +33,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -129,6 +130,7 @@ public class StorybookService {
                 .member(member)
                 .storybook(storybook)
                 .lastChapterOrder(1)
+                .startedDate(LocalDate.now())
                 .build();
 
         try {
@@ -167,6 +169,10 @@ public class StorybookService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
+        Set<Long> startedStorybookIds = memberStorybookRepository.findByMember(member).stream()
+                .map(ms -> ms.getStorybook().getId())
+                .collect(Collectors.toSet());
+
         List<Tag> desiredTags = memberTagRepository.findByMemberAndTag_Category(member, Category.DESIRED_DIRECTION).stream()
                 .map(MemberTag::getTag)
                 .toList();
@@ -178,6 +184,9 @@ public class StorybookService {
         Map<Long, StorybookTag> bestMatchByStorybook = new LinkedHashMap<>();
         for (StorybookTag st : matchedStorybookTags) {
             Long storybookId = st.getStorybook().getId();
+            if (startedStorybookIds.contains(storybookId)) {
+                continue;
+            }
             StorybookTag existing = bestMatchByStorybook.get(storybookId);
             if (existing == null || (existing.getPriorityLevel() == PriorityLevel.SECONDARY
                     && st.getPriorityLevel() == PriorityLevel.PRIMARY)) {
@@ -199,6 +208,7 @@ public class StorybookService {
             List<Storybook> fallbackStorybooks = storybookRepository.findAll().stream()
                     .sorted(Comparator.comparing(Storybook::getId))
                     .filter(sb -> !alreadyIncluded.contains(sb.getId()))
+                    .filter(sb -> !startedStorybookIds.contains(sb.getId()))
                     .toList();
 
             for (Storybook sb : fallbackStorybooks) {
@@ -245,6 +255,20 @@ public class StorybookService {
             statusMap.put(sb, status);
         }
 
+        // 책장(bookshelf) 전체 10개 테마 상태 계산 (미시작 테마만 추천 문구 채움)
+        List<StorybookResDTO.BookshelfItem> bookshelf = storybooks.stream()
+                .map(sb -> {
+                    StorybookStatus status = statusMap.get(sb);
+                    if (status == StorybookStatus.NOT_STARTED) {
+                        return StorybookConverter.toBookshelfItem(sb, null, true, sb.getRecommendationPhrase());
+                    }
+                    MemberStorybook ms = memberStorybookMap.get(sb.getId());
+                    Integer chapterOrder = ms.resolveDisplayChapterOrder(memberChaptersMap.get(sb.getId()));
+                    boolean todayAvailable = status == StorybookStatus.IN_PROGRESS;
+                    return StorybookConverter.toBookshelfItem(sb, chapterOrder, todayAvailable, null);
+                })
+                .toList();
+
         // 완료 안 하고 시작은 한 스토리북들(진행중 + 오늘 완료) 추리기
         List<Storybook> activeStorybooks = statusMap.entrySet().stream()
                 .filter(e -> e.getValue() == StorybookStatus.IN_PROGRESS || e.getValue() == StorybookStatus.TODAY_DONE)
@@ -269,7 +293,7 @@ public class StorybookService {
 
             for (Storybook sb : activeStorybooks) {
                 MemberStorybook memberStorybook = memberStorybookMap.get(sb.getId());
-                Integer chapterOrder = resolveDisplayChapterOrder(memberStorybook, memberChaptersMap.get(sb.getId()));
+                Integer chapterOrder = memberStorybook.resolveDisplayChapterOrder(memberChaptersMap.get(sb.getId()));
                 boolean todayAvailable = statusMap.get(sb) == StorybookStatus.IN_PROGRESS;
                 inProgressStorybooks.add(StorybookConverter.toInProgressStorybook(sb, chapterOrder, todayAvailable));
             }
@@ -283,6 +307,7 @@ public class StorybookService {
         return StorybookConverter.toHome(
                 homeStatus,
                 member.getName() + "님",
+                bookshelf,
                 inProgressStorybooks,
                 recommendedStorybooks
         );
@@ -311,7 +336,7 @@ public class StorybookService {
             status = StorybookStatus.IN_PROGRESS;
         }
 
-        Integer displayChapterOrder = resolveDisplayChapterOrder(memberStorybook, memberChapters);
+        Integer displayChapterOrder = memberStorybook.resolveDisplayChapterOrder(memberChapters);
         return StorybookConverter.toStorybookSummary(storybook, status, memberStorybook, displayChapterOrder);
     }
 
@@ -354,13 +379,5 @@ public class StorybookService {
                     return StorybookConverter.toSituationalRecommendation(tag.getTitle(), situationalStorybooks);
                 })
                 .toList();
-    }
-
-    private Integer resolveDisplayChapterOrder(MemberStorybook memberStorybook, List<MemberChapter> memberChapters) {
-        Integer lastChapterOrder = memberStorybook.getLastChapterOrder();
-        boolean lastCompleted = memberChapters.stream()
-                .anyMatch(mc -> lastChapterOrder.equals(mc.getChapter().getChapterOrder())
-                        && mc.getStatus() == Status.COMPLETED);
-        return (lastCompleted && lastChapterOrder < 10) ? lastChapterOrder + 1 : lastChapterOrder;
     }
 }
