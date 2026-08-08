@@ -77,7 +77,11 @@ public class MemberService {
         OidcUserInfo oidcUserInfo = oidcProvider.verify(dto.providerToken());
 
         // DB에 회원 저장
-        return memberWriter.persist(provider, oidcUserInfo);
+        MemberResDTO.Login result = memberWriter.persist(provider, oidcUserInfo);
+
+        log.info("로그인 성공. provider={}, isNewUser={}", provider, result.isNewUser());
+
+        return result;
     }
 
     @Transactional
