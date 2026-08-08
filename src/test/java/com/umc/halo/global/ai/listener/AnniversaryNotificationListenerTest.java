@@ -67,20 +67,25 @@ class AnniversaryNotificationListenerTest {
                 .build();
 
         given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
         given(memberSettingRepository.findByMemberId(any())).willReturn(Optional.of(memberSetting));
 
         listener.generateNotificationMessage(new AnniversaryCreatedEvent(1L));
 
         ArgumentCaptor<String> d7TitleCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> d7MessageCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> ddayTitleCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ddayMessageCaptor = ArgumentCaptor.forClass(String.class);
         verify(notificationTransactionService).saveOrUpdateBoth(
                 eq(anniversary), eq(memberSetting),
-                d7TitleCaptor.capture(), any(), any(),
-                ddayTitleCaptor.capture(), any(), any(),
+                d7TitleCaptor.capture(), d7MessageCaptor.capture(), any(),
+                ddayTitleCaptor.capture(), ddayMessageCaptor.capture(), any(),
                 any());
 
         assertThat(d7TitleCaptor.getValue()).contains("7일");
         assertThat(ddayTitleCaptor.getValue()).isNotNull();
+        assertThat(d7MessageCaptor.getValue()).isEqualTo("오늘부터 조금씩 마음을 준비해 보세요.");
+        assertThat(ddayMessageCaptor.getValue()).isEqualTo("오늘의 따뜻한 안녕을 전해보세요.");
     }
 
     @Test
@@ -94,6 +99,7 @@ class AnniversaryNotificationListenerTest {
                 .build();
 
         given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
         given(memberSettingRepository.findByMemberId(any())).willReturn(Optional.of(memberSetting));
 
         listener.updateNotificationMessage(new AnniversaryUpdatedEvent(1L, false, false));
@@ -117,20 +123,25 @@ class AnniversaryNotificationListenerTest {
                 .build();
 
         given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
         given(memberSettingRepository.findByMemberId(any())).willReturn(Optional.of(memberSetting));
 
         listener.updateNotificationMessage(new AnniversaryUpdatedEvent(1L, true, false));
 
+        ArgumentCaptor<String> d7MessageCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Boolean> d7EnabledCaptor = ArgumentCaptor.forClass(Boolean.class);
+        ArgumentCaptor<String> ddayMessageCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Boolean> ddayEnabledCaptor = ArgumentCaptor.forClass(Boolean.class);
         verify(notificationTransactionService).updateOrCancelBoth(
                 eq(anniversary), eq(memberSetting),
-                any(), any(), any(), d7EnabledCaptor.capture(),
-                any(), any(), any(), ddayEnabledCaptor.capture(),
+                any(), d7MessageCaptor.capture(), any(), d7EnabledCaptor.capture(),
+                any(), ddayMessageCaptor.capture(), any(), ddayEnabledCaptor.capture(),
                 any());
 
         assertThat(d7EnabledCaptor.getValue()).isTrue();
         assertThat(ddayEnabledCaptor.getValue()).isTrue();
+        assertThat(d7MessageCaptor.getValue()).isEqualTo("오늘부터 조금씩 마음을 준비해 보세요.");
+        assertThat(ddayMessageCaptor.getValue()).isEqualTo("오늘의 따뜻한 안녕을 전해보세요.");
         verify(notificationTransactionService, never()).cancelBoth(any());
     }
 }

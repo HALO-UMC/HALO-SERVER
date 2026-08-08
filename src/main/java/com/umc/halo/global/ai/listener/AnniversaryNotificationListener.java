@@ -42,7 +42,9 @@ public class AnniversaryNotificationListener {
 
         Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId())
                 .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
-        MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId())
+        Long memberId = anniversaryRepository.findMemberIdById(anniversary.getId())
+                .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
         LocalDateTime now = LocalDateTime.now();
@@ -69,7 +71,9 @@ public class AnniversaryNotificationListener {
 
         Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId())
                 .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
-        MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId())
+        Long memberId = anniversaryRepository.findMemberIdById(anniversary.getId())
+                .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
         LocalDateTime now = LocalDateTime.now();
