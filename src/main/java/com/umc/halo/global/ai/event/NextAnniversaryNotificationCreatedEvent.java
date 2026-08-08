@@ -1,5 +1,5 @@
 package com.umc.halo.global.ai.event;
 
-public record NextAnniversaryCreatedEvent(
+public record NextAnniversaryNotificationCreatedEvent(
         Long anniversaryId
 ) {}
