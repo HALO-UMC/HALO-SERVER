@@ -25,9 +25,10 @@ import com.umc.halo.domain.setting.entity.MemberSetting;
 import com.umc.halo.domain.setting.exception.SettingException;
 import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
-import com.umc.halo.global.ai.listener.AnniversaryNotificationListener;
+import com.umc.halo.global.ai.event.NextAnniversaryCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +53,7 @@ public class NotificationService {
     private final ChapterRepository chapterRepository;
     private final CommonAnniversaryRepository commonAnniversaryRepository;
     private final FcmService fcmService;
-    private final AnniversaryNotificationListener anniversaryNotificationListener;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final StorybookService storybookService;
 
     private static final ZoneId ZONE_ID = ZoneId.of("Asia/Seoul");
@@ -97,7 +98,7 @@ public class NotificationService {
         List<Anniversary> anniversaries = notificationRepository.findAllRepeatedAnniversaries();
 
         for (Anniversary anniversary : anniversaries) {
-            anniversaryNotificationListener.createNextNotification(anniversary);
+            applicationEventPublisher.publishEvent(new NextAnniversaryCreatedEvent(anniversary.getId()));
         }
     }
 

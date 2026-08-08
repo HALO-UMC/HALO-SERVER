@@ -15,6 +15,7 @@ import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
+import com.umc.halo.global.ai.event.NextAnniversaryCreatedEvent;
 import com.umc.halo.global.ai.exception.AiException;
 import com.umc.halo.global.ai.service.AiService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -114,8 +116,13 @@ public class AnniversaryNotificationListener {
 
     }
 
-    @Transactional
-    public void createNextNotification(Anniversary anniversary) {
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void createNextNotification(NextAnniversaryCreatedEvent event) {
+
+        Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId())
+                .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
 
         if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
             return;
@@ -135,20 +142,16 @@ public class AnniversaryNotificationListener {
         LocalDateTime d7 = nextOccurrence.minusDays(7).atTime(notifyTime);
         LocalDateTime dday = nextOccurrence.atTime(notifyTime);
 
-        if (existsNextNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7) || existsNextNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, dday)) {
-            return;
-        }
-
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
-        String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
-        String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
 
-        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
+        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now) && !existsNextNotification(anniversary, NotificationType.ANNIVERSARY_D7, d7)) {
+            String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
             saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
         }
 
-        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
+        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now) && !existsNextNotification(anniversary, NotificationType.ANNIVERSARY_DDAY, dday)) {
+            String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
             saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
         }
     }
