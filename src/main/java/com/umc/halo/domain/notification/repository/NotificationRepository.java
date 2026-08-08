@@ -65,7 +65,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
         setting_enabled,
         anniversary_enabled,
         status,
-        created_at
+        created_at,
+        updated_at
     )
     VALUES (
         :anniversaryId,
@@ -77,6 +78,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
         :settingEnabled,
         :anniversaryEnabled,
         'SCHEDULED',
+        NOW(),
         NOW()
     )
     ON DUPLICATE KEY UPDATE
