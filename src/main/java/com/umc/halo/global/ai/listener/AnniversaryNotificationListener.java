@@ -5,7 +5,6 @@ import com.umc.halo.domain.notification.enums.NotificationType;
 import com.umc.halo.domain.notification.exception.code.AnniversaryErrorCode;
 import com.umc.halo.domain.notification.exception.AnniversaryException;
 import com.umc.halo.domain.notification.repository.AnniversaryRepository;
-import com.umc.halo.domain.notification.repository.NotificationRepository;
 import com.umc.halo.domain.notification.service.NotificationTransactionService;
 import com.umc.halo.domain.setting.entity.MemberSetting;
 import com.umc.halo.domain.setting.exception.SettingException;
@@ -35,7 +34,6 @@ import java.time.LocalTime;
 public class AnniversaryNotificationListener {
 
     private final AnniversaryRepository anniversaryRepository;
-    private final NotificationRepository notificationRepository;
     private final MemberSettingRepository memberSettingRepository;
     private final AiService aiService;
     private final NotificationTransactionService notificationTransactionService;
