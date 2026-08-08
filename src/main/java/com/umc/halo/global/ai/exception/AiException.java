@@ -7,4 +7,8 @@ public class AiException extends ProjectException {
     public AiException(BaseErrorCode errorCode) {
         super(errorCode);
     }
+
+    public AiException(BaseErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
 }

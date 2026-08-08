@@ -7,4 +7,8 @@ public class SettingException extends ProjectException {
     public SettingException(BaseErrorCode errorCode) {
         super(errorCode);
     }
+
+    public SettingException(BaseErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
 }
