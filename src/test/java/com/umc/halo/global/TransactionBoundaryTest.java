@@ -17,9 +17,11 @@ import com.umc.halo.domain.record.service.ValidatedChapterRecord;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
 import com.umc.halo.global.ai.event.ChapterCompletedEvent;
+import com.umc.halo.domain.notification.entity.Anniversary;
+import com.umc.halo.domain.notification.service.NotificationTransactionService;
+import com.umc.halo.domain.setting.entity.MemberSetting;
 import com.umc.halo.global.ai.listener.AnniversaryNotificationListener;
 import com.umc.halo.global.ai.listener.ChapterSummaryListener;
-import com.umc.halo.global.ai.service.AnniversaryNotificationWriter;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.transaction.annotation.Propagation;
@@ -65,11 +67,12 @@ class TransactionBoundaryTest {
         List<Method> methods = List.of(
                 MemberWriter.class.getDeclaredMethod("persist", Provider.class, OidcUserInfo.class),
                 ChapterRecordWriter.class.getDeclaredMethod("persist", Long.class, RecordReqDTO.WriteChapterRecord.class, ValidatedChapterRecord.class),
-                AnniversaryNotificationWriter.class.getDeclaredMethod("saveGenerated", Long.class,
-                        AnniversaryNotificationWriter.NotificationContent.class, AnniversaryNotificationWriter.NotificationContent.class),
-                AnniversaryNotificationWriter.class.getDeclaredMethod("updateGenerated", Long.class, LocalDateTime.class,
-                        AnniversaryNotificationWriter.UpdateContent.class, AnniversaryNotificationWriter.UpdateContent.class),
-                AnniversaryNotificationWriter.class.getDeclaredMethod("cancelBoth", Long.class)
+                NotificationTransactionService.class.getDeclaredMethod("saveOrUpdateBoth", Anniversary.class, MemberSetting.class,
+                        String.class, String.class, LocalDateTime.class, String.class, String.class, LocalDateTime.class, LocalDateTime.class),
+                NotificationTransactionService.class.getDeclaredMethod("updateOrCancelBoth", Anniversary.class, MemberSetting.class,
+                        String.class, String.class, LocalDateTime.class, boolean.class,
+                        String.class, String.class, LocalDateTime.class, boolean.class, LocalDateTime.class),
+                NotificationTransactionService.class.getDeclaredMethod("cancelBoth", Anniversary.class)
         );
 
         return methods.stream().map(method ->

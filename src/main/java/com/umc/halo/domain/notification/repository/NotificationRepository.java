@@ -43,7 +43,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
         )
     """)
     List<Notification> findTargetsForUpdate( @Param("scheduled") NotificationStatus scheduled, @Param("processing") NotificationStatus processing, @Param("now") LocalDateTime now, @Param("timeout") LocalDateTime timeout);
-    boolean existsByAnniversaryIdAndNotificationTypeAndScheduledAt(Long anniversaryId, NotificationType notificationType, LocalDateTime scheduledAt);
     @Query("""
         SELECT a
         FROM Anniversary a
@@ -53,4 +52,36 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     boolean existsByMemberAndNotificationTypeAndScheduledAt(Member member, NotificationType notificationType, LocalDateTime scheduledAt);
 
     List<Notification> findByMemberIdAndNotificationTypeAndStatusIn(Long memberId, NotificationType notificationType, List<NotificationStatus> scheduled);
+    @Modifying
+    @Query(value = """
+    INSERT INTO notification (
+        anniversary_id,
+        member_id,
+        notification_type,
+        title,
+        message,
+        scheduled_at,
+        setting_enabled,
+        anniversary_enabled,
+        status,
+        created_at,
+        updated_at
+    )
+    VALUES (
+        :anniversaryId,
+        :memberId,
+        :notificationType,
+        :title,
+        :message,
+        :scheduledAt,
+        :settingEnabled,
+        :anniversaryEnabled,
+        'SCHEDULED',
+        NOW(),
+        NOW()
+    )
+    ON DUPLICATE KEY UPDATE
+        notification_id = notification_id
+    """, nativeQuery = true)
+    void insertAnniversaryNotificationIfAbsent(@Param("anniversaryId") Long anniversaryId, @Param("memberId") Long memberId, @Param("notificationType") String notificationType, @Param("title") String title, @Param("message") String message, @Param("scheduledAt") LocalDateTime scheduledAt, @Param("settingEnabled") boolean settingEnabled, @Param("anniversaryEnabled") boolean anniversaryEnabled);
 }

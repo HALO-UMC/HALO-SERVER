@@ -5,6 +5,7 @@ import com.umc.halo.domain.member.exception.MemberException;
 import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.notification.converter.NotificationConverter;
+import com.umc.halo.domain.notification.entity.Anniversary;
 import com.umc.halo.domain.notification.entity.CommonAnniversary;
 import com.umc.halo.domain.notification.entity.Notification;
 import com.umc.halo.domain.notification.enums.NotificationStatus;
@@ -114,6 +115,90 @@ public class NotificationTransactionService {
         }
     }
 
+    private void saveOrUpdateNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt) {
+
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
+
+        boolean anniversaryEnabled = notificationType == NotificationType.ANNIVERSARY_D7 ? anniversary.getSevenDaysAlarmEnabled() : anniversary.getDayAlarmEnabled();
+
+        if(notification == null) {
+            notificationRepository.insertAnniversaryNotificationIfAbsent(anniversary.getId(), anniversary.getMember().getId(), notificationType.name(), title, message, scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), anniversaryEnabled);
+            return;
+        }
+
+        notification.updateSettingEnabled(memberSetting.getAnniversaryNotificationEnabled());
+        notification.updateAnniversaryEnabled(anniversaryEnabled);
+        notification.updateContent(title, message);
+        notification.reserve(scheduledAt);
+    }
+
+    private void updateOrCancelNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt, LocalDateTime now, boolean enabled) {
+
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
+
+        if (notification == null) {
+            if (!enabled || !scheduledAt.isAfter(now)) {
+                return;
+            }
+            notificationRepository.insertAnniversaryNotificationIfAbsent(anniversary.getId(), anniversary.getMember().getId(), notificationType.name(), title, message != null ? message : createDefaultNotificationMessage(notificationType), scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), enabled);
+            return;
+        }
+
+        notification.updateSettingEnabled(memberSetting.getAnniversaryNotificationEnabled());
+        notification.updateAnniversaryEnabled(enabled);
+
+        if (!scheduledAt.isAfter(now)) {
+            notification.expire();
+            return;
+        }
+
+        if (message != null) {
+            notification.updateContent(title, message);
+        }
+
+        notification.reserve(scheduledAt);
+    }
+
+    private void cancelNotification(Anniversary anniversary, NotificationType notificationType) {
+
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
+
+        if(notification != null) {
+            notification.updateAnniversaryEnabled(false);
+        }
+    }
+
+    @Transactional
+    public void saveOrUpdateBoth(Anniversary anniversary, MemberSetting memberSetting,
+                                  String d7Title, String d7Message, LocalDateTime d7,
+                                  String ddayTitle, String ddayMessage, LocalDateTime dday,
+                                  LocalDateTime now) {
+
+        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
+            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
+        }
+
+        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
+            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
+        }
+    }
+
+    @Transactional
+    public void updateOrCancelBoth(Anniversary anniversary, MemberSetting memberSetting,
+                                    String d7Title, String d7Message, LocalDateTime d7, boolean d7Enabled,
+                                    String ddayTitle, String ddayMessage, LocalDateTime dday, boolean ddayEnabled,
+                                    LocalDateTime now) {
+
+        updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7, now, d7Enabled);
+        updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday, now, ddayEnabled);
+    }
+
+    @Transactional
+    public void cancelBoth(Anniversary anniversary) {
+        cancelNotification(anniversary, NotificationType.ANNIVERSARY_D7);
+        cancelNotification(anniversary, NotificationType.ANNIVERSARY_DDAY);
+    }
+
     @Transactional
     public void completeSend(Long notificationId, UUID leaseId){
         Notification notification = notificationRepository.findById(notificationId).orElseThrow();
@@ -162,5 +247,14 @@ public class NotificationTransactionService {
             return "오늘 한 장으로 다시 이어가 보세요.";
         }
         return "오늘도 부모님과의 이야기를 이어가 볼까요?";
+    }
+
+    private String createDefaultNotificationMessage(NotificationType notificationType) {
+
+        if (notificationType == NotificationType.ANNIVERSARY_D7) {
+            return "오늘부터 조금씩 마음을 준비해 보세요.";
+        }
+
+        return "오늘의 따뜻한 안녕을 전해보세요.";
     }
 }
