@@ -15,7 +15,7 @@ import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
-import com.umc.halo.global.ai.event.NextAnniversaryNotificationCreatedEvent;
+import com.umc.halo.global.ai.event.CreateNextYearNotificationEvent;
 import com.umc.halo.global.ai.exception.AiException;
 import com.umc.halo.global.ai.service.AiService;
 import lombok.RequiredArgsConstructor;
@@ -118,7 +118,7 @@ public class AnniversaryNotificationListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void createNextNotification(NextAnniversaryNotificationCreatedEvent event) {
+    public void createNextNotification(CreateNextYearNotificationEvent event) {
 
         Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId())
                 .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));

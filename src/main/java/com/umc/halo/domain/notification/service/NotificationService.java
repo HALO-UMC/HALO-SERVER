@@ -25,7 +25,7 @@ import com.umc.halo.domain.setting.entity.MemberSetting;
 import com.umc.halo.domain.setting.exception.SettingException;
 import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
-import com.umc.halo.global.ai.event.NextAnniversaryNotificationCreatedEvent;
+import com.umc.halo.global.ai.event.CreateNextYearNotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -98,7 +98,7 @@ public class NotificationService {
         List<Anniversary> anniversaries = notificationRepository.findAllRepeatedAnniversaries();
 
         for (Anniversary anniversary : anniversaries) {
-            applicationEventPublisher.publishEvent(new NextAnniversaryNotificationCreatedEvent(anniversary.getId()));
+            applicationEventPublisher.publishEvent(new CreateNextYearNotificationEvent(anniversary.getId()));
         }
     }
 
