@@ -5,6 +5,7 @@ import com.umc.halo.domain.member.exception.MemberException;
 import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.notification.converter.NotificationConverter;
+import com.umc.halo.domain.notification.entity.Anniversary;
 import com.umc.halo.domain.notification.entity.CommonAnniversary;
 import com.umc.halo.domain.notification.entity.Notification;
 import com.umc.halo.domain.notification.enums.NotificationStatus;
@@ -15,6 +16,8 @@ import com.umc.halo.domain.setting.exception.SettingException;
 import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationTransactionService {
 
     private final NotificationRepository notificationRepository;
@@ -115,6 +119,66 @@ public class NotificationTransactionService {
     }
 
     @Transactional
+    public void saveOrUpdateNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt) {
+
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
+
+        boolean anniversaryEnabled = notificationType == NotificationType.ANNIVERSARY_D7 ? anniversary.getSevenDaysAlarmEnabled() : anniversary.getDayAlarmEnabled();
+
+        if(notification == null) {
+            try {
+                notificationRepository.saveAndFlush(NotificationConverter.toAnniversaryNotification(anniversary, notificationType, title, message, scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), anniversaryEnabled));
+            } catch (DataIntegrityViolationException e) {
+                log.debug("중복 알림 생성 요청 무시. anniversaryId={}, type={}, scheduledAt={}", anniversary.getId(), notificationType, scheduledAt);
+            }
+            return;
+        }
+
+        notification.updateSettingEnabled(memberSetting.getAnniversaryNotificationEnabled());
+        notification.updateAnniversaryEnabled(anniversaryEnabled);
+        notification.updateContent(title, message);
+        notification.reserve(scheduledAt);
+    }
+
+    @Transactional
+    public void updateOrCancelNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt, LocalDateTime now, boolean enabled) {
+
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
+
+        if (notification == null) {
+            if (!enabled || !scheduledAt.isAfter(now)) {
+                return;
+            }
+            notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, notificationType, title, message != null ? message : createDefaultNotificationMessage(notificationType), scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), enabled));
+            return;
+        }
+
+        notification.updateSettingEnabled(memberSetting.getAnniversaryNotificationEnabled());
+        notification.updateAnniversaryEnabled(enabled);
+
+        if (!scheduledAt.isAfter(now)) {
+            notification.expire();
+            return;
+        }
+
+        if (message != null) {
+            notification.updateContent(title, message);
+        }
+
+        notification.reserve(scheduledAt);
+    }
+
+    @Transactional
+    public void cancelNotification(Anniversary anniversary, NotificationType notificationType) {
+
+        Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
+
+        if(notification != null) {
+            notification.updateAnniversaryEnabled(false);
+        }
+    }
+
+    @Transactional
     public void completeSend(Long notificationId, UUID leaseId){
         Notification notification = notificationRepository.findById(notificationId).orElseThrow();
         notification.send(leaseId);
@@ -162,5 +226,14 @@ public class NotificationTransactionService {
             return "오늘 한 장으로 다시 이어가 보세요.";
         }
         return "오늘도 부모님과의 이야기를 이어가 볼까요?";
+    }
+
+    private String createDefaultNotificationMessage(NotificationType notificationType) {
+
+        if (notificationType == NotificationType.ANNIVERSARY_D7) {
+            return "오늘부터 조금씩 마음을 준비해 보세요.";
+        }
+
+        return "오늘의 따뜻한 안녕을 전해보세요.";
     }
 }
