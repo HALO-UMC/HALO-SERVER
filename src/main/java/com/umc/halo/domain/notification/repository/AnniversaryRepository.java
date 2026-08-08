@@ -4,6 +4,7 @@ import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.notification.entity.Anniversary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,5 +24,5 @@ public interface AnniversaryRepository extends JpaRepository<Anniversary, Long> 
         from Anniversary a
         where a.id = :anniversaryId
     """)
-    Optional<Long> findMemberIdById(Long anniversaryId);
+    Optional<Long> findMemberIdById(@Param("anniversaryId") Long anniversaryId);
 }

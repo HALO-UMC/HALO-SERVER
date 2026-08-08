@@ -142,7 +142,7 @@ public class NotificationTransactionService {
             if (!enabled || !scheduledAt.isAfter(now)) {
                 return;
             }
-            notificationRepository.save(NotificationConverter.toAnniversaryNotification(anniversary, notificationType, title, message != null ? message : createDefaultNotificationMessage(notificationType), scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), enabled));
+            notificationRepository.insertAnniversaryNotificationIfAbsent(anniversary.getId(), anniversary.getMember().getId(), notificationType.name(), title, message != null ? message : createDefaultNotificationMessage(notificationType), scheduledAt, memberSetting.getAnniversaryNotificationEnabled(), enabled);
             return;
         }
 
