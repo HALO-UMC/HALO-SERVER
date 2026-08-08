@@ -76,7 +76,7 @@ public abstract class AbstractOidcProvider {
         } catch (ProjectException e) {
             throw e;
         } catch (Exception e) {
-            throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
+            throw new ProjectException(AuthErrorCode.INVALID_PROVIDER_TOKEN, e);
         }
     }
 }

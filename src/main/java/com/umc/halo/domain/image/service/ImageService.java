@@ -110,7 +110,7 @@ public class ImageService {
         try {
             return s3Client.headObject(ImageConverter.toHeadObjectRequest(bucket, imageKey));
         } catch (NoSuchKeyException e) {
-            throw new ImageException(ImageErrorCode.NOT_FOUND_IN_S3);
+            throw new ImageException(ImageErrorCode.NOT_FOUND_IN_S3, e);
         }
     }
 

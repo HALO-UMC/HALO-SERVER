@@ -70,7 +70,7 @@ public class MemberService {
         try {
             provider = Provider.valueOf(dto.provider());
         } catch (IllegalArgumentException e) {
-            throw new ProjectException(AuthErrorCode.UNSUPPORTED_PROVIDER);
+            throw new ProjectException(AuthErrorCode.UNSUPPORTED_PROVIDER, e);
         }
 
         AbstractOidcProvider oidcProvider = oidcProviderFactory.getProvider(provider);
