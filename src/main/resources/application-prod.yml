@@ -3,6 +3,14 @@ spring:
     activate:
       on-profile: prod
 
+  jpa:
+    show-sql: false
+
+
+logging:
+  level:
+    org.hibernate.SQL: !!str info
+
 springdoc:
   api-docs:
     enabled: false
