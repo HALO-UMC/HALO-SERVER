@@ -59,7 +59,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     // 유니크 제약
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Object> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        log.warn("[DataIntegrityViolationException] DB 제약조건 위배: {}", ex.getMessage(), ex);
+        log.warn("[DataIntegrityViolationException] DB 제약조건 위배: {}", maskDetail(ex.getMessage()));
 
         BaseErrorCode errorCode = GeneralErrorCode.CONFLICT;
         return ResponseEntity.status(errorCode.getStatus())
@@ -111,7 +111,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleHttpMessageNotReadable(
             HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        log.warn("[HttpMessageNotReadableException] JSON 파싱 실패: {}", ex.getMessage(), ex);
+        log.warn("[HttpMessageNotReadableException] JSON 파싱 실패: {}", maskDetail(ex.getMessage()));
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(errorCode.getStatus())
@@ -160,9 +160,9 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     protected @Nullable ResponseEntity<Object> handleTypeMismatch(
             TypeMismatchException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         if (ex instanceof MethodArgumentTypeMismatchException matEx) {
-            log.warn("[MethodArgumentTypeMismatchException] 타입 불일치: parameter={}, value={}", matEx.getName(), matEx.getValue(), ex);
+            log.warn("[MethodArgumentTypeMismatchException] 타입 불일치: parameter={}, value={}", matEx.getName(), maskDetail(String.valueOf(matEx.getValue())));
         } else {
-            log.warn("[TypeMismatchException] 타입 불일치: property={}", ex.getPropertyName(), ex);
+            log.warn("[TypeMismatchException] 타입 불일치: property={}", ex.getPropertyName());
         }
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
@@ -206,7 +206,11 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleExceptionInternal(
             Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
-        log.warn("[{}] {} - {}", ex.getClass().getSimpleName(), statusCode, ex.getMessage(), ex);
+        if (statusCode.is4xxClientError()) {
+            log.warn("[{}] {} - {}", ex.getClass().getSimpleName(), statusCode, maskDetail(ex.getMessage()));
+        } else {
+            log.warn("[{}] {} - {}", ex.getClass().getSimpleName(), statusCode, ex.getMessage(), ex);
+        }
 
         ApiResponse<Object> response = new ApiResponse<>(
                 false,
@@ -216,5 +220,14 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
         );
 
         return super.handleExceptionInternal(ex, response, headers, statusCode, request);
+    }
+
+    // 4xx 예외 로그에서 DB 상세정보/요청 입력값 등 민감정보 노출을 막기 위해 마스킹
+    private static String maskDetail(@Nullable String message) {
+        if (message == null) {
+            return "(no message)";
+        }
+        return message.replaceAll("'[^']*'", "'***'")
+                .replaceAll("\"[^\"]*\"", "\"***\"");
     }
 }
