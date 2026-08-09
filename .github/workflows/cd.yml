@@ -33,11 +33,6 @@ jobs:
       - name: gradlew 실행 권한 부여
         run: chmod +x gradlew
 
-      - name: Firebase service account 생성
-        run: |
-          mkdir -p src/main/resources/firebase
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > src/main/resources/firebase/service-account.json
-
       - name: bootJar 빌드
         run: ./gradlew bootJar
 
@@ -171,6 +166,7 @@ jobs:
           S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
           S3_BUCKET_ACCESS_KEY=${{ secrets.S3_BUCKET_ACCESS_KEY }}
           S3_BUCKET_SECRET_KEY=${{ secrets.S3_BUCKET_SECRET_KEY }}
+          FIREBASE_SERVICE_ACCOUNT_B64=${{secrets.FIREBASE_SERVICE_ACCOUNT_B64}}
           ENVEOF
 
             if [ -n "$HTPASSWD_USER_B64" ] && [ -n "$HTPASSWD_HASH_B64" ]; then
@@ -490,6 +486,7 @@ jobs:
           S3_BUCKET_NAME=${{ secrets.DEV_S3_BUCKET_NAME }}
           S3_BUCKET_ACCESS_KEY=${{ secrets.DEV_S3_BUCKET_ACCESS_KEY }}
           S3_BUCKET_SECRET_KEY=${{ secrets.DEV_S3_BUCKET_SECRET_KEY }}
+          FIREBASE_SERVICE_ACCOUNT_B64=${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
           ENVEOF
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
