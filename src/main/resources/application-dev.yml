@@ -3,6 +3,11 @@ spring:
     activate:
       on-profile: dev
 
+logging:
+  level:
+    root: info
+    org.hibernate.SQL: !!str debug
+
 springdoc:
   api-docs:
     enabled: true
