@@ -7,6 +7,7 @@ import com.umc.halo.global.ai.event.ChapterCompletedEvent;
 import com.umc.halo.global.ai.exception.AiException;
 import com.umc.halo.global.ai.exception.code.AiErrorCode;
 import com.umc.halo.global.ai.service.AiService;
+import com.umc.halo.global.enums.Emotion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -42,7 +43,7 @@ class ChapterSummaryListenerTest {
     private ChapterSummaryListener chapterSummaryListener;
 
     private final ChapterCompletedEvent event =
-            new ChapterCompletedEvent(1L, "storybook", "chapter", "desc", "happy");
+            new ChapterCompletedEvent(1L, "storybook", "chapter", "desc", Emotion.HAPPY.getDescription());
 
     @Test
     void AI_요약_생성에_성공하면_memberChapter에_반영하고_명시적으로_저장한다() {
