@@ -8,7 +8,8 @@ spring:
 
 
 logging:
-  org.hibernate.SQL: !!str info
+  level:
+    org.hibernate.SQL: !!str info
 
 springdoc:
   api-docs:
