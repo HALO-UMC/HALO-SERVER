@@ -36,7 +36,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
         } else if (errorCode.getStatus().is4xxClientError()) {
             log.warn("[{}] {}: {} (cause={})", ex.getClass().getSimpleName(), errorCode.getCode(), errorCode.getMessage(), causeDetail(ex.getCause()));
         } else {
-            log.warn("[{}] {}: {}", ex.getClass().getSimpleName(), errorCode.getCode(), errorCode.getMessage(), ex);
+            log.error("[{}] {}: {}", ex.getClass().getSimpleName(), errorCode.getCode(), errorCode.getMessage(), ex);
         }
 
         return ResponseEntity.status(errorCode.getStatus())
@@ -217,7 +217,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
         if (statusCode.is4xxClientError()) {
             log.warn("[{}] {}", ex.getClass().getSimpleName(), statusCode);
         } else {
-            log.warn("[{}] {} - {}", ex.getClass().getSimpleName(), statusCode, ex.getMessage(), ex);
+            log.error("[{}] {} - {}", ex.getClass().getSimpleName(), statusCode, ex.getMessage(), ex);
         }
 
         ApiResponse<Object> response = new ApiResponse<>(
