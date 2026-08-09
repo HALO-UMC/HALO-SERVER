@@ -7,6 +7,7 @@ import jakarta.validation.*;
 import lombok.extern.slf4j.*;
 import org.jspecify.annotations.*;
 import org.springframework.beans.*;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.dao.*;
 import org.springframework.http.*;
 import org.springframework.http.converter.*;
@@ -19,6 +20,7 @@ import org.springframework.web.method.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.*;
 import org.springframework.web.servlet.resource.*;
 
+import java.sql.SQLException;
 import java.util.*;
 
 @Slf4j
@@ -29,10 +31,12 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ProjectException.class)
     public ResponseEntity<ApiResponse<Void>> handleProjectException(ProjectException ex) {
         BaseErrorCode errorCode = ex.getErrorCode();
-        if (ex.getCause() != null) {
-            log.warn("[{}] {}: {}", ex.getClass().getSimpleName(), errorCode.getCode(), errorCode.getMessage(), ex);
-        } else {
+        if (ex.getCause() == null) {
             log.warn("[{}] {}: {}", ex.getClass().getSimpleName(), errorCode.getCode(), errorCode.getMessage());
+        } else if (errorCode.getStatus().is4xxClientError()) {
+            log.warn("[{}] {}: {} (cause={})", ex.getClass().getSimpleName(), errorCode.getCode(), errorCode.getMessage(), causeDetail(ex.getCause()));
+        } else {
+            log.warn("[{}] {}: {}", ex.getClass().getSimpleName(), errorCode.getCode(), errorCode.getMessage(), ex);
         }
 
         return ResponseEntity.status(errorCode.getStatus())
@@ -59,9 +63,10 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     // 유니크 제약
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Object> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        log.warn("[DataIntegrityViolationException] DB 제약조건 위배: {}", maskDetail(ex.getMessage()));
-
         BaseErrorCode errorCode = GeneralErrorCode.CONFLICT;
+        String detail = ex.getCause() != null ? causeDetail(ex.getCause()) : "원인 없음";
+        log.warn("[DataIntegrityViolationException] {}: {}", errorCode.getCode(), detail);
+
         return ResponseEntity.status(errorCode.getStatus())
                 .body(ApiResponse.onFailure(errorCode, null));
     }
@@ -111,7 +116,8 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     @Override
     protected @Nullable ResponseEntity<Object> handleHttpMessageNotReadable(
             HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-        log.warn("[HttpMessageNotReadableException] JSON 파싱 실패: {}", maskDetail(ex.getMessage()));
+        Throwable cause = ex.getCause();
+        log.warn("[HttpMessageNotReadableException] JSON 파싱 실패: cause={}", cause != null ? cause.getClass().getSimpleName() : "unknown");
 
         BaseErrorCode errorCode = GeneralErrorCode.BAD_REQUEST;
         return ResponseEntity.status(errorCode.getStatus())
@@ -160,7 +166,9 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     protected @Nullable ResponseEntity<Object> handleTypeMismatch(
             TypeMismatchException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         if (ex instanceof MethodArgumentTypeMismatchException matEx) {
-            log.warn("[MethodArgumentTypeMismatchException] 타입 불일치: parameter={}, value={}", matEx.getName(), maskDetail(String.valueOf(matEx.getValue())));
+            Object value = matEx.getValue();
+            String valueType = value != null ? value.getClass().getSimpleName() : "null";
+            log.warn("[MethodArgumentTypeMismatchException] 타입 불일치: parameter={}, valueType={}", matEx.getName(), valueType);
         } else {
             log.warn("[TypeMismatchException] 타입 불일치: property={}", ex.getPropertyName());
         }
@@ -207,7 +215,7 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
     protected @Nullable ResponseEntity<Object> handleExceptionInternal(
             Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
         if (statusCode.is4xxClientError()) {
-            log.warn("[{}] {} - {}", ex.getClass().getSimpleName(), statusCode, maskDetail(ex.getMessage()));
+            log.warn("[{}] {}", ex.getClass().getSimpleName(), statusCode);
         } else {
             log.warn("[{}] {} - {}", ex.getClass().getSimpleName(), statusCode, ex.getMessage(), ex);
         }
@@ -222,12 +230,12 @@ public class GeneralExceptionAdvice extends ResponseEntityExceptionHandler {
         return super.handleExceptionInternal(ex, response, headers, statusCode, request);
     }
 
-    // 4xx 예외 로그에서 DB 상세정보/요청 입력값 등 민감정보 노출을 막기 위해 마스킹
-    private static String maskDetail(@Nullable String message) {
-        if (message == null) {
-            return "(no message)";
+    // DB 상세정보 노출 없이 원인 예외가 어떤 종류인지만
+    private static String causeDetail(Throwable cause) {
+        Throwable root = NestedExceptionUtils.getMostSpecificCause(cause);
+        if (root instanceof SQLException sqlEx) {
+            return "sqlState=%s, vendorCode=%d".formatted(sqlEx.getSQLState(), sqlEx.getErrorCode());
         }
-        return message.replaceAll("'[^']*'", "'***'")
-                .replaceAll("\"[^\"]*\"", "\"***\"");
+        return root.getClass().getSimpleName();
     }
 }

@@ -136,7 +136,7 @@ public class StorybookService {
         try {
             memberStorybookRepository.save(memberStorybook);
         } catch (DataIntegrityViolationException e) {
-            throw new StorybookException(StorybookErrorCode.ALREADY_IN_PROGRESS);
+            throw new StorybookException(StorybookErrorCode.ALREADY_IN_PROGRESS, e);
         }
 
         return StorybookConverter.toStartStorybook(memberStorybook, storybook);

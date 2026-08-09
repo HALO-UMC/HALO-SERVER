@@ -84,7 +84,7 @@ public class ChapterRecordWriter {
                 memberChapter = RecordConverter.toMemberChapter(member, chapter, sceneCard, recordReqDTO, imageKey);
                 memberChapterRepository.save(memberChapter);
             } catch (DataIntegrityViolationException e) {
-                throw new RecordException(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER);
+                throw new RecordException(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER, e);
             }
         } else {
             if (validated.reuseExistingImage()) {
