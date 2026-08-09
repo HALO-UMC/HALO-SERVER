@@ -89,10 +89,8 @@ public class ChapterRecordWriter {
         } else {
             if (validated.reuseExistingImage()) {
                 imageKey = memberChapter.getImageKey();
-            } else if (validated.pendingImageKey() == null
-                    && imageKey != null && imageKey.startsWith(ImageService.PENDING_PREFIX)
-                    && memberChapter.getImageKey() != null
-                    && !memberChapter.getImageKey().startsWith(ImageService.PENDING_PREFIX)) {
+            } else if (validated.finalImageKey() != null
+                    && validated.finalImageKey().equals(memberChapter.getImageKey())) {
                 log.warn("이미지 확정 경합 감지, pending 키로 되돌리지 않음. memberChapterId={}, 시도된키={}, 유지되는키={}",
                         memberChapter.getId(), imageKey, memberChapter.getImageKey());
                 imageKey = memberChapter.getImageKey();
@@ -105,7 +103,7 @@ public class ChapterRecordWriter {
         final MemberChapter resolvedMemberChapter = memberChapter;
 
         // 이벤트 발생시켜 prefix 수정 후 저장
-        if (validated.pendingImageKey() != null) {
+        if (validated.pendingImageKey() != null && imageKey.startsWith(ImageService.PENDING_PREFIX)) {
             applicationEventPublisher.publishEvent(new ImageFinalizeRequestedEvent(
                     memberChapter.getId(), validated.pendingImageKey(), validated.finalImageKey()));
         }

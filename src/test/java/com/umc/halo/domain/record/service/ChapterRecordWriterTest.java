@@ -150,16 +150,17 @@ class ChapterRecordWriterTest {
         MemberChapter existing = MemberChapter.builder().id(50L).imageKey("images/1/a.png").build();
         given(memberChapterRepository.findByIdForUpdate(50L)).willReturn(Optional.of(existing));
 
-        // validate() 시점에 pending 키를 재사용하려 했지만(경합), findById로 다시 읽은
-        // memberChapter.imageKey는 이미 확정 리스너가 final로 갱신해둔 상태
+        // validate() 시점엔 DB가 아직 pending이라 재확정 대상으로 잡혀 pendingImageKey/finalImageKey가 채워졌지만
+        // findByIdForUpdate로 다시 읽은 memberChapter.imageKey는 이미 확정 리스너가 final로 갱신해둔 상태
         RecordReqDTO.WriteChapterRecord dto =
                 new RecordReqDTO.WriteChapterRecord(10L, null, null, null, null, null, Status.DRAFT);
         ValidatedChapterRecord validated =
-                new ValidatedChapterRecord(50L, null, "pending/images/1/a.png", null, null);
+                new ValidatedChapterRecord(50L, null, "pending/images/1/a.png", "pending/images/1/a.png", "images/1/a.png");
 
         chapterRecordWriter.persist(1L, dto, validated);
 
         assertThat(existing.getImageKey()).isEqualTo("images/1/a.png");
+        verify(applicationEventPublisher, never()).publishEvent(any());
     }
 
     @Test
