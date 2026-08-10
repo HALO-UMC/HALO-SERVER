@@ -1,3 +1,5 @@
+limit_req_zone $binary_remote_addr zone=auth_limit:10m rate=30r/m;
+
 # 명시적 default_server: 없으면 첫 server 블록이 암묵적 default가 되어
 # 위조된 Host 헤더로 open redirect가 생길 수 있음 -> 알 수 없는 Host는 바로 끊음
 server {

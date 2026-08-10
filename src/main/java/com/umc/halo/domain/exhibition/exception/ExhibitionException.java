@@ -7,4 +7,8 @@ public class ExhibitionException extends ProjectException {
     public ExhibitionException(BaseErrorCode errorCode) {
         super(errorCode);
     }
+
+    public ExhibitionException(BaseErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
 }

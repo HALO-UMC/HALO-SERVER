@@ -8,4 +8,8 @@ public class AnniversaryException extends ProjectException {
     public AnniversaryException(AnniversaryErrorCode errorCode) {
         super(errorCode);
     }
+
+    public AnniversaryException(AnniversaryErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
 }

@@ -3,11 +3,20 @@ spring:
     activate:
       on-profile: prod
 
+  jpa:
+    show-sql: false
+
+
+logging:
+  level:
+    org.hibernate.SQL: !!str info
+
+# TODO: 과제 채점 기한 임시 해제
 springdoc:
   api-docs:
-    enabled: false
+    enabled: true
   swagger-ui:
-    enabled: false
+    enabled: true
 
 management:
   endpoints:

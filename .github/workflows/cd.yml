@@ -33,11 +33,6 @@ jobs:
       - name: gradlew 실행 권한 부여
         run: chmod +x gradlew
 
-      - name: Firebase service account 생성
-        run: |
-          mkdir -p src/main/resources/firebase
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > src/main/resources/firebase/service-account.json
-
       - name: bootJar 빌드
         run: ./gradlew bootJar
 
@@ -171,6 +166,7 @@ jobs:
           S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
           S3_BUCKET_ACCESS_KEY=${{ secrets.S3_BUCKET_ACCESS_KEY }}
           S3_BUCKET_SECRET_KEY=${{ secrets.S3_BUCKET_SECRET_KEY }}
+          FIREBASE_SERVICE_ACCOUNT_B64=${{secrets.FIREBASE_SERVICE_ACCOUNT_B64}}
           ENVEOF
 
             if [ -n "$HTPASSWD_USER_B64" ] && [ -n "$HTPASSWD_HASH_B64" ]; then
@@ -346,6 +342,11 @@ jobs:
             sleep 5
           done
           echo "보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요" >&2
+          if [ -n "${{ secrets.CD_ALERTS_DISCORD_WEBHOOK_URL }}" ]; then
+            PAYLOAD=$(jq -n --arg msg "🚨 [CD/prod] 보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요
+              https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $msg}')
+            curl -sf -H "Content-Type: application/json" -d "$PAYLOAD" "${{ secrets.CD_ALERTS_DISCORD_WEBHOOK_URL }}" || echo "Discord 알림 전송 실패" >&2
+          fi
           exit 1
 
   deploy-dev:
@@ -490,6 +491,7 @@ jobs:
           S3_BUCKET_NAME=${{ secrets.DEV_S3_BUCKET_NAME }}
           S3_BUCKET_ACCESS_KEY=${{ secrets.DEV_S3_BUCKET_ACCESS_KEY }}
           S3_BUCKET_SECRET_KEY=${{ secrets.DEV_S3_BUCKET_SECRET_KEY }}
+          FIREBASE_SERVICE_ACCOUNT_B64=${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
           ENVEOF
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
@@ -583,4 +585,9 @@ jobs:
             sleep 5
           done
           echo "보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요" >&2
+          if [ -n "${{ secrets.CD_ALERTS_DISCORD_WEBHOOK_URL }}" ]; then
+            PAYLOAD=$(jq -n --arg msg "🚨 [CD/dev] 보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $msg}')
+            curl -sf -H "Content-Type: application/json" -d "$PAYLOAD" "${{ secrets.CD_ALERTS_DISCORD_WEBHOOK_URL }}" || echo "Discord 알림 전송 실패" >&2
+          fi
           exit 1

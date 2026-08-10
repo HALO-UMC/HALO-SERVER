@@ -115,8 +115,7 @@ public class NotificationTransactionService {
         }
     }
 
-    @Transactional
-    public void saveOrUpdateNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt) {
+    private void saveOrUpdateNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt) {
 
         Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
 
@@ -133,8 +132,7 @@ public class NotificationTransactionService {
         notification.reserve(scheduledAt);
     }
 
-    @Transactional
-    public void updateOrCancelNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt, LocalDateTime now, boolean enabled) {
+    private void updateOrCancelNotification(Anniversary anniversary, MemberSetting memberSetting, NotificationType notificationType, String title, String message, LocalDateTime scheduledAt, LocalDateTime now, boolean enabled) {
 
         Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
 
@@ -161,14 +159,44 @@ public class NotificationTransactionService {
         notification.reserve(scheduledAt);
     }
 
-    @Transactional
-    public void cancelNotification(Anniversary anniversary, NotificationType notificationType) {
+    private void cancelNotification(Anniversary anniversary, NotificationType notificationType) {
 
         Notification notification = notificationRepository.findByAnniversaryIdAndNotificationTypeAndStatusIn(anniversary.getId(), notificationType, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED)).orElse(null);
 
         if(notification != null) {
             notification.updateAnniversaryEnabled(false);
         }
+    }
+
+    @Transactional
+    public void saveOrUpdateBoth(Anniversary anniversary, MemberSetting memberSetting,
+                                  String d7Title, String d7Message, LocalDateTime d7,
+                                  String ddayTitle, String ddayMessage, LocalDateTime dday,
+                                  LocalDateTime now) {
+
+        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
+            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
+        }
+
+        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
+            saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
+        }
+    }
+
+    @Transactional
+    public void updateOrCancelBoth(Anniversary anniversary, MemberSetting memberSetting,
+                                    String d7Title, String d7Message, LocalDateTime d7, boolean d7Enabled,
+                                    String ddayTitle, String ddayMessage, LocalDateTime dday, boolean ddayEnabled,
+                                    LocalDateTime now) {
+
+        updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7, now, d7Enabled);
+        updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday, now, ddayEnabled);
+    }
+
+    @Transactional
+    public void cancelBoth(Anniversary anniversary) {
+        cancelNotification(anniversary, NotificationType.ANNIVERSARY_D7);
+        cancelNotification(anniversary, NotificationType.ANNIVERSARY_DDAY);
     }
 
     @Transactional

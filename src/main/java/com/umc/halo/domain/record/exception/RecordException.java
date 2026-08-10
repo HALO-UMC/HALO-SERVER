@@ -7,4 +7,8 @@ public class RecordException extends ProjectException {
     public RecordException(BaseErrorCode errorCode) {
         super(errorCode);
     }
+
+    public RecordException(BaseErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
 }

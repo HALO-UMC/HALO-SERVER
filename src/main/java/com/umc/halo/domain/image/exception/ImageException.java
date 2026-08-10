@@ -7,4 +7,8 @@ public class ImageException extends ProjectException {
     public ImageException(BaseErrorCode errorCode) {
         super(errorCode);
     }
+
+    public ImageException(BaseErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
 }

@@ -7,4 +7,8 @@ public class ChapterException extends ProjectException {
     public ChapterException(BaseErrorCode errorCode) {
         super(errorCode);
     }
+
+    public ChapterException(BaseErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
 }
