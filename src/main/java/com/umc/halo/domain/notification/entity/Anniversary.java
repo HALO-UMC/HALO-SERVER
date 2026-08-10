@@ -4,9 +4,11 @@ import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.global.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.*;
 
+@Slf4j
 @Entity
 @Table(name = "anniversary")
 @Getter
@@ -58,5 +60,33 @@ public class Anniversary extends BaseEntity {
         this.sevenDaysAlarmEnabled = sevenDaysAlarmEnabled;
         this.dayAlarmEnabled = dayAlarmEnabled;
         this.memo = memo;
+    }
+
+    // 반복 기념일의 다음(오늘 이후) 발생일 계산. 윤년(2/29) 기념일은 평년엔 2/28로 대체
+    public LocalDate resolveNextOccurrence(LocalDate today) {
+
+        if (!Boolean.TRUE.equals(isRepeated)) {
+            return anniversaryDate.isBefore(today) ? null : anniversaryDate;
+        }
+
+        LocalDate thisYear;
+
+        try {
+            thisYear = anniversaryDate.withYear(today.getYear());
+        } catch (DateTimeException e) {
+            log.warn("윤년 기념일 올해 날짜 계산 실패, 2/28로 대체. anniversaryId={}, year={}", id, today.getYear());
+            thisYear = LocalDate.of(today.getYear(), 2, 28);
+        }
+
+        if (!thisYear.isBefore(today)) {
+            return thisYear;
+        }
+
+        try {
+            return anniversaryDate.withYear(today.getYear() + 1);
+        } catch (DateTimeException e) {
+            log.warn("윤년 기념일 다음 해 날짜 계산 실패, 2/28로 대체. anniversaryId={}, year={}", id, today.getYear() + 1);
+            return LocalDate.of(today.getYear() + 1, 2, 28);
+        }
     }
 }

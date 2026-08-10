@@ -51,7 +51,7 @@ public class AnniversaryNotificationListener {
         LocalDateTime now = LocalDateTime.now();
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
-        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate());
+        LocalDate nextOccurrence = anniversary.resolveNextOccurrence(now.toLocalDate());
         if (nextOccurrence == null) {
             return;
         }
@@ -87,7 +87,7 @@ public class AnniversaryNotificationListener {
         LocalDateTime now = LocalDateTime.now();
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
-        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate());
+        LocalDate nextOccurrence = anniversary.resolveNextOccurrence(now.toLocalDate());
         if (nextOccurrence == null) {
             notificationTransactionService.cancelNotification(anniversary, NotificationType.ANNIVERSARY_D7);
             notificationTransactionService.cancelNotification(anniversary, NotificationType.ANNIVERSARY_DDAY);
@@ -131,7 +131,7 @@ public class AnniversaryNotificationListener {
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate());
+        LocalDate nextOccurrence = anniversary.resolveNextOccurrence(now.toLocalDate());
         if (nextOccurrence == null) {
             return;
         }
@@ -182,32 +182,5 @@ public class AnniversaryNotificationListener {
         }
 
         return "오늘의 따뜻한 안녕을 전해보세요.";
-    }
-
-    private LocalDate resolveNextOccurrence(Anniversary anniversary, LocalDate today) {
-
-        LocalDate anniversaryDate = anniversary.getAnniversaryDate();
-
-        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
-            return anniversaryDate.isBefore(today) ? null : anniversaryDate;
-        }
-
-        LocalDate thisYear;
-
-        try {
-            thisYear = anniversaryDate.withYear(today.getYear());
-        } catch (Exception e) {
-            thisYear = LocalDate.of(today.getYear(), 2, 28);
-        }
-
-        if (thisYear.isBefore(today)) {
-            try {
-                return anniversaryDate.withYear(today.getYear() + 1);
-            } catch (Exception e) {
-                return LocalDate.of(today.getYear() + 1, 2, 28);
-            }
-        }
-
-        return thisYear;
     }
 }

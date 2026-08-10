@@ -110,12 +110,7 @@ public class AnniversaryService {
         if (Boolean.TRUE.equals(anniversary.getIsLunar())) {
             return resolveNextOccurrenceLunar(anniversary, today);
         }
-        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
-            LocalDate date = anniversary.getAnniversaryDate();
-            return date.isBefore(today) ? null : date;
-        }
-        LocalDate thisYear = anniversary.getAnniversaryDate().withYear(today.getYear());
-        return thisYear.isBefore(today) ? anniversary.getAnniversaryDate().withYear(today.getYear() + 1) : thisYear;
+        return anniversary.resolveNextOccurrence(today);
     }
 
     private LocalDate resolveNextOccurrenceLunar(Anniversary anniversary, LocalDate today) {
