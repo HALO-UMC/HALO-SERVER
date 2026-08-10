@@ -122,7 +122,7 @@ public class ExhibitionService {
                 List<MemberChapter> myChapters =
                         chaptersByStorybook.getOrDefault(ms.getStorybook().getId(), List.of());
                 inProgressDtos.add(ExhibitionConverter.toInProgressStorybook(
-                        ms, ms.resolveDisplayChapterOrder(myChapters)));
+                        ms, ms.resolveDisplayChapterOrder(myChapters), !ms.isCompletedToday()));
             }
         } else {
             recommendedDtos = storybookService.getRecommendedStorybooks(memberId).storybooks().stream()

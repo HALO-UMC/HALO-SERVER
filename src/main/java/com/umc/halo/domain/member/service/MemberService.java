@@ -20,7 +20,6 @@ import com.umc.halo.domain.notification.entity.Notification;
 import com.umc.halo.domain.notification.enums.NotificationStatus;
 import com.umc.halo.domain.notification.enums.NotificationType;
 import com.umc.halo.domain.notification.repository.NotificationRepository;
-import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.domain.term.repository.MemberTermRepository;
 import com.umc.halo.global.apiPayload.exception.ProjectException;
 import com.umc.halo.global.util.HashUtil;
@@ -42,7 +41,6 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final MemberTermRepository memberTermRepository;
-    private final MemberSettingRepository memberSettingRepository;
     private final NotificationRepository notificationRepository;
     private final StorybookCharacterVariantRepository storybookCharacterVariantRepository;
     private final JwtUtil jwtUtil;
