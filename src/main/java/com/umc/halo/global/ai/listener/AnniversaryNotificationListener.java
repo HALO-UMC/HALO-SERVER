@@ -15,6 +15,7 @@ import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
 import com.umc.halo.global.ai.event.CreateNextYearNotificationEvent;
 import com.umc.halo.global.ai.exception.AiException;
 import com.umc.halo.global.ai.service.AiService;
+import com.umc.halo.global.util.AnniversaryOccurrenceResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -50,7 +51,7 @@ public class AnniversaryNotificationListener {
         LocalDateTime now = LocalDateTime.now();
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
-        LocalDate nextOccurrence = anniversary.resolveNextOccurrence(now.toLocalDate());
+        LocalDate nextOccurrence = AnniversaryOccurrenceResolver.resolveNextOccurrence(anniversary, now.toLocalDate());
         if (nextOccurrence == null) {
             return;
         }
@@ -79,7 +80,7 @@ public class AnniversaryNotificationListener {
         LocalDateTime now = LocalDateTime.now();
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
-        LocalDate nextOccurrence = anniversary.resolveNextOccurrence(now.toLocalDate());
+        LocalDate nextOccurrence = AnniversaryOccurrenceResolver.resolveNextOccurrence(anniversary, now.toLocalDate());
         if (nextOccurrence == null) {
             notificationTransactionService.cancelBoth(anniversary);
             return;
@@ -123,7 +124,7 @@ public class AnniversaryNotificationListener {
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDate nextOccurrence = anniversary.resolveNextOccurrence(now.toLocalDate());
+        LocalDate nextOccurrence = AnniversaryOccurrenceResolver.resolveNextOccurrence(anniversary, now.toLocalDate());
         if (nextOccurrence == null) {
             return;
         }

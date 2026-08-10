@@ -14,6 +14,7 @@ import com.umc.halo.domain.setting.exception.SettingException;
 import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.BgmRepository;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
+import com.umc.halo.global.util.AnniversaryOccurrenceResolver;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -141,7 +142,7 @@ public class SettingService {
                 continue;
             }
 
-            LocalDate nextOccurrence = anniversary.resolveNextOccurrence(today);
+            LocalDate nextOccurrence = AnniversaryOccurrenceResolver.resolveNextOccurrence(anniversary, today);
 
             if(nextOccurrence == null) {
                 continue;
@@ -189,7 +190,7 @@ public class SettingService {
                 continue;
             }
 
-            LocalDate nextOccurrence = anniversary.resolveNextOccurrence(today);
+            LocalDate nextOccurrence = AnniversaryOccurrenceResolver.resolveNextOccurrence(anniversary, today);
 
             if(nextOccurrence == null) {
                 continue;
@@ -259,7 +260,7 @@ public class SettingService {
         List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.COMMON_ANNIVERSARY, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
 
         for (Notification notification : notifications) {
-                notification.updateSettingEnabled(enabled);
+            notification.updateSettingEnabled(enabled);
         }
     }
 }

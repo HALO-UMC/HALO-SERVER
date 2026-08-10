@@ -1,6 +1,5 @@
 package com.umc.halo.domain.notification.service;
 
-import com.github.usingsky.calendar.KoreanLunarCalendar;
 import com.umc.halo.domain.member.entity.Member;
 import com.umc.halo.domain.member.exception.MemberException;
 import com.umc.halo.domain.member.exception.code.MemberErrorCode;
@@ -17,6 +16,7 @@ import com.umc.halo.domain.notification.repository.CommonAnniversaryRepository;
 import com.umc.halo.domain.notification.repository.NotificationRepository;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
+import com.umc.halo.global.util.AnniversaryOccurrenceResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -69,7 +69,7 @@ public class AnniversaryService {
     ) {
         List<AnniversaryResDTO.Upcoming> upcomingFromMyAnniversaries = myAnniversaryEntities.stream()
                 .map(anniversary -> {
-                    LocalDate nextOccurrence = resolveNextOccurrence(anniversary, today);
+                    LocalDate nextOccurrence = AnniversaryOccurrenceResolver.resolveNextOccurrence(anniversary, today);
                     if (nextOccurrence == null) {
                         return null;
                     }
@@ -99,35 +99,11 @@ public class AnniversaryService {
         if (!Boolean.TRUE.equals(anniversary.getIsLunar())) {
             return anniversary.getAnniversaryDate();
         }
-        LocalDate converted = convertLunarToSolar(
+        LocalDate converted = AnniversaryOccurrenceResolver.convertLunarToSolar(
                 anniversary.getAnniversaryDate().getYear(),
                 anniversary.getAnniversaryDate().getMonthValue(),
                 anniversary.getAnniversaryDate().getDayOfMonth());
         return converted != null ? converted : anniversary.getAnniversaryDate();
-    }
-
-    private LocalDate resolveNextOccurrence(Anniversary anniversary, LocalDate today) {
-        if (Boolean.TRUE.equals(anniversary.getIsLunar())) {
-            return resolveNextOccurrenceLunar(anniversary, today);
-        }
-        return anniversary.resolveNextOccurrence(today);
-    }
-
-    private LocalDate resolveNextOccurrenceLunar(Anniversary anniversary, LocalDate today) {
-        int lunarMonth = anniversary.getAnniversaryDate().getMonthValue();
-        int lunarDay = anniversary.getAnniversaryDate().getDayOfMonth();
-
-        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
-            LocalDate solarDate = convertLunarToSolar(anniversary.getAnniversaryDate().getYear(), lunarMonth, lunarDay);
-            return (solarDate != null && !solarDate.isBefore(today)) ? solarDate : null;
-        }
-
-        return java.util.stream.Stream.of(today.getYear() - 1, today.getYear(), today.getYear() + 1)
-                .map(year -> convertLunarToSolar(year, lunarMonth, lunarDay))
-                .filter(java.util.Objects::nonNull)
-                .filter(date -> !date.isBefore(today))
-                .min(Comparator.naturalOrder())
-                .orElse(null);
     }
 
     private LocalDate resolveNextOccurrence(CommonAnniversary commonAnniversary, LocalDate today) {
@@ -141,7 +117,7 @@ public class AnniversaryService {
 
     private LocalDate resolveNextLunarOccurrence(CommonAnniversary commonAnniversary, LocalDate today) {
         return java.util.stream.Stream.of(today.getYear() - 1, today.getYear(), today.getYear() + 1)
-                .map(year -> convertLunarToSolar(year, commonAnniversary.getMonth(), commonAnniversary.getDay()))
+                .map(year -> AnniversaryOccurrenceResolver.convertLunarToSolar(year, commonAnniversary.getMonth(), commonAnniversary.getDay()))
                 .filter(java.util.Objects::nonNull)
                 .filter(date -> !date.isBefore(today))
                 .min(Comparator.naturalOrder())
@@ -155,7 +131,7 @@ public class AnniversaryService {
         }
         LocalDate targetDate = anniversaryDate;
         if (Boolean.TRUE.equals(isLunar)) {
-            LocalDate converted = convertLunarToSolar(
+            LocalDate converted = AnniversaryOccurrenceResolver.convertLunarToSolar(
                     anniversaryDate.getYear(), anniversaryDate.getMonthValue(), anniversaryDate.getDayOfMonth());
             if (converted == null) {
                 return;
@@ -172,24 +148,10 @@ public class AnniversaryService {
         if (!Boolean.TRUE.equals(isLunar)) {
             return;
         }
-        LocalDate converted = convertLunarToSolar(
+        LocalDate converted = AnniversaryOccurrenceResolver.convertLunarToSolar(
                 anniversaryDate.getYear(), anniversaryDate.getMonthValue(), anniversaryDate.getDayOfMonth());
         if (converted == null) {
             throw new AnniversaryException(AnniversaryErrorCode.INVALID_LUNAR_DATE);
-        }
-    }
-
-    private static final Object LUNAR_CALENDAR_LOCK = new Object();
-
-    // 음력 날짜(윤달 아님)를 해당 연도의 양력 날짜로 변환. 지원 범위를 벗어나거나 변환 실패 시 null 반환
-    private LocalDate convertLunarToSolar(int lunarYear, int lunarMonth, int lunarDay) {
-        synchronized (LUNAR_CALENDAR_LOCK) {
-            KoreanLunarCalendar calendar = KoreanLunarCalendar.getInstance();
-            boolean success = calendar.setLunarDate(lunarYear, lunarMonth, lunarDay, false);
-            if (!success) {
-                return null;
-            }
-            return LocalDate.of(calendar.getSolarYear(), calendar.getSolarMonth(), calendar.getSolarDay());
         }
     }
 
@@ -293,7 +255,7 @@ public class AnniversaryService {
     }
 
     private boolean isExpiredNonRepeatingLunar(Anniversary anniversary, LocalDate today) {
-        LocalDate solarDate = convertLunarToSolar(
+        LocalDate solarDate = AnniversaryOccurrenceResolver.convertLunarToSolar(
                 anniversary.getAnniversaryDate().getYear(),
                 anniversary.getAnniversaryDate().getMonthValue(),
                 anniversary.getAnniversaryDate().getDayOfMonth());
