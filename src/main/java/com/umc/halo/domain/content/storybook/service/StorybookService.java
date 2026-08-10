@@ -191,27 +191,10 @@ public class StorybookService {
                 .map(MemberTag::getTag)
                 .toList();
 
-        List<StorybookTag> matchedStorybookTags = desiredTags.isEmpty()
-                ? List.of()
-                : storybookTagRepository.findByTagIn(desiredTags);
+        List<Storybook> matchedStorybooks = matchStorybooksByTags(desiredTags, startedStorybookIds);
 
-        Map<Long, StorybookTag> bestMatchByStorybook = new LinkedHashMap<>();
-        for (StorybookTag st : matchedStorybookTags) {
-            Long storybookId = st.getStorybook().getId();
-            if (startedStorybookIds.contains(storybookId)) {
-                continue;
-            }
-            StorybookTag existing = bestMatchByStorybook.get(storybookId);
-            if (existing == null || (existing.getPriorityLevel() == PriorityLevel.SECONDARY
-                    && st.getPriorityLevel() == PriorityLevel.PRIMARY)) {
-                bestMatchByStorybook.put(storybookId, st);
-            }
-        }
-
-        List<StorybookResDTO.RecommendedStorybook> recommendations = bestMatchByStorybook.values().stream()
-                .sorted(Comparator.comparing(StorybookTag::getPriorityLevel))
-                .limit(2)
-                .map(st -> StorybookConverter.toRecommendedStorybook(st, st.getStorybook().getRecommendationPhrase()))
+        List<StorybookResDTO.RecommendedStorybook> recommendations = matchedStorybooks.stream()
+                .map(sb -> StorybookConverter.toRecommendedStorybook(sb, sb.getRecommendationPhrase()))
                 .collect(Collectors.toCollection(ArrayList::new));
 
         if (recommendations.size() < 2) {
@@ -232,6 +215,56 @@ public class StorybookService {
         }
 
         return StorybookConverter.toRecommendedStorybooksResult(recommendations);
+    }
+
+    /**
+     * 선택한 태그(1~2개)를 기반으로 추천 스토리북을 매칭한다.
+     * - 태그 1개: 해당 태그가 PRIMARY인 스토리북 최대 2개
+     * - 태그 2개(X, Y): "PRIMARY=X & SECONDARY=Y"인 스토리북 1개 + "PRIMARY=Y & SECONDARY=X"인 스토리북 1개
+     */
+    private List<Storybook> matchStorybooksByTags(List<Tag> desiredTags, Set<Long> excludedStorybookIds) {
+
+        if (desiredTags.isEmpty()) {
+            return List.of();
+        }
+
+        List<StorybookTag> matchedStorybookTags = storybookTagRepository.findByTagIn(desiredTags);
+
+        Map<Long, List<StorybookTag>> storybookTagsByStorybookId = matchedStorybookTags.stream()
+                .collect(Collectors.groupingBy(st -> st.getStorybook().getId()));
+
+        if (desiredTags.size() == 1) {
+            Tag tag = desiredTags.get(0);
+            return storybookTagsByStorybookId.values().stream()
+                    .filter(tags -> tags.stream().anyMatch(st ->
+                            st.getTag().equals(tag) && st.getPriorityLevel() == PriorityLevel.PRIMARY))
+                    .map(tags -> tags.get(0).getStorybook())
+                    .filter(sb -> !excludedStorybookIds.contains(sb.getId()))
+                    .limit(2)
+                    .toList();
+        }
+
+        Tag tagX = desiredTags.get(0);
+        Tag tagY = desiredTags.get(1);
+
+        List<Storybook> result = new ArrayList<>();
+        findComboPartner(storybookTagsByStorybookId, tagX, tagY, excludedStorybookIds).ifPresent(result::add);
+        findComboPartner(storybookTagsByStorybookId, tagY, tagX, excludedStorybookIds).ifPresent(result::add);
+        return result;
+    }
+
+    private Optional<Storybook> findComboPartner(
+            Map<Long, List<StorybookTag>> storybookTagsByStorybookId,
+            Tag primaryTag, Tag secondaryTag, Set<Long> excludedStorybookIds) {
+
+        return storybookTagsByStorybookId.values().stream()
+                .filter(tags -> tags.stream().anyMatch(st ->
+                        st.getTag().equals(primaryTag) && st.getPriorityLevel() == PriorityLevel.PRIMARY))
+                .filter(tags -> tags.stream().anyMatch(st ->
+                        st.getTag().equals(secondaryTag) && st.getPriorityLevel() == PriorityLevel.SECONDARY))
+                .map(tags -> tags.get(0).getStorybook())
+                .filter(sb -> !excludedStorybookIds.contains(sb.getId()))
+                .findFirst();
     }
 
     public StorybookResDTO.GetHome getHome(Long memberId) {
