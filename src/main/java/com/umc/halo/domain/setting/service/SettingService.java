@@ -22,10 +22,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.DateTimeException;
+import lombok.extern.slf4j.Slf4j;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SettingService {
@@ -275,9 +278,20 @@ public class SettingService {
 
         try {
             thisYear = anniversaryDate.withYear(today.getYear());
-        } catch (Exception e) {
+        } catch (DateTimeException e) {
+            log.warn("윤년 기념일 올해 날짜 계산 실패, 2/28로 대체. anniversaryId={}, year={}", anniversary.getId(), today.getYear());
             thisYear = LocalDate.of(today.getYear(), 2, 28);
         }
-        return thisYear.isBefore(today) ? anniversaryDate.withYear(today.getYear() + 1) : thisYear;
+
+        if (!thisYear.isBefore(today)) {
+            return thisYear;
+        }
+
+        try {
+            return anniversaryDate.withYear(today.getYear() + 1);
+        } catch (DateTimeException e) {
+            log.warn("윤년 기념일 다음 해 날짜 계산 실패, 2/28로 대체. anniversaryId={}, year={}", anniversary.getId(), today.getYear() + 1);
+            return LocalDate.of(today.getYear() + 1, 2, 28);
+        }
     }
 }
