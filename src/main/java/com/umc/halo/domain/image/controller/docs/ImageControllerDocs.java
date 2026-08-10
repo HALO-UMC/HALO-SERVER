@@ -34,12 +34,13 @@ public interface ImageControllerDocs {
                     4. SSE-KMS로 암호화되도록 서명된, 5분간 유효한 presigned URL을 발급합니다.
                     5. 클라이언트는 이 presignedUrl로 S3에 직접 PUT하여 이미지를 업로드합니다.
                     
-                    ## PUT 업로드 시 클라이언트가 반드시 실어야 하는 헤더
-                    아래 헤더 중 하나라도 값이 다르면 서명이 깨져 `403 SignatureDoesNotMatch`로 업로드가 거부됩니다.
-                    - `Content-Type` : 위 요청에서 보낸 contentType과 동일한 값
-                    - `Content-Length` : 위 요청에서 보낸 fileSize와 동일한 바이트 수
-                    - `x-amz-server-side-encryption` : 응답의 `requiredHeaders` 값을 그대로 사용
-                    - `x-amz-server-side-encryption-aws-kms-key-id` : 응답의 `requiredHeaders` 값을 그대로 사용
+                    ## PUT 업로드 시 클라이언트가 실어야 하는 헤더
+                    아래 헤더는 presigned URL 서명에 포함되어 있어, 값이 다르면 서명이 깨져 `403 SignatureDoesNotMatch`로 업로드가 거부됩니다.
+                    - `Content-Type` : 위 요청에서 보낸 contentType과 동일한 값을 사용해야 합니다.
+                    - `x-amz-server-side-encryption` : 응답의 `requiredHeaders` 값을 그대로 사용해야 합니다.
+                    - `x-amz-server-side-encryption-aws-kms-key-id` : 응답의 `requiredHeaders` 값을 그대로 사용해야 합니다.
+                    
+                    `Content-Length`는 presigned URL 서명 대상이 아니므로 값이 달라도 403이 발생하지 않습니다.
                     """
     )
     @ApiResponses(value = {
@@ -120,6 +121,17 @@ public interface ImageControllerDocs {
                                                         "result": {
                                                             "fileSize": "fileSize는 0보다 커야 합니다."
                                                         }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "fileSize가 10MB 초과",
+                                            value = """
+                                                    {
+                                                        "isSuccess": false,
+                                                        "code": "IMAGE400_2",
+                                                        "message": "이미지 용량이 제한을 초과했습니다.(최대 10MB)",
+                                                        "result": null
                                                     }
                                                     """
                                     )
