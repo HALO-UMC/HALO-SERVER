@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Component
@@ -44,6 +45,10 @@ public class ImageFinalizeListener {
             log.error("이미지 확정 중 S3 오류 (KMS 키/권한 설정 확인 필요). errorCode={}, statusCode={}, memberChapterId={}, pendingKey={}",
                     e.awsErrorDetails() != null ? e.awsErrorDetails().errorCode() : null,
                     e.statusCode(), event.memberChapterId(), event.pendingKey(), e);
+        } catch (SdkClientException e) {
+            // S3 연결 불가 등 클라이언트 측 오류 로깅
+            log.error("이미지 확정 중 S3 클라이언트 오류 (네트워크/엔드포인트 확인 필요). memberChapterId={}, pendingKey={}",
+                    event.memberChapterId(), event.pendingKey(), e);
         } catch (Exception e) {
             log.warn("이미지 확정 실패 memberChapterId={}, pendingKey={}", event.memberChapterId(), event.pendingKey(), e);
         }

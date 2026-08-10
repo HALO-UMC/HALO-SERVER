@@ -5,6 +5,7 @@ import com.umc.halo.domain.image.dto.*;
 import com.umc.halo.domain.image.enums.*;
 import com.umc.halo.domain.image.exception.*;
 import com.umc.halo.domain.image.exception.code.*;
+import jakarta.annotation.PostConstruct;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.*;
@@ -33,6 +34,13 @@ public class ImageService {
 
     @Value("${spring.cloud.aws.s3.kms-key-id}")
     private String kmsKeyId;
+
+    @PostConstruct
+    void validateKmsKeyId() {
+        if (kmsKeyId == null || kmsKeyId.isBlank()) {
+            throw new IllegalStateException("spring.cloud.aws.s3.kms-key-id는 공백이 아니어야 합니다.");
+        }
+    }
 
     // presigned Url 발급
     public ImageResDTO.CreatePresignedUrl createPresignedUrl(
