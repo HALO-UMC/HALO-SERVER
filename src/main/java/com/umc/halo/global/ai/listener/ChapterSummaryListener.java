@@ -29,7 +29,6 @@ public class ChapterSummaryListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void generateSummary(ChapterCompletedEvent event) {
 
         MemberChapter memberChapter = memberChapterRepository.findById(event.memberChapterId()).orElseThrow();
@@ -56,6 +55,7 @@ public class ChapterSummaryListener {
                             event.emotion()
                     );
             memberChapter.updateSummary(summary);
+            memberChapterRepository.save(memberChapter);
         } catch (AiException e) {
             log.warn("AI 요약 생성 실패 memberChapterId={}", event.memberChapterId(), e);
         }

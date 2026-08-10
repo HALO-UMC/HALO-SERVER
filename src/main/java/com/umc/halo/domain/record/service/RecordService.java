@@ -33,48 +33,33 @@ import java.util.stream.*;
 public class RecordService {
 
     private final MemberRepository memberRepository;
-    private final ChapterRepository chapterRepository;
     private final MemberChapterRepository memberChapterRepository;
     private final SceneCardRepository sceneCardRepository;
-    private final MemberStorybookRepository memberStorybookRepository;
     private final MemberChapterAnswerRepository memberChapterAnswerRepository;
     private final ChapterQuestionRepository chapterQuestionRepository;
-    private final ChapterService chapterService;
-    private final ApplicationEventPublisher applicationEventPublisher;
     private final ImageService imageService;
+    private final ChapterRecordWriter chapterRecordWriter;
+    private final RecordValidationReader recordValidationReader;
 
-    @Transactional
     public RecordResDTO.WriteChapterRecord writeChapterRecord(Long memberId, RecordReqDTO.WriteChapterRecord recordReqDTO) {
+        ValidatedChapterRecord validated = validate(memberId, recordReqDTO);
+        return chapterRecordWriter.persist(memberId, recordReqDTO, validated);
+    }
 
-        // member 조회
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
+    // 조회, coverType 구조 검증, 이미지 소유권 및 실재 여부 검증(S3 HEAD)
+    private ValidatedChapterRecord validate(Long memberId, RecordReqDTO.WriteChapterRecord recordReqDTO) {
 
-        // chapter 조회
-        Chapter chapter = chapterRepository.findById(recordReqDTO.chapterId())
-                .orElseThrow(() -> new ChapterException(ChapterErrorCode.NOT_FOUND_CHAPTER));
-
-        Storybook storybook = chapter.getStorybook();
-
-        // memberStorybook 조회
-        MemberStorybook memberStorybook = memberStorybookRepository.findByStorybookAndMember(storybook, member)
-                .orElseThrow(() -> new ChapterException(ChapterErrorCode.UNOPENED_CHAPTER));
-
-        // memberChapter 조회
-        MemberChapter memberChapter = memberChapterRepository.findByMemberAndChapter(member, chapter);
-
-        // 오늘 이미 장을 완료했는지 검증
-        if (memberStorybook.isCompletedToday()) {
-            throw new RecordException(RecordErrorCode.ALREADY_COMPLETED_TODAY);
-        }
-
-        // 아직 열리지 않은 장 / 이미 완료한 장인지 검증
-        chapterService.validateChapterStatus(
-                member, storybook,
-                chapter.getChapterOrder(), memberChapter, memberStorybook);
+        // member/chapter/memberStorybook 조회
+        RecordValidationReader.LoadedRecordContext context =
+                recordValidationReader.load(memberId, recordReqDTO.chapterId());
+        Chapter chapter = context.chapter();
+        MemberChapter memberChapter = context.memberChapter();
 
         // CoverType 확인
         String imageKey = null;
+        String pendingImageKey = null;
+        String finalImageKey = null;
+        boolean reuseExistingImage = false;
         if (recordReqDTO.coverType() != null) {
             if (recordReqDTO.coverType() == CoverType.IMAGE) {
                 if (recordReqDTO.sceneCardId() != null) {
@@ -83,11 +68,20 @@ public class RecordService {
                 if (recordReqDTO.imageKey() == null || recordReqDTO.imageKey().isBlank()) {
                     throw new RecordException(RecordErrorCode.INCORRECT_COVER_TYPE);
                 }
-                // 기존 기록의 imageKey와 동일하면 그대로 사용
+                // 기존 기록의 imageKey와 동일하면 그대로 사용, 락이 없기에 실제 값은 persist()가 다시 읽어서 채움
                 if (memberChapter != null && imageService.isSameImage(recordReqDTO.imageKey(), memberChapter.getImageKey())) {
-                    imageKey = memberChapter.getImageKey();
+                    reuseExistingImage = true;
                 } else {
-                    imageKey = imageService.finalizeImage(memberId, recordReqDTO.imageKey()).finalKey();
+                    ImageService.FinalizedImage resolvedImage =
+                            imageService.finalizeImage(memberId, recordReqDTO.imageKey());
+                    if (resolvedImage.pendingKey() != null) {
+                        // 존재하는 파일(pendingKey)을 저장, 실제 prefix 제거 후 저장은 커밋 후
+                        imageKey = resolvedImage.pendingKey();
+                        pendingImageKey = resolvedImage.pendingKey();
+                        finalImageKey = resolvedImage.finalKey();
+                    } else {
+                        imageKey = resolvedImage.finalKey();
+                    }
                 }
             } else {
                 if (recordReqDTO.imageKey() != null) {
@@ -137,75 +131,14 @@ public class RecordService {
             }
         }
 
-        // MemberChapter 없으면 생성, 있으면 수정
-        if (memberChapter == null) {
-            try {
-                memberChapter = RecordConverter.toMemberChapter(member, chapter, sceneCard, recordReqDTO, imageKey);
-                memberChapterRepository.save(memberChapter);
-            } catch (DataIntegrityViolationException e) {
-                throw new RecordException(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER);
-            }
-        } else {
-            memberChapter.updateRecord(chapter, sceneCard, recordReqDTO.emotion(),
-                    recordReqDTO.coverType(), imageKey, recordReqDTO.status());
-        }
-
-        final MemberChapter resolvedMemberChapter = memberChapter;
-
-        // answer 저장 (기존 answer 삭제 후 재저장)
-        memberChapterAnswerRepository.deleteAllByMemberChapter(memberChapter);
-
-
-        if (recordReqDTO.answers() != null) {
-            List<Long> chapterQuestionIds = recordReqDTO.answers().stream()
-                    .map(RecordReqDTO.WriteChapterRecord.Answer::chapterQuestionId)
-                    .toList();
-
-            Map<Long, ChapterQuestion> chapterQuestionById = chapterQuestionRepository.findAllById(chapterQuestionIds)
-                    .stream().collect(Collectors.toMap(ChapterQuestion::getId, cq -> cq));
-
-
-            List<MemberChapterAnswer> savedMemberChapterAnswers = recordReqDTO.answers().stream()
-                    .map(a -> {
-
-                        // chapterQuestion 조회
-                        ChapterQuestion chapterQuestion = Optional.ofNullable(chapterQuestionById.get(a.chapterQuestionId()))
-                                .orElseThrow(() -> new ChapterException(ChapterErrorCode.NOT_FOUND_CHAPTER_QUESTION));
-                        if (!chapterQuestion.getChapter().getId().equals(chapter.getId())) {
-                            throw new ChapterException(ChapterErrorCode.UNMATCHED_CHAPTER_QUESTION);
-                        }
-
-                        // answer 저장
-                        return RecordConverter.toMemberChapterAnswer(resolvedMemberChapter, chapterQuestion, a);
-                    })
-                    .toList();
-            memberChapterAnswerRepository.saveAll(savedMemberChapterAnswers);
-        }
-
-        // 장 완료시 ai로 answer 3개 요약
-        boolean isStorybookCompleted = false;
-        if (recordReqDTO.status() == Status.COMPLETED) {
-            // memberStorybook 업데이트
-            memberStorybook.updateCompleted(chapter.getChapterOrder());
-
-            // ai로 answer 3개 요약
-            applicationEventPublisher.publishEvent(new ChapterCompletedEvent(
-                    memberChapter.getId(),
-                    chapter.getStorybook().getTitle(),
-                    chapter.getTitle(),
-                    chapter.getDescription(),
-                    memberChapter.getEmotion().getDescription()
-            ));
-
-            if (chapter.getChapterOrder().equals(10)) {
-                isStorybookCompleted = true;
-            }
-
-        } else {
-            memberStorybook.updateDraft(chapter.getChapterOrder());
-        }
-
-        return RecordConverter.toWriteChapterRecord(memberChapter.getId(), isStorybookCompleted);
+        return new ValidatedChapterRecord(
+                memberChapter != null ? memberChapter.getId() : null,
+                sceneCard != null ? sceneCard.getId() : null,
+                imageKey,
+                pendingImageKey,
+                finalImageKey,
+                reuseExistingImage
+        );
     }
 
     @Transactional(readOnly = true)
