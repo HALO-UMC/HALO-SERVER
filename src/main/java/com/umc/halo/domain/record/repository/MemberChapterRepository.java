@@ -4,9 +4,12 @@ import com.umc.halo.domain.content.chapter.entity.*;
 import com.umc.halo.domain.member.entity.*;
 import com.umc.halo.domain.record.entity.*;
 import com.umc.halo.domain.record.enums.*;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.*;
 import org.springframework.stereotype.*;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.util.*;
@@ -50,4 +53,13 @@ public interface MemberChapterRepository extends JpaRepository<MemberChapter, Lo
     List<MemberChapter> findByMember(Member member);
 
     List<MemberChapter> findAllByMemberIn(List<Member> members);
+    
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select mc from MemberChapter mc where mc.id = :id")
+    Optional<MemberChapter> findByIdForUpdate(@Param("id") Long id);
+
+    @Modifying
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Query("update MemberChapter mc set mc.imageKey = :finalKey where mc.id = :id and mc.imageKey = :pendingKey")
+    int updateImageKeyIfPending(@Param("id") Long id, @Param("pendingKey") String pendingKey, @Param("finalKey") String finalKey);
 }

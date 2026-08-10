@@ -35,12 +35,15 @@ public interface RecordControllerDocs {
                     3. 오늘 이미 이 스토리북의 장을 완료했다면 409(CHAPTER409_1)를 반환합니다.
                     4. 진행 중인 장 순서를 기준으로 요청한 장에 접근 가능한지 검증합니다. 아직 열리지 않은 장이면 403(CHAPTER403_1), 이미 완료한 장이면 403(CHAPTER403_2)을 반환합니다.
                     5. coverType과 imageKey/sceneCardId 조합이 일치하는지 검증합니다. (CHAPTER400_1)
-                    6. coverType이 IMAGE이고 새로 업로드한 imageKey(기존 기록과 다른 값)이면, 소유권 및 S3 실재 여부를 확인하고 최종 imageKey로 확정합니다. 본인이 업로드한 이미지가 아니거나 S3에 존재하지 않으면 404(IMAGE404_1), 용량 제한을 초과했으면 400(IMAGE400_2)을 반환합니다.
+                    6. coverType이 IMAGE이고 새로 업로드한 imageKey(기존 기록과 다른 값)이면, 소유권 및 S3 실재 여부를 확인합니다. 본인이 업로드한 이미지가 아니거나 S3에 존재하지 않으면 404(IMAGE404_1), 용량 제한을 초과했으면 400(IMAGE400_2)을 반환합니다.
                     7. status가 COMPLETED이면 coverType, emotion이 모두 입력되었는지, 장의 모든 질문에 답변했는지 검증합니다. (CHAPTER400_4~6)
                     8. sceneCardId가 있으면 해당 장의 장면 카드가 맞는지 확인합니다. (CHAPTER400_2)
                     9. 장 기록(MemberChapter)을 생성하거나 갱신합니다. 동시 요청으로 중복 저장이 발생하면 409(CHAPTER409_2)를 반환합니다.
                     10. 기존 답변을 삭제하고 요청받은 답변을 새로 저장합니다. 각 답변의 chapterQuestionId가 해당 장의 질문인지 검증합니다. (CHAPTER400_3)
                     11. status가 COMPLETED면 스토리북 진행 상태를 갱신하고 AI 요약 생성 이벤트를 발행합니다. 마지막 장(10번째)이면 isStorybookCompleted를 true로 반환합니다. status가 DRAFT면 임시저장 상태로 진행 정보를 갱신합니다.
+
+                    ## 참고
+                    - 6번에서 새 이미지의 소유권·실재 여부만 확인하고 응답을 반환하며, 실제 최종 위치로의 이동(S3 copy/delete)은 응답 반환 이후 비동기로 처리됩니다. 그 사이에도 imageKey는 항상 실제 조회 가능한 파일을 가리킵니다.
                     """,
             responses = {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(

@@ -20,12 +20,6 @@ import com.umc.halo.domain.notification.entity.Notification;
 import com.umc.halo.domain.notification.enums.NotificationStatus;
 import com.umc.halo.domain.notification.enums.NotificationType;
 import com.umc.halo.domain.notification.repository.NotificationRepository;
-import com.umc.halo.domain.setting.converter.SettingConverter;
-import com.umc.halo.domain.setting.entity.Bgm;
-import com.umc.halo.domain.setting.entity.MemberSetting;
-import com.umc.halo.domain.setting.exception.SettingException;
-import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
-import com.umc.halo.domain.setting.repository.BgmRepository;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.domain.term.repository.MemberTermRepository;
 import com.umc.halo.global.apiPayload.exception.ProjectException;
@@ -34,7 +28,6 @@ import com.umc.halo.global.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,15 +45,14 @@ public class MemberService {
     private final MemberSettingRepository memberSettingRepository;
     private final NotificationRepository notificationRepository;
     private final StorybookCharacterVariantRepository storybookCharacterVariantRepository;
-    private final BgmRepository bgmRepository;
     private final JwtUtil jwtUtil;
     private final HashUtil hashUtil;
     private final OidcProviderFactory oidcProviderFactory;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final MemberWriter memberWriter;
 
     private static final ZoneId ZONE_ID = ZoneId.of("Asia/Seoul");
 
-    @Transactional
     public MemberResDTO.Login login(MemberReqDTO.Login dto) {
 
         Provider provider;
@@ -74,33 +66,8 @@ public class MemberService {
         AbstractOidcProvider oidcProvider = oidcProviderFactory.getProvider(provider);
         OidcUserInfo oidcUserInfo = oidcProvider.verify(dto.providerToken());
 
-        Member member = memberRepository.findByProviderAndProviderIdForUpdate(provider, oidcUserInfo.providerId()).orElse(null);
-        boolean isNewUser = false;
-
-        if (member == null) {
-            try {
-                member = MemberConverter.toMember(provider, oidcUserInfo);
-                memberRepository.save(member);
-
-                Bgm defaultBgm = bgmRepository.findById(1L).orElseThrow(() -> new SettingException(SettingErrorCode.BGM_NOT_FOUND));
-
-                MemberSetting memberSetting = SettingConverter.toMemberSetting(member, defaultBgm);
-                memberSettingRepository.save(memberSetting);
-
-                isNewUser = true;
-            } catch (DataIntegrityViolationException e) {
-                member = memberRepository.findByProviderAndProviderIdForUpdate(provider, oidcUserInfo.providerId()).orElseThrow(() -> e);
-            }
-
-        }
-
-        String accessToken = jwtUtil.createAccessToken(member.getId());
-        String refreshToken = jwtUtil.createRefreshToken(member.getId());
-        member.updateRefreshTokenToHash(hashUtil.hash(refreshToken));
-
-        boolean termsAgreed = memberTermRepository.areAllRequiredTermsAgreed(member.getId());
-
-        return MemberConverter.toLoginResponse(accessToken, refreshToken, isNewUser, member.getOnboardingCompleted(), termsAgreed);
+        // DB에 회원 저장
+        return memberWriter.persist(provider, oidcUserInfo);
     }
 
     @Transactional
