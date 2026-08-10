@@ -36,6 +36,7 @@ jobs:
       S3_BUCKET_NAME: test
       S3_BUCKET_ACCESS_KEY: test
       S3_BUCKET_SECRET_KEY: test
+      FIREBASE_SERVICE_ACCOUNT_B64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
 
     steps:
       - name: 소스 체크아웃
@@ -54,11 +55,6 @@ jobs:
 
       - name: gradlew 실행 권한 부여
         run: chmod +x gradlew
-
-      - name: Firebase service account 생성
-        run: |
-          mkdir -p src/main/resources/firebase
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}' > src/main/resources/firebase/service-account.json
 
       - name: 빌드 및 테스트
         run: ./gradlew build
