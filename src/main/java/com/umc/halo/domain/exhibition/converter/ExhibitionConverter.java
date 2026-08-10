@@ -49,12 +49,13 @@ public class ExhibitionConverter {
     }
 
     public static ExhibitionResDTO.InProgressStorybook toInProgressStorybook(
-            MemberStorybook ms, Integer nextChapterOrder) {
+            MemberStorybook ms, Integer nextChapterOrder, Boolean todayAvailable) {
         Storybook sb = ms.getStorybook();
         return new ExhibitionResDTO.InProgressStorybook(
                 sb.getId(),
                 sb.getTitle(),
-                nextChapterOrder
+                nextChapterOrder,
+                todayAvailable
         );
     }
 
