@@ -14,6 +14,7 @@ import com.umc.halo.domain.setting.exception.SettingException;
 import com.umc.halo.domain.setting.exception.code.SettingErrorCode;
 import com.umc.halo.domain.setting.repository.BgmRepository;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
+import com.umc.halo.global.util.AnniversaryOccurrenceResolver;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -141,7 +142,7 @@ public class SettingService {
                 continue;
             }
 
-            LocalDate nextOccurrence = resolveNextOccurrence(anniversary, today);
+            LocalDate nextOccurrence = AnniversaryOccurrenceResolver.resolveNextOccurrence(anniversary, today);
 
             if(nextOccurrence == null) {
                 continue;
@@ -189,7 +190,7 @@ public class SettingService {
                 continue;
             }
 
-            LocalDate nextOccurrence = resolveNextOccurrence(anniversary, today);
+            LocalDate nextOccurrence = AnniversaryOccurrenceResolver.resolveNextOccurrence(anniversary, today);
 
             if(nextOccurrence == null) {
                 continue;
@@ -259,25 +260,7 @@ public class SettingService {
         List<Notification> notifications = notificationRepository.findByMemberIdAndNotificationTypeAndStatusIn(memberId, NotificationType.COMMON_ANNIVERSARY, List.of(NotificationStatus.SCHEDULED, NotificationStatus.EXPIRED));
 
         for (Notification notification : notifications) {
-                notification.updateSettingEnabled(enabled);
+            notification.updateSettingEnabled(enabled);
         }
-    }
-
-    private LocalDate resolveNextOccurrence(Anniversary anniversary, LocalDate today) {
-
-        LocalDate anniversaryDate = anniversary.getAnniversaryDate();
-
-        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
-            return anniversaryDate.isBefore(today) ? null : anniversaryDate;
-        }
-
-        LocalDate thisYear;
-
-        try {
-            thisYear = anniversaryDate.withYear(today.getYear());
-        } catch (Exception e) {
-            thisYear = LocalDate.of(today.getYear(), 2, 28);
-        }
-        return thisYear.isBefore(today) ? anniversaryDate.withYear(today.getYear() + 1) : thisYear;
     }
 }
