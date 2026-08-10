@@ -15,6 +15,7 @@ import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
 import com.umc.halo.global.ai.event.CreateNextYearNotificationEvent;
 import com.umc.halo.global.ai.exception.AiException;
 import com.umc.halo.global.ai.service.AiService;
+import com.umc.halo.global.util.AnniversaryOccurrenceResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -50,7 +51,7 @@ public class AnniversaryNotificationListener {
         LocalDateTime now = LocalDateTime.now();
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
-        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate());
+        LocalDate nextOccurrence = AnniversaryOccurrenceResolver.resolveNextOccurrence(anniversary, now.toLocalDate());
         if (nextOccurrence == null) {
             return;
         }
@@ -79,7 +80,7 @@ public class AnniversaryNotificationListener {
         LocalDateTime now = LocalDateTime.now();
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
-        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate());
+        LocalDate nextOccurrence = AnniversaryOccurrenceResolver.resolveNextOccurrence(anniversary, now.toLocalDate());
         if (nextOccurrence == null) {
             notificationTransactionService.cancelBoth(anniversary);
             return;
@@ -123,7 +124,7 @@ public class AnniversaryNotificationListener {
         LocalTime notifyTime = memberSetting.getRegularNotificationTime();
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDate nextOccurrence = resolveNextOccurrence(anniversary, now.toLocalDate());
+        LocalDate nextOccurrence = AnniversaryOccurrenceResolver.resolveNextOccurrence(anniversary, now.toLocalDate());
         if (nextOccurrence == null) {
             return;
         }
@@ -173,32 +174,5 @@ public class AnniversaryNotificationListener {
         }
 
         return "오늘의 따뜻한 안녕을 전해보세요.";
-    }
-
-    private LocalDate resolveNextOccurrence(Anniversary anniversary, LocalDate today) {
-
-        LocalDate anniversaryDate = anniversary.getAnniversaryDate();
-
-        if (!Boolean.TRUE.equals(anniversary.getIsRepeated())) {
-            return anniversaryDate.isBefore(today) ? null : anniversaryDate;
-        }
-
-        LocalDate thisYear;
-
-        try {
-            thisYear = anniversaryDate.withYear(today.getYear());
-        } catch (Exception e) {
-            thisYear = LocalDate.of(today.getYear(), 2, 28);
-        }
-
-        if (thisYear.isBefore(today)) {
-            try {
-                return anniversaryDate.withYear(today.getYear() + 1);
-            } catch (Exception e) {
-                return LocalDate.of(today.getYear() + 1, 2, 28);
-            }
-        }
-
-        return thisYear;
     }
 }
