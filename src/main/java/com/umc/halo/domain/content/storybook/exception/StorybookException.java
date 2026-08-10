@@ -7,4 +7,8 @@ public class StorybookException extends ProjectException {
     public StorybookException(BaseErrorCode errorCode) {
         super(errorCode);
     }
+
+    public StorybookException(BaseErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
 }

@@ -1,6 +1,7 @@
 package com.umc.halo.global.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -63,6 +64,18 @@ public class JwtUtil {
     public boolean isValid(String token) {
         try {
             getClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    // 단순 만료로 인해 무효인지 확인 (로그용)
+    public boolean isExpired(String token) {
+        try {
+            getClaims(token);
+            return false;
+        } catch (ExpiredJwtException e) {
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;

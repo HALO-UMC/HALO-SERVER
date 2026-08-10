@@ -7,4 +7,8 @@ public class OnboardingException extends ProjectException {
     public OnboardingException(BaseErrorCode errorCode) {
         super(errorCode);
     }
+
+    public OnboardingException(BaseErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
 }

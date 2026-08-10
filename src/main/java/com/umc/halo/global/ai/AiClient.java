@@ -43,7 +43,7 @@ public class AiClient {
 
             return response.getText();
         } catch (RestClientException e) {
-            throw new AiException(AiErrorCode.AI_GENERATE_FAILED);
+            throw new AiException(AiErrorCode.AI_GENERATE_FAILED, e);
         }
     }
 }

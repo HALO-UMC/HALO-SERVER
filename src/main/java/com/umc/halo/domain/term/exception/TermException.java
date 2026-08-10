@@ -7,4 +7,8 @@ public class TermException extends ProjectException {
     public TermException(BaseErrorCode errorCode) {
         super(errorCode);
     }
+
+    public TermException(BaseErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
+    }
 }
