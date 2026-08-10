@@ -25,14 +25,21 @@ public interface ImageControllerDocs {
                         - Authorization: Bearer {Access Token}
                     - **Body**
                         - contentType : 업로드할 이미지의 MIME 타입 (image/png, image/jpeg, image/jpg, image/webp만 허용)
-                        - fileSize : 업로드할 이미지의 파일 크기(byte, 0보다 큰 값 필수)
+                        - fileSize : 업로드할 이미지의 파일 크기(byte, 0보다 큰 값 필수, 10MB 이하)
                     
                     ## 동작 방식
                     1. Access Token으로 현재 회원을 인증합니다.
-                    2. contentType이 허용된 이미지 형식인지 검증합니다.
-                    3. 회원별로 구분되는 imageKey를 생성합니다.
-                    4. 5분간 유효한 presigned URL을 발급합니다.
+                    2. contentType이 허용된 이미지 형식인지, fileSize가 10MB 이하인지 검증합니다.
+                    3. 회원별로 구분되는 imageKey(`pending/images/{memberId}/{uuid}.{ext}`)를 생성합니다.
+                    4. SSE-KMS로 암호화되도록 서명된, 5분간 유효한 presigned URL을 발급합니다.
                     5. 클라이언트는 이 presignedUrl로 S3에 직접 PUT하여 이미지를 업로드합니다.
+                    
+                    ## PUT 업로드 시 클라이언트가 반드시 실어야 하는 헤더
+                    아래 헤더 중 하나라도 값이 다르면 서명이 깨져 `403 SignatureDoesNotMatch`로 업로드가 거부됩니다.
+                    - `Content-Type` : 위 요청에서 보낸 contentType과 동일한 값
+                    - `Content-Length` : 위 요청에서 보낸 fileSize와 동일한 바이트 수
+                    - `x-amz-server-side-encryption` : 응답의 `requiredHeaders` 값을 그대로 사용
+                    - `x-amz-server-side-encryption-aws-kms-key-id` : 응답의 `requiredHeaders` 값을 그대로 사용
                     """
     )
     @ApiResponses(value = {
@@ -47,8 +54,12 @@ public interface ImageControllerDocs {
                                         "code": "IMAGE200_1",
                                         "message": "presigned URL을 성공적으로 발급했습니다.",
                                         "result": {
-                                            "presignedUrl": "https://halo-bucket.s3.ap-northeast-2.amazonaws.com/images/1/9f1c2e3a-....png?X-Amz-Algorithm=...",
-                                            "imageKey": "images/1/9f1c2e3a-....png",
+                                            "presignedUrl": "https://halo-bucket.s3.ap-northeast-2.amazonaws.com/pending/images/1/9f1c2e3a-....png?X-Amz-Algorithm=...",
+                                            "imageKey": "pending/images/1/9f1c2e3a-....png",
+                                            "requiredHeaders": {
+                                                "x-amz-server-side-encryption": "aws:kms",
+                                                "x-amz-server-side-encryption-aws-kms-key-id": "arn:aws:kms:ap-northeast-2:123456789012:key/1234abcd-56ef-78gh-90ij-klmnopqrstuv"
+                                            },
                                             "expires": 300
                                         }
                                     }
