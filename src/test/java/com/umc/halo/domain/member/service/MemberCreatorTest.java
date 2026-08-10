@@ -5,10 +5,12 @@ import com.umc.halo.domain.member.enums.Provider;
 import com.umc.halo.domain.member.oauth.OidcUserInfo;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.setting.entity.Bgm;
+import com.umc.halo.domain.setting.entity.MemberSetting;
 import com.umc.halo.domain.setting.repository.BgmRepository;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -16,8 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -49,6 +51,12 @@ class MemberCreatorTest {
         assertThat(created.getProvider()).isEqualTo(provider);
         assertThat(created.getProviderId()).isEqualTo(oidcUserInfo.providerId());
         verify(memberRepository).save(created);
-        verify(memberSettingRepository).save(any());
+
+        ArgumentCaptor<MemberSetting> memberSettingCaptor = ArgumentCaptor.forClass(MemberSetting.class);
+        verify(memberSettingRepository, times(1)).save(memberSettingCaptor.capture());
+
+        MemberSetting savedMemberSetting = memberSettingCaptor.getValue();
+        assertThat(savedMemberSetting.getMember()).isEqualTo(created);
+        assertThat(savedMemberSetting.getBgm().getId()).isEqualTo(1L);
     }
 }

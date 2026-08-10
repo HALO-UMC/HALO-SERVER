@@ -145,21 +145,59 @@ class ChapterRecordWriterTest {
     }
 
     @Test
+    void 신규_기록_저장시_이미지키가_충돌하면_DUPLICATE_IMAGE_KEY_예외로_변환하고_이벤트는_발행하지_않는다() {
+        stubCommonLookups();
+        doThrow(new DataIntegrityViolationException(
+                "Duplicate entry 'pending/images/1/a.png' for key 'member_chapter.uk_member_chapter_image_key'"))
+                .when(memberChapterRepository).save(any());
+        RecordReqDTO.WriteChapterRecord dto =
+                new RecordReqDTO.WriteChapterRecord(10L, null, null, null, null, null, Status.DRAFT);
+        ValidatedChapterRecord validated = new ValidatedChapterRecord(null, null, null, null, null);
+
+        assertThatThrownBy(() -> chapterRecordWriter.persist(1L, dto, validated))
+                .isInstanceOf(RecordException.class)
+                .satisfies(e -> assertThat(((RecordException) e).getErrorCode()).isEqualTo(RecordErrorCode.DUPLICATE_IMAGE_KEY));
+
+        verify(applicationEventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    void 기존_기록_수정시_이미지키가_충돌하면_DUPLICATE_IMAGE_KEY_예외로_변환하고_이벤트는_발행하지_않는다() {
+        stubCommonLookups();
+        MemberChapter existing = MemberChapter.builder().id(50L).imageKey("images/1/old.png").build();
+        given(memberChapterRepository.findByIdForUpdate(50L)).willReturn(Optional.of(existing));
+        doThrow(new DataIntegrityViolationException(
+                "Duplicate entry 'images/1/dup.png' for key 'member_chapter.uk_member_chapter_image_key'"))
+                .when(memberChapterRepository).saveAndFlush(existing);
+
+        RecordReqDTO.WriteChapterRecord dto =
+                new RecordReqDTO.WriteChapterRecord(10L, null, null, null, null, null, Status.DRAFT);
+        ValidatedChapterRecord validated = new ValidatedChapterRecord(50L, null, null, null, null);
+
+        assertThatThrownBy(() -> chapterRecordWriter.persist(1L, dto, validated))
+                .isInstanceOf(RecordException.class)
+                .satisfies(e -> assertThat(((RecordException) e).getErrorCode()).isEqualTo(RecordErrorCode.DUPLICATE_IMAGE_KEY));
+
+        verify(applicationEventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
     void 확정_리스너가_먼저_final키로_바꿔놨으면_다시_읽은_값이_final이라_pending으로_되돌리지_않는다() {
         stubCommonLookups();
         MemberChapter existing = MemberChapter.builder().id(50L).imageKey("images/1/a.png").build();
         given(memberChapterRepository.findByIdForUpdate(50L)).willReturn(Optional.of(existing));
 
-        // validate() 시점에 pending 키를 재사용하려 했지만(경합), findById로 다시 읽은
-        // memberChapter.imageKey는 이미 확정 리스너가 final로 갱신해둔 상태
+        // validate() 시점엔 DB가 아직 pending이라 재확정 대상으로 잡혀 pendingImageKey/finalImageKey가 채워졌지만
+        // findByIdForUpdate로 다시 읽은 memberChapter.imageKey는 이미 확정 리스너가 final로 갱신해둔 상태
         RecordReqDTO.WriteChapterRecord dto =
                 new RecordReqDTO.WriteChapterRecord(10L, null, null, null, null, null, Status.DRAFT);
         ValidatedChapterRecord validated =
-                new ValidatedChapterRecord(50L, null, "pending/images/1/a.png", null, null);
+                new ValidatedChapterRecord(50L, null, "pending/images/1/a.png", "pending/images/1/a.png", "images/1/a.png");
 
         chapterRecordWriter.persist(1L, dto, validated);
 
         assertThat(existing.getImageKey()).isEqualTo("images/1/a.png");
+        verify(applicationEventPublisher, never()).publishEvent(any());
     }
 
     @Test

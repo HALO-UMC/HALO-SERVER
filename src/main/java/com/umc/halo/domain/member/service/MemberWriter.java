@@ -46,7 +46,6 @@ public class MemberWriter {
         String accessToken = jwtUtil.createAccessToken(member.getId());
         String refreshToken = jwtUtil.createRefreshToken(member.getId());
         member.updateRefreshTokenToHash(hashUtil.hash(refreshToken));
-        memberRepository.save(member);
 
         boolean termsAgreed = memberTermRepository.areAllRequiredTermsAgreed(member.getId());
 

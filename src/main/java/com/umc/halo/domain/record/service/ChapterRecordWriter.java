@@ -84,15 +84,13 @@ public class ChapterRecordWriter {
                 memberChapter = RecordConverter.toMemberChapter(member, chapter, sceneCard, recordReqDTO, imageKey);
                 memberChapterRepository.save(memberChapter);
             } catch (DataIntegrityViolationException e) {
-                throw new RecordException(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER, e);
+                throw toRecordConflictException(e);
             }
         } else {
             if (validated.reuseExistingImage()) {
                 imageKey = memberChapter.getImageKey();
-            } else if (validated.pendingImageKey() == null
-                    && imageKey != null && imageKey.startsWith(ImageService.PENDING_PREFIX)
-                    && memberChapter.getImageKey() != null
-                    && !memberChapter.getImageKey().startsWith(ImageService.PENDING_PREFIX)) {
+            } else if (validated.finalImageKey() != null
+                    && validated.finalImageKey().equals(memberChapter.getImageKey())) {
                 log.warn("이미지 확정 경합 감지, pending 키로 되돌리지 않음. memberChapterId={}, 시도된키={}, 유지되는키={}",
                         memberChapter.getId(), imageKey, memberChapter.getImageKey());
                 imageKey = memberChapter.getImageKey();
@@ -100,12 +98,19 @@ public class ChapterRecordWriter {
 
             memberChapter.updateRecord(chapter, sceneCard, recordReqDTO.emotion(),
                     recordReqDTO.coverType(), imageKey, recordReqDTO.status());
+
+            // 이 메서드 안에서 제약 위반 잡기 위해 flush
+            try {
+                memberChapterRepository.saveAndFlush(memberChapter);
+            } catch (DataIntegrityViolationException e) {
+                throw toRecordConflictException(e);
+            }
         }
 
         final MemberChapter resolvedMemberChapter = memberChapter;
 
         // 이벤트 발생시켜 prefix 수정 후 저장
-        if (validated.pendingImageKey() != null) {
+        if (validated.pendingImageKey() != null && imageKey.startsWith(ImageService.PENDING_PREFIX)) {
             applicationEventPublisher.publishEvent(new ImageFinalizeRequestedEvent(
                     memberChapter.getId(), validated.pendingImageKey(), validated.finalImageKey()));
         }
@@ -161,5 +166,15 @@ public class ChapterRecordWriter {
         }
 
         return RecordConverter.toWriteChapterRecord(memberChapter.getId(), isStorybookCompleted);
+    }
+
+    // image_key 유니크 제약 위반이면 DUPLICATE_IMAGE_KEY, 그 외는 기존 중복 기록 충돌
+    private RecordException toRecordConflictException(DataIntegrityViolationException e) {
+        Throwable rootCause = e.getMostSpecificCause();
+        String message = rootCause != null ? rootCause.getMessage() : null;
+        if (message != null && message.contains("uk_member_chapter_image_key")) {
+            return new RecordException(RecordErrorCode.DUPLICATE_IMAGE_KEY);
+        }
+        return new RecordException(RecordErrorCode.DUPLICATE_MEMBER_CHAPTER);
     }
 }

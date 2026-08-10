@@ -82,8 +82,8 @@ class AnniversaryNotificationListenerTest {
                 ddayTitleCaptor.capture(), ddayMessageCaptor.capture(), any(),
                 any());
 
-        assertThat(d7TitleCaptor.getValue()).contains("7일");
-        assertThat(ddayTitleCaptor.getValue()).isNotNull();
+        assertThat(d7TitleCaptor.getValue()).isEqualTo("결혼기념일까지 7일 남았어요.");
+        assertThat(ddayTitleCaptor.getValue()).isEqualTo("오늘은 결혼기념일입니다.");
         assertThat(d7MessageCaptor.getValue()).isEqualTo("오늘부터 조금씩 마음을 준비해 보세요.");
         assertThat(ddayMessageCaptor.getValue()).isEqualTo("오늘의 따뜻한 안녕을 전해보세요.");
     }

@@ -84,7 +84,7 @@ class MemberWriterTest {
 
         assertThat(response.isNewUser()).isFalse();
         assertThat(existing.getRefreshTokenHash()).isEqualTo("hashed-refresh-token");
-        verify(memberRepository).save(existing);
+        verify(memberRepository, never()).save(any());
         verify(memberCreator, never()).create(any(), any());
     }
 
