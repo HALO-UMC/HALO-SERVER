@@ -154,8 +154,16 @@ public class StorybookService {
         Map<Long, MemberStorybook> memberStorybookMap = memberStorybookRepository.findByMember(member).stream()
                 .collect(Collectors.toMap(ms -> ms.getStorybook().getId(), Function.identity()));
 
+        // 스토리북별 MemberChapter 배치 조회 (N+1 방지)
+        Map<Long, List<MemberChapter>> memberChaptersByStorybookId = memberChapterRepository
+                .findAllByMemberWithChapter(member).stream()
+                .collect(Collectors.groupingBy(mc -> mc.getChapter().getStorybook().getId()));
+
         List<StorybookResDTO.StorybookSummary> storybookSummaries = storybooks.stream()
-                .map(storybook -> buildStorybookSummary(member, storybook, memberStorybookMap.get(storybook.getId())))
+                .map(storybook -> buildStorybookSummary(
+                        storybook,
+                        memberStorybookMap.get(storybook.getId()),
+                        memberChaptersByStorybookId.getOrDefault(storybook.getId(), List.of())))
                 .toList();
 
         List<StorybookResDTO.SituationalRecommendation> situationalRecommendations =
@@ -232,6 +240,11 @@ public class StorybookService {
         Map<Long, MemberStorybook> memberStorybookMap = memberStorybookRepository.findByMember(member).stream()
                 .collect(Collectors.toMap(ms -> ms.getStorybook().getId(), Function.identity()));
 
+        // 스토리북별 MemberChapter 배치 조회 (N+1 방지)
+        Map<Long, List<MemberChapter>> memberChaptersByStorybookId = memberChapterRepository
+                .findAllByMemberWithChapter(member).stream()
+                .collect(Collectors.groupingBy(mc -> mc.getChapter().getStorybook().getId()));
+
         // 스토리북마다 상태 계산 (목록 조회와 동일한 로직)
         Map<Storybook, StorybookStatus> statusMap = new LinkedHashMap<>();
         Map<Long, List<MemberChapter>> memberChaptersMap = new LinkedHashMap<>();
@@ -242,8 +255,7 @@ public class StorybookService {
                 continue;
             }
 
-            List<MemberChapter> memberChapters =
-                    memberChapterRepository.findByMemberAndChapter_Storybook_Id(member, sb.getId());
+            List<MemberChapter> memberChapters = memberChaptersByStorybookId.getOrDefault(sb.getId(), List.of());
             memberChaptersMap.put(sb.getId(), memberChapters);
 
             boolean completed = isCompleted(sb, memberChapters);
@@ -314,14 +326,11 @@ public class StorybookService {
     }
 
     private StorybookResDTO.StorybookSummary buildStorybookSummary(
-            Member member, Storybook storybook, MemberStorybook memberStorybook) {
+            Storybook storybook, MemberStorybook memberStorybook, List<MemberChapter> memberChapters) {
 
         if (memberStorybook == null) {
             return StorybookConverter.toStorybookSummary(storybook, StorybookStatus.NOT_STARTED, null, null);
         }
-
-        List<MemberChapter> memberChapters =
-                memberChapterRepository.findByMemberAndChapter_Storybook_Id(member, storybook.getId());
 
         boolean completed = isCompleted(storybook, memberChapters);
 
