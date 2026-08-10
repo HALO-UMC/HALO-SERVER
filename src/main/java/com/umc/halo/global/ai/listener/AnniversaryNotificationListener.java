@@ -19,8 +19,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -40,12 +38,13 @@ public class AnniversaryNotificationListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void generateNotificationMessage(AnniversaryCreatedEvent event) {
 
         Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId())
                 .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
-        MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId())
+        Long memberId = anniversaryRepository.findMemberIdById(anniversary.getId())
+                .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
         LocalDateTime now = LocalDateTime.now();
@@ -63,25 +62,18 @@ public class AnniversaryNotificationListener {
         String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
 
-
-        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
-            notificationTransactionService.saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
-        }
-
-        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
-            notificationTransactionService.saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
-        }
-
+        notificationTransactionService.saveOrUpdateBoth(anniversary, memberSetting, d7Title, d7Message, d7, ddayTitle, ddayMessage, dday, now);
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateNotificationMessage(AnniversaryUpdatedEvent event) {
 
         Anniversary anniversary = anniversaryRepository.findById(event.anniversaryId())
                 .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
-        MemberSetting memberSetting = memberSettingRepository.findByMemberId(anniversary.getMember().getId())
+        Long memberId = anniversaryRepository.findMemberIdById(anniversary.getId())
+                .orElseThrow(() -> new AnniversaryException(AnniversaryErrorCode.ANNIVERSARY_NOT_FOUND));
+        MemberSetting memberSetting = memberSettingRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new SettingException(SettingErrorCode.SETTING_NOT_FOUND));
 
         LocalDateTime now = LocalDateTime.now();
@@ -89,8 +81,7 @@ public class AnniversaryNotificationListener {
 
         LocalDate nextOccurrence = anniversary.resolveNextOccurrence(now.toLocalDate());
         if (nextOccurrence == null) {
-            notificationTransactionService.cancelNotification(anniversary, NotificationType.ANNIVERSARY_D7);
-            notificationTransactionService.cancelNotification(anniversary, NotificationType.ANNIVERSARY_DDAY);
+            notificationTransactionService.cancelBoth(anniversary);
             return;
         }
         LocalDateTime d7 = nextOccurrence.minusDays(7).atTime(notifyTime);
@@ -106,9 +97,10 @@ public class AnniversaryNotificationListener {
             ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
         }
 
-        notificationTransactionService.updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7, now, anniversary.getSevenDaysAlarmEnabled());
-        notificationTransactionService.updateOrCancelNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday, now, anniversary.getDayAlarmEnabled());
-
+        notificationTransactionService.updateOrCancelBoth(anniversary, memberSetting,
+                d7Title, d7Message, d7, anniversary.getSevenDaysAlarmEnabled(),
+                ddayTitle, ddayMessage, dday, anniversary.getDayAlarmEnabled(),
+                now);
     }
 
     @Async
@@ -141,15 +133,14 @@ public class AnniversaryNotificationListener {
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
 
-        if (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now)) {
-            String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
-            notificationTransactionService.saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_D7, d7Title, d7Message, d7);
-        }
+        String d7Message = (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now))
+                ? createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7)
+                : null;
+        String ddayMessage = (anniversary.getDayAlarmEnabled() && dday.isAfter(now))
+                ? createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY)
+                : null;
 
-        if (anniversary.getDayAlarmEnabled() && dday.isAfter(now)) {
-            String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
-            notificationTransactionService.saveOrUpdateNotification(anniversary, memberSetting, NotificationType.ANNIVERSARY_DDAY, ddayTitle, ddayMessage, dday);
-        }
+        notificationTransactionService.saveOrUpdateBoth(anniversary, memberSetting, d7Title, d7Message, d7, ddayTitle, ddayMessage, dday, now);
     }
 
     private String createNotificationTitle(Anniversary anniversary, NotificationType notificationType) {
