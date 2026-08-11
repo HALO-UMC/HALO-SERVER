@@ -26,6 +26,7 @@ public class CalendarController implements CalendarControllerDocs {
     private final CalendarService calendarService;
 
     // 월간
+    @Override
     @GetMapping
     public ApiResponse<CalendarMonthlyResDTO.MonthlyInfo> getMonthly(
             @AuthenticationPrincipal Long memberId, @RequestParam int year, @RequestParam int month
@@ -35,6 +36,7 @@ public class CalendarController implements CalendarControllerDocs {
     }
 
     // 일별
+    @Override
     @GetMapping("/{date}")
     public ApiResponse<CalendarDailyResDTO.DailyInfo> getDaily(
             @AuthenticationPrincipal Long memberId, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date

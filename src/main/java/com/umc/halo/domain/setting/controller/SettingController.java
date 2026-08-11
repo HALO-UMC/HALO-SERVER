@@ -20,6 +20,7 @@ public class SettingController implements SettingControllerDocs {
 
     private final SettingService settingService;
 
+    @Override
     @GetMapping("/v1/settings/notifications")
     public ApiResponse<SettingResDTO.NotificationSettings> getNotificationSettings(
             @Parameter(hidden = true)
@@ -29,6 +30,7 @@ public class SettingController implements SettingControllerDocs {
         return ApiResponse.onSuccess(code, settingService.getNotificationSettings(memberId));
     }
 
+    @Override
     @GetMapping("/v1/settings/bgm")
     public ApiResponse<SettingResDTO.BgmSettings> getBgmSettings(
             @Parameter(hidden = true)
@@ -38,12 +40,14 @@ public class SettingController implements SettingControllerDocs {
         return ApiResponse.onSuccess(code, settingService.getBgmSettings(memberId));
     }
 
+    @Override
     @GetMapping("/v1/bgms")
     public ApiResponse<SettingResDTO.Bgms> getBgms() {
         BaseSuccessCode code = SettingSuccessCode.BGM_LIST_GET_SUCCESS;
         return ApiResponse.onSuccess(code, settingService.getBgms());
     }
 
+    @Override
     @PutMapping("/v1/settings/notifications")
     public ApiResponse<SettingResDTO.NotificationSettings> updateNotificationSettings(
             @Parameter(hidden = true)
@@ -54,6 +58,7 @@ public class SettingController implements SettingControllerDocs {
         return ApiResponse.onSuccess(code, settingService.updateNotificationSettings(memberId, dto));
     }
 
+    @Override
     @PutMapping("/v1/settings/bgm")
     public ApiResponse<SettingResDTO.BgmSettings> updateBgmSettings(
             @Parameter(hidden = true)

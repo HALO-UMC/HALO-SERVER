@@ -22,6 +22,7 @@ public class AnniversaryController implements AnniversaryControllerDocs {
 
     private final AnniversaryService anniversaryService;
 
+    @Override
     @GetMapping
     public ApiResponse<AnniversaryResDTO.GetAnniversaries> getAnniversaries(
             @AuthenticationPrincipal Long memberId
@@ -32,6 +33,7 @@ public class AnniversaryController implements AnniversaryControllerDocs {
         );
     }
 
+    @Override
     @PostMapping
     public ResponseEntity<ApiResponse<AnniversaryResDTO.CreateAnniversary>> createAnniversary(
             @AuthenticationPrincipal Long memberId,
@@ -42,6 +44,7 @@ public class AnniversaryController implements AnniversaryControllerDocs {
                 .body(ApiResponse.onSuccess(AnniversarySuccessCode.ANNIVERSARY_CREATE_SUCCESS, result));
     }
 
+    @Override
     @PatchMapping("/{anniversaryId}")
     public ApiResponse<AnniversaryResDTO.UpdateAnniversary> updateAnniversary(
             @AuthenticationPrincipal Long memberId,
@@ -54,6 +57,7 @@ public class AnniversaryController implements AnniversaryControllerDocs {
         );
     }
 
+    @Override
     @DeleteMapping
     public ApiResponse<Void> deleteAnniversaries(
             @AuthenticationPrincipal Long memberId,

@@ -21,6 +21,7 @@ public class MemberDeviceController implements MemberDeviceControllerDocs {
     private final MemberDeviceRepository memberDeviceRepository;
     private final MemberDeviceService memberDeviceService;
 
+    @Override
     @PostMapping
     public ApiResponse<Void> registerDevice(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
@@ -31,6 +32,7 @@ public class MemberDeviceController implements MemberDeviceControllerDocs {
         return ApiResponse.onSuccess(code);
     }
 
+    @Override
     @DeleteMapping
     public ApiResponse<Void> deleteDevice(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId,
