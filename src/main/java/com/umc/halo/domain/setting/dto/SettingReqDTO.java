@@ -11,19 +11,19 @@ public class SettingReqDTO {
 
     @Builder
     public record UpdateNotificationSettings(
-            @NotNull
+            @NotNull(message = "전체 알림 설정 여부는 필수입니다.")
             Boolean isAllNotificationEnabled,
 
-            @NotNull
+            @NotNull(message = "정기 알림 시간은 필수입니다.")
             LocalTime regularNotificationTime,
 
-            @NotNull
+            @NotNull(message = "오늘의 장 알림 설정 여부는 필수입니다.")
             Boolean todayChapterNotificationEnabled,
 
-            @NotNull
+            @NotNull(message = "리텐션 알림 설정 여부는 필수입니다.")
             Boolean retentionNotificationEnabled,
 
-            @NotNull
+            @NotNull(message = "기념일 알림 설정 여부는 필수입니다.")
             Boolean anniversaryNotificationEnabled
     ) {}
 
