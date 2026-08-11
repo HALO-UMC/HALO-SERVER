@@ -18,6 +18,7 @@ spring:
     aws:
       s3:
         bucket: ${S3_BUCKET_NAME}
+        kms-key-id: ${S3_KMS_KEY_ID}
       credentials:
         access-key: ${S3_BUCKET_ACCESS_KEY}
         secret-key: ${S3_BUCKET_SECRET_KEY}
