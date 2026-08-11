@@ -12,7 +12,17 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "notification",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"anniversary_id", "notification_type", "scheduled_at"})
+        uniqueConstraints = @UniqueConstraint(columnNames = {"anniversary_id", "notification_type", "scheduled_at"}),
+        indexes = {
+                @Index(
+                        name = "idx_notification_status_scheduled_at",
+                        columnList = "status, scheduled_at"
+                ),
+                @Index(
+                        name = "idx_notification_status_processing_at",
+                        columnList = "status, processing_at"
+                )
+        }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
