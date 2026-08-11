@@ -357,6 +357,17 @@ public interface SettingControllerDocs {
                                                       }
                                                     }
                                                     """
+                                    ),
+                                    @ExampleObject(
+                                            name = "정기 알림 시간 형식 오류",
+                                            value = """
+                                                    {
+                                                        "isSuccess": false,
+                                                        "code": "COMMON400_1",
+                                                        "message": "잘못된 요청입니다.",
+                                                        "result": "요청 Body 형식이 잘못되었습니다."
+                                                    }
+                                                    """
                                     )
                             }
                     )
