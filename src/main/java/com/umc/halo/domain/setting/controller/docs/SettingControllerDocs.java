@@ -416,22 +416,6 @@ public interface SettingControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400",
-                    description = "존재하지 않는 bgmId가 입력된 경우",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "isSuccess": false,
-                                        "code": "BGM400_4",
-                                        "message": "존재하지 않는 BGM입니다.",
-                                        "result": null
-                                    }
-                                    """
-                            )
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "accessToken 만료·유효하지 않음",
                     content = @Content(
@@ -462,7 +446,23 @@ public interface SettingControllerDocs {
                                     """
                             )
                     )
-            )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "존재하지 않는 bgmId가 입력된 경우",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "isSuccess": false,
+                                        "code": "BGM404_1",
+                                        "message": "존재하지 않는 BGM입니다.",
+                                        "result": null
+                                    }
+                                    """
+                            )
+                    )
+            ),
     })
     ApiResponse<SettingResDTO.BgmSettings> updateBgmSettings(@Parameter(hidden = true) @AuthenticationPrincipal Long memberId, @RequestBody @Valid SettingReqDTO.UpdateBgmSettings dto);
 }
