@@ -62,7 +62,7 @@ public class StorybookController implements StorybookControllerDocs {
         );
     }
 
-    @PostMapping("/storybooks/{storybookId}/start")
+    @PostMapping("/storybooks/{storybookId}/member-storybooks")
     @Override
     public ApiResponse<StorybookResDTO.StartStorybook> startStorybook(
             @PathVariable Long storybookId,
