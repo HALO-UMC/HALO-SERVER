@@ -33,14 +33,13 @@ public class AnniversaryController implements AnniversaryControllerDocs {
     }
 
     @PostMapping
-    public ApiResponse<AnniversaryResDTO.CreateAnniversary> createAnniversary(
+    public ResponseEntity<ApiResponse<AnniversaryResDTO.CreateAnniversary>> createAnniversary(
             @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody AnniversaryReqDTO.Create request
     ) {
-        return ApiResponse.onSuccess(
-                AnniversarySuccessCode.ANNIVERSARY_CREATE_SUCCESS,
-                anniversaryService.createAnniversary(memberId, request)
-        );
+        AnniversaryResDTO.CreateAnniversary result = anniversaryService.createAnniversary(memberId, request);
+        return ResponseEntity.status(AnniversarySuccessCode.ANNIVERSARY_CREATE_SUCCESS.getStatus())
+                .body(ApiResponse.onSuccess(AnniversarySuccessCode.ANNIVERSARY_CREATE_SUCCESS, result));
     }
 
     @PatchMapping("/{anniversaryId}")
