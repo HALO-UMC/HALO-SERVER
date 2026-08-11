@@ -66,7 +66,7 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.onSuccess(code, memberService.getMyInfo(memberId));
     }
 
-    @PostMapping("/v1/members/access")
+    @PatchMapping("/v1/members/last-access-at")
     public ApiResponse<Void> updateAccess(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId
     ) {
