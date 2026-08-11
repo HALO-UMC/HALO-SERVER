@@ -583,22 +583,35 @@ public interface AnniversaryControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
-                    description = "요청 값 누락",
+                    description = "anniversaryIds 누락 또는 빈 목록",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    name = "anniversaryIds 누락",
-                                    value = """
-                                            {
-                                              "isSuccess": false,
-                                              "code": "COMMON400_1",
-                                              "message": "잘못된 요청입니다.",
-                                              "result": {
-                                                "anniversaryIds": "삭제할 기념일 ID 목록은 필수입니다."
-                                              }
-                                            }
-                                            """
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "anniversaryIds 파라미터 자체가 없음",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "anniversaryIds가 빈 목록으로 전달됨",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "anniversaryIds": "삭제할 기념일 ID 목록은 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
