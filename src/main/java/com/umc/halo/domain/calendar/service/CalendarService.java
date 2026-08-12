@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -55,8 +56,26 @@ public class CalendarService {
         List<MemberStorybook> memberStorybooks = memberStorybookRepository
                 .findAllByMemberWithStorybook(member);
 
+        List<MemberChapter> allMemberChapters = memberChapterRepository
+                .findAllByMemberWithChapter(member);
+
+        Map<Long, Long> completedChapterCountByStorybook = allMemberChapters.stream()
+                .filter(mc -> mc.getStatus() == Status.COMPLETED)
+                .collect(Collectors.groupingBy(
+                        mc -> mc.getChapter().getStorybook().getId(),
+                        Collectors.counting()));
+
+        Set<Long> recordedStorybookIds = allMemberChapters.stream()
+                .filter(mc -> mc.getStatus() == Status.COMPLETED)
+                .filter(mc -> mc.getCompletedDate() != null
+                        && !mc.getCompletedDate().isBefore(startDate)
+                        && !mc.getCompletedDate().isAfter(endDate))
+                .map(mc -> mc.getChapter().getStorybook().getId())
+                .collect(Collectors.toSet());
+
         List<MemberStorybook> completedThisMonth = memberStorybooks.stream()
-                .filter(ms -> ms.getLastChapterOrder() == TOTAL_CHAPTER_COUNT)
+                .filter(ms -> completedChapterCountByStorybook
+                        .getOrDefault(ms.getStorybook().getId(), 0L) == TOTAL_CHAPTER_COUNT)
                 .filter(ms -> ms.getLastCompletedDate() != null
                         && !ms.getLastCompletedDate().isBefore(startDate)
                         && !ms.getLastCompletedDate().isAfter(endDate))
@@ -68,10 +87,9 @@ public class CalendarService {
         int completedStorybookCount = completedStorybooks.size();
 
         int inProgressStorybookCount = (int) memberStorybooks.stream()
-                .filter(ms -> ms.getLastChapterOrder() < TOTAL_CHAPTER_COUNT)
-                .filter(ms -> ms.getLastCompletedDate() != null
-                        && !ms.getLastCompletedDate().isBefore(startDate)
-                        && !ms.getLastCompletedDate().isAfter(endDate))
+                .filter(ms -> completedChapterCountByStorybook
+                        .getOrDefault(ms.getStorybook().getId(), 0L) < TOTAL_CHAPTER_COUNT)
+                .filter(ms -> recordedStorybookIds.contains(ms.getStorybook().getId()))
                 .count();
 
 
