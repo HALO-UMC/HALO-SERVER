@@ -36,8 +36,8 @@ public interface CalendarControllerDocs {
                     1. 인증된 회원을 조회합니다.
                     2. 요청한 연/월(year, month)의 시작일~종료일 범위를 계산합니다.
                     3. 해당 기간에 완료(COMPLETED)된 장 기록을 조회하여 완료 페이지 수(completedPageCount)와 기록이 있는 날짜(recordedDays)를 계산합니다.
-                    4. 회원의 전체 스토리북 진행 정보 중 완료(COMPLETED)한 장이 10개(전체 장 수)이고 해당 기간 내 완료된 스토리북을 완성 스토리북(completedStorybooks)으로 집계합니다.
-                    5. 완료한 장이 10개 미만이고 해당 기간 내 기록이 있는 스토리북 수를 진행 중 스토리북 수(inProgressStorybookCount)로 집계합니다.
+                    4. 스토리북별로 완료(COMPLETED)한 장의 총 개수를 집계하여, 10개(전체 장 수)를 모두 완료했고 완성일이 해당 기간 내인 스토리북을 완성 스토리북(completedStorybooks)으로 집계합니다.
+                    5. 스토리북별 완료 장 총 개수가 10개 미만이면서, 해당 기간 내에 완료한 장이 있는 스토리북 수를 진행 중 스토리북 수(inProgressStorybookCount)로 집계합니다.                    
                     6. 계산된 통계와 완성 스토리북 목록을 반환합니다.
                     """
     )
