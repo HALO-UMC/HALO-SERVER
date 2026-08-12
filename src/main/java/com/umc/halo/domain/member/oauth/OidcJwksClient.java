@@ -32,7 +32,7 @@ public class OidcJwksClient {
                     jwksUri,
                     uri -> new RemoteJWKSet<>(
                             createURL(uri),
-                            new DefaultResourceRetriever(CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS)
+                            new DefaultResourceRetriever(CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS, RemoteJWKSet.DEFAULT_HTTP_SIZE_LIMIT)
                     )
             );
 

@@ -75,8 +75,12 @@ jobs:
             echo "FIREBASE_SERVICE_ACCOUNT_B64 시크릿이 비어 있습니다." >&2
             exit 1
           fi
-          if ! printf '%s' "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d > /dev/null 2>&1; then
+          if ! DECODED=$(printf '%s' "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d 2>/dev/null); then
             echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 base64 값이 아닙니다." >&2
+            exit 1
+          fi
+          if ! printf '%s' "$DECODED" | jq -e '.private_key != null and .private_key != ""' > /dev/null 2>&1; then
+            echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 서비스 계정 JSON이 아니거나 private_key 필드가 비어 있습니다." >&2
             exit 1
           fi
 
@@ -386,8 +390,12 @@ jobs:
             echo "FIREBASE_SERVICE_ACCOUNT_B64 시크릿이 비어 있습니다." >&2
             exit 1
           fi
-          if ! printf '%s' "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d > /dev/null 2>&1; then
+          if ! DECODED=$(printf '%s' "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d 2>/dev/null); then
             echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 base64 값이 아닙니다." >&2
+            exit 1
+          fi
+          if ! printf '%s' "$DECODED" | jq -e '.private_key != null and .private_key != ""' > /dev/null 2>&1; then
+            echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 서비스 계정 JSON이 아니거나 private_key 필드가 비어 있습니다." >&2
             exit 1
           fi
 
