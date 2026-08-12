@@ -61,7 +61,6 @@ public interface CalendarControllerDocs {
                                   { "storybookId": 2 },
                                   { "storybookId": 3 }
                                 ]
-                               
                               }
                             }
                             """))
@@ -74,7 +73,9 @@ public interface CalendarControllerDocs {
                               "isSuccess": false,
                               "code": "COMMON400_1",
                               "message": "잘못된 요청입니다.",
-                              "result": { "month": "12 이하여야 합니다" }
+                              "result": {
+                                "month": "12 이하여야 합니다"
+                              }
                             }
                             """))
             ),
@@ -82,14 +83,24 @@ public interface CalendarControllerDocs {
                     responseCode = "401",
                     description = "인증 실패 - JWT 토큰 미삽입/만료",
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            { "isSuccess": false, "code": "AUTH401_1", "message": "토큰이 만료되었습니다.", "result": null }
+                            {
+                                "isSuccess": false,
+                                "code": "AUTH401_1",
+                                "message": "토큰이 만료되었습니다.",
+                                "result": null
+                            }
                             """))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "토큰의 회원이 존재하지 않음 (탈퇴 등)",
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            { "isSuccess": false, "code": "MEMBER404_1", "message": "존재하지 않는 회원입니다.", "result": null }
+                            {
+                                "isSuccess": false,
+                                "code": "MEMBER404_1",
+                                "message": "존재하지 않는 회원입니다.",
+                                "result": null
+                            }
                             """))
             )
     })
@@ -146,14 +157,24 @@ public interface CalendarControllerDocs {
                     responseCode = "401",
                     description = "인증 실패 - JWT 토큰 미삽입/만료",
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            { "isSuccess": false, "code": "AUTH401_1", "message": "토큰이 만료되었습니다.", "result": null }
+                            {
+                                "isSuccess": false,
+                                "code": "AUTH401_1",
+                                "message": "토큰이 만료되었습니다.",
+                                "result": null
+                            }
                             """))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "토큰의 회원이 존재하지 않음 (탈퇴 등)",
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            { "isSuccess": false, "code": "MEMBER404_1", "message": "존재하지 않는 회원입니다.", "result": null }
+                            {
+                                "isSuccess": false,
+                                "code": "MEMBER404_1",
+                                "message": "존재하지 않는 회원입니다.",
+                                "result": null
+                            }
                             """))
             )
 

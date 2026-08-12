@@ -10,13 +10,13 @@ import org.springframework.http.HttpStatus;
 public enum TermSuccessCode implements BaseSuccessCode {
 
     LIST_SUCCESS(HttpStatus.OK,
-            "TERMS200_1",
+            "TERM200_1",
             "약관 목록 조회 성공"),
     AGREE_SUCCESS(HttpStatus.OK,
-            "TERMS200_2",
+            "TERM200_2",
             "약관 동의가 저장되었습니다."),
     AGREEMENT_STATUS_SUCCESS(HttpStatus.OK,
-            "TERMS200_3",
+            "TERM200_3",
             "약관 동의 여부 조회 성공")
     ;
 
