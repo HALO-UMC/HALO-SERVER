@@ -2,6 +2,8 @@ package com.umc.halo.domain.onboarding.service;
 
 import com.umc.halo.domain.content.storybook.entity.StorybookCharacter;
 import com.umc.halo.domain.content.storybook.repository.StorybookCharacterRepository;
+import com.umc.halo.domain.member.exception.MemberException;
+import com.umc.halo.domain.member.exception.code.MemberErrorCode;
 import com.umc.halo.domain.member.repository.MemberRepository;
 import com.umc.halo.domain.onboarding.dto.OnboardingResDTO;
 import com.umc.halo.domain.onboarding.exception.OnboardingException;
@@ -47,7 +49,7 @@ public class OnboardingService {
 
         validateNicknameFormat(nickname);
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new OnboardingException(OnboardingErrorCode.MISSING_REQUIRED_FIELD));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         if (nickname.equals(member.getName())) {
             return OnboardingConverter.toNicknameCheck(true);
@@ -68,7 +70,7 @@ public class OnboardingService {
     public OnboardingResDTO.Save saveOnboarding(Long memberId, OnboardingReqDTO.Save request) {
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new OnboardingException(OnboardingErrorCode.MISSING_REQUIRED_FIELD));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         Integer step = request.step();
         if (step == null || step < 1 || step > 5) {
@@ -160,7 +162,7 @@ public class OnboardingService {
     public OnboardingResDTO.Status getStatus(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new OnboardingException(OnboardingErrorCode.MISSING_REQUIRED_FIELD));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_FOUND));
 
         // 아직 온보딩 시작 전
         if (member.getOnboardingStep() == null) {
