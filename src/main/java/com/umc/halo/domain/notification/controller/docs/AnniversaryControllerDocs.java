@@ -177,19 +177,6 @@ public interface AnniversaryControllerDocs {
                                                     """
                                     ),
                                     @ExampleObject(
-                                            name = "메모 길이 초과",
-                                            value = """
-                                                    {
-                                                      "isSuccess": false,
-                                                      "code": "COMMON400_1",
-                                                      "message": "잘못된 요청입니다.",
-                                                      "result": {
-                                                        "memo": "메모는 50자 이하로 입력해주세요."
-                                                      }
-                                                    }
-                                                    """
-                                    ),
-                                    @ExampleObject(
                                             name = "날짜 누락",
                                             value = """
                                                     {
@@ -250,6 +237,19 @@ public interface AnniversaryControllerDocs {
                                                       "message": "잘못된 요청입니다.",
                                                       "result": {
                                                         "dayAlarmEnabled": "당일 알림 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "메모 길이 초과",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "memo": "메모는 50자 이하로 입력해주세요."
                                                       }
                                                     }
                                                     """
@@ -392,19 +392,6 @@ public interface AnniversaryControllerDocs {
                                                     """
                                     ),
                                     @ExampleObject(
-                                            name = "메모 길이 초과",
-                                            value = """
-                                                    {
-                                                      "isSuccess": false,
-                                                      "code": "COMMON400_1",
-                                                      "message": "잘못된 요청입니다.",
-                                                      "result": {
-                                                        "memo": "메모는 50자 이하로 입력해주세요."
-                                                      }
-                                                    }
-                                                    """
-                                    ),
-                                    @ExampleObject(
                                             name = "날짜 누락",
                                             value = """
                                                     {
@@ -465,6 +452,19 @@ public interface AnniversaryControllerDocs {
                                                       "message": "잘못된 요청입니다.",
                                                       "result": {
                                                         "dayAlarmEnabled": "당일 알림 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "메모 길이 초과",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "memo": "메모는 50자 이하로 입력해주세요."
                                                       }
                                                     }
                                                     """

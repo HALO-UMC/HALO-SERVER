@@ -29,7 +29,7 @@ public class CalendarController implements CalendarControllerDocs {
     @Override
     @GetMapping
     public ApiResponse<CalendarMonthlyResDTO.MonthlyInfo> getMonthly(
-            @AuthenticationPrincipal Long memberId, @RequestParam int year, @RequestParam int month
+            @AuthenticationPrincipal Long memberId, @RequestParam int year, @RequestParam @Min(value = 1, message = "1 이상이어야 합니다.") @Max(value = 12, message = "12 이하여야 합니다.") int month
     ) {
         BaseSuccessCode code = CalendarSuccessCode.MAIN_SUCCESS;
         return ApiResponse.onSuccess(code, calendarService.getMonthly(memberId, year, month));

@@ -288,6 +288,91 @@ public interface SettingControllerDocs {
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "요청 값 누락 또는 형식 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "전체 알림 설정 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "isAllNotificationEnabled": "전체 알림 설정 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "정기 알림 시간 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "regularNotificationTime": "정기 알림 시간은 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "정기 알림 시간 형식 오류",
+                                            value = """
+                                                    {
+                                                        "isSuccess": false,
+                                                        "code": "COMMON400_1",
+                                                        "message": "잘못된 요청입니다.",
+                                                        "result": "요청 Body 형식이 잘못되었습니다."
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "오늘의 장 알림 설정 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "todayChapterNotificationEnabled": "오늘의 장 알림 설정 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "리텐션 알림 설정 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "retentionNotificationEnabled": "리텐션 알림 설정 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "기념일 알림 설정 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "anniversaryNotificationEnabled": "기념일 알림 설정 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "accessToken 만료·유효하지 않음",
                     content = @Content(

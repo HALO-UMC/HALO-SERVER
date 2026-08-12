@@ -38,12 +38,14 @@ public class OnboardingResDTO {
             java.util.List<Long> goalRelationshipTagIds
     ) {}
 
+    @Builder
     public record TagList(
             List<TagInfo> parentPersonalityTags,
             List<TagInfo> currentRelationStateTags,
             List<TagInfo> goalRelationshipTags
     ) {}
 
+    @Builder
     public record TagInfo(
             Long tagId,
             String title,

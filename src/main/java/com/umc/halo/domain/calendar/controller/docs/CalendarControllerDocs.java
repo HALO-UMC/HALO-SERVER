@@ -61,7 +61,6 @@ public interface CalendarControllerDocs {
                                   { "storybookId": 2 },
                                   { "storybookId": 3 }
                                 ]
-                               
                               }
                             }
                             """))
@@ -69,34 +68,66 @@ public interface CalendarControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
                     description = "파라미터 검증 실패 (month가 1~12 범위를 벗어남 등)",
-                    content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            {
-                              "isSuccess": false,
-                              "code": "COMMON400_1",
-                              "message": "잘못된 요청입니다.",
-                              "result": { "month": "12 이하여야 합니다" }
-                            }
-                            """))
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "월 최솟값 범위 오류",
+                                            value = """
+                                                {
+                                                    "isSuccess": false,
+                                                    "code": "COMMON400_1",
+                                                    "message": "잘못된 요청입니다.",
+                                                    "result": {
+                                                        "month": "1 이상이어야 합니다"
+                                                    }
+                                                }
+                                            """
+                                    ),
+                                    @ExampleObject(
+                                            name = "월 최댓값 범위 오류",
+                                            value = """
+                                                {
+                                                    "isSuccess": false,
+                                                    "code": "COMMON400_1",
+                                                    "message": "잘못된 요청입니다.",
+                                                    "result": {
+                                                        "month": "12 이하여야 합니다"
+                                                    }
+                                                }
+                                            """
+                                    )
+                            })
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "인증 실패 - JWT 토큰 미삽입/만료",
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            { "isSuccess": false, "code": "AUTH401_1", "message": "토큰이 만료되었습니다.", "result": null }
+                            {
+                                "isSuccess": false,
+                                "code": "AUTH401_1",
+                                "message": "토큰이 만료되었습니다.",
+                                "result": null
+                            }
                             """))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "토큰의 회원이 존재하지 않음 (탈퇴 등)",
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            { "isSuccess": false, "code": "MEMBER404_1", "message": "존재하지 않는 회원입니다.", "result": null }
+                            {
+                                "isSuccess": false,
+                                "code": "MEMBER404_1",
+                                "message": "존재하지 않는 회원입니다.",
+                                "result": null
+                            }
                             """))
             )
     })
     ApiResponse<CalendarMonthlyResDTO.MonthlyInfo> getMonthly(
             @Parameter(hidden = true) Long memberId,
             @Parameter(description = "조회 연도", example = "2025") @RequestParam int year,
-            @Parameter(description = "조회 월 (1~12)", example = "5") @RequestParam @Min(1) @Max(12) int month
+            @Parameter(description = "조회 월 (1~12)", example = "5") @RequestParam @Min(value = 1, message = "1 이상이어야 합니다.") @Max(value = 12, message = "12 이하여야 합니다.") int month
     );
 
     @Operation(
@@ -146,14 +177,24 @@ public interface CalendarControllerDocs {
                     responseCode = "401",
                     description = "인증 실패 - JWT 토큰 미삽입/만료",
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            { "isSuccess": false, "code": "AUTH401_1", "message": "토큰이 만료되었습니다.", "result": null }
+                            {
+                                "isSuccess": false,
+                                "code": "AUTH401_1",
+                                "message": "토큰이 만료되었습니다.",
+                                "result": null
+                            }
                             """))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "토큰의 회원이 존재하지 않음 (탈퇴 등)",
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(value = """
-                            { "isSuccess": false, "code": "MEMBER404_1", "message": "존재하지 않는 회원입니다.", "result": null }
+                            {
+                                "isSuccess": false,
+                                "code": "MEMBER404_1",
+                                "message": "존재하지 않는 회원입니다.",
+                                "result": null
+                            }
                             """))
             )
 

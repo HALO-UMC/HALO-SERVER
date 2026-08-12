@@ -42,7 +42,7 @@ public interface TermControllerDocs {
                             examples = @ExampleObject(value = """
                                     {
                                       "isSuccess": true,
-                                      "code": "TERMS200_1",
+                                      "code": "TERM200_1",
                                       "message": "약관 목록 조회 성공",
                                       "result": [
                                         { "termId": 1, "title": "서비스 이용약관", "shortDescription": "HALO 서비스 이용 기준", "description": "제1조(목적) 이 약관은 HALO 서비스의 이용 조건을 규정합니다. ...", "isRequired": true, "updatedAt": "2026-07-30T21:51:59" },
@@ -74,8 +74,8 @@ public interface TermControllerDocs {
 
                     ## 동작 방식
                     1. 인증된 회원을 조회합니다. 존재하지 않으면 404(MEMBER404_1)를 반환합니다.
-                    2. 요청받은 약관 ID들이 모두 존재하는지 확인합니다. 존재하지 않으면 404(TERMS404_1)를 반환합니다.
-                    3. 필수 약관(isRequired=true)이 모두 요청에 포함되어 동의(true) 처리되었는지 검증합니다. 하나라도 빠지거나 미동의면 400(TERMS400_1)을 반환합니다.
+                    2. 요청받은 약관 ID들이 모두 존재하는지 확인합니다. 존재하지 않으면 404(TERM404_1)를 반환합니다.
+                    3. 필수 약관(isRequired=true)이 모두 요청에 포함되어 동의(true) 처리되었는지 검증합니다. 하나라도 빠지거나 미동의면 400(TERM400_1)을 반환합니다.
                     4. 이미 동의 이력이 있는 약관은 동의 여부만 갱신하고, 없는 약관은 새로 저장합니다. (동시 요청으로 인한 저장 충돌 시 재조회 후 갱신 처리)
                     5. 처리 결과를 반환합니다.
                     """
@@ -89,7 +89,7 @@ public interface TermControllerDocs {
                             examples = @ExampleObject(value = """
                                     {
                                       "isSuccess": true,
-                                      "code": "TERMS200_2",
+                                      "code": "TERM200_2",
                                       "message": "약관 동의가 저장되었습니다.",
                                       "result": null
                                     }
@@ -98,17 +98,48 @@ public interface TermControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
-                    description = "필수 약관 미동의",
+                    description = "필수 약관 미동의 또는 요청 값 누락/형식 오류",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "TERMS400_1",
-                                      "message": "필수 약관에 모두 동의해야 합니다.",
-                                      "result": null
-                                    }
-                                    """)
+                            examples = {
+                                    @ExampleObject(
+                                            name = "필수 약관 미동의",
+                                            value = """
+                                                {
+                                                    "isSuccess": false,
+                                                    "code": "TERM400_1",
+                                                    "message": "필수 약관에 모두 동의해야 합니다.",
+                                                    "result": null
+                                                }
+                                            """
+                                    ),
+                                    @ExampleObject(
+                                            name = "약관 ID 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "termId": "termId는 필수입니다."
+                                                      }
+                                                    }
+                                            """
+                                    ),
+                                    @ExampleObject(
+                                            name = "동의 여부 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "isAgreed": "isAgreed는 필수입니다."
+                                                      }
+                                                    }
+                                            """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -128,17 +159,33 @@ public interface TermControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
-                    description = "존재하지 않는 약관(TERMS404_1) / 토큰의 회원이 존재하지 않음(MEMBER404_1)",
+                    description = "존재하지 않는 약관(TERM404_1) / 토큰의 회원이 존재하지 않음(MEMBER404_1)",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "TERMS404_1",
-                                      "message": "존재하지 않는 약관입니다.",
-                                      "result": null
-                                    }
-                                    """)
+                            examples = {
+                                    @ExampleObject(
+                                            name = "존재하지 않는 약관",
+                                            value = """
+                                                {
+                                                    "isSuccess": false,
+                                                    "code": "TERM404_1",
+                                                    "message": "존재하지 않는 약관입니다.",
+                                                    "result": null
+                                                }
+                                            """
+                                    ),
+                                    @ExampleObject(
+                                            name = "존재하지 않는 회원",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "MEMBER404_1",
+                                                      "message": "존재하지 않는 회원입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             )
     })
@@ -165,7 +212,7 @@ public interface TermControllerDocs {
                     2. 필수 약관 전체 개수와 회원이 동의한 필수 약관 개수를 비교합니다.
                     3. 두 개수가 같으면 termsAgreed를 true로, 다르면 false로 반환합니다.
                     4. agreements는 현재 등록된 전체 약관을 약관 ID 오름차순으로 반환합니다.
-                    5. 동의 이력이 없는 약관은 isAgreed를 false로 반환합니다.                
+                    5. 동의 이력이 없는 약관은 isAgreed를 false로 반환합니다.
                     """
     )
     @ApiResponses(value = {
@@ -177,7 +224,7 @@ public interface TermControllerDocs {
                             examples = @ExampleObject(value = """
                                     {
                                       "isSuccess": true,
-                                      "code": "TERMS200_3",
+                                      "code": "TERM200_3",
                                       "message": "약관 동의 여부 조회 성공",
                                       "result": {
                                               "termsAgreed": true,
