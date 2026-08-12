@@ -67,6 +67,19 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Firebase 시크릿 유효성 사전검증
+        env:
+          FIREBASE_SERVICE_ACCOUNT_B64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_B64" ]; then
+            echo "FIREBASE_SERVICE_ACCOUNT_B64 시크릿이 비어 있습니다." >&2
+            exit 1
+          fi
+          if ! printf '%s' "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d > /dev/null 2>&1; then
+            echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 base64 값이 아닙니다." >&2
+            exit 1
+          fi
+
       # OIDC로 단기 자격증명 발급 -> 이후 스텝들의 job 환경에 자동으로 노출되므로
       # 아래 "러너 IP 허용"과 job 끝의 "러너 IP 제거" 둘 다 별도 자격증명 설정 없이 aws 호출 가능
       - name: AWS 자격증명 설정 (OIDC)
@@ -364,6 +377,19 @@ jobs:
         uses: actions/checkout@v5
         with:
           persist-credentials: false
+
+      - name: Firebase 시크릿 유효성 사전검증
+        env:
+          FIREBASE_SERVICE_ACCOUNT_B64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_B64" ]; then
+            echo "FIREBASE_SERVICE_ACCOUNT_B64 시크릿이 비어 있습니다." >&2
+            exit 1
+          fi
+          if ! printf '%s' "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d > /dev/null 2>&1; then
+            echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 base64 값이 아닙니다." >&2
+            exit 1
+          fi
 
       - name: AWS 자격증명 설정 (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
