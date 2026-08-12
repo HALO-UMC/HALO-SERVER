@@ -158,18 +158,31 @@ public interface OnboardingControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
-                    description = "존재하지 않는 태그",
+                    description = "존재하지 않는 태그 / 존재하지 않는 회원",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "ONBOARDING404_1",
-                                      "message": "존재하지 않는 태그입니다.",
-                                      "result": null
-                                    }
-                                    """)
-
+                            examples = {
+                                    @ExampleObject(
+                                            name = "존재하지 않는 태그",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ONBOARDING404_1",
+                                                      "message": "존재하지 않는 태그입니다.",
+                                                      "result": null
+                                                    }
+                                                    """),
+                                    @ExampleObject(
+                                            name = "존재하지 않는 회원 (탈퇴 등)",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "MEMBER404_1",
+                                                      "message": "존재하지 않는 회원입니다.",
+                                                      "result": null
+                                                    }
+                                                    """)
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -197,21 +210,6 @@ public interface OnboardingControllerDocs {
                                       "isSuccess": false,
                                       "code": "ONBOARDING500_1",
                                       "message": "배정 가능한 캐릭터가 존재하지 않습니다.",
-                                      "result": null
-                                    }
-                                    """)
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "404",
-                    description = "존재하지 않는 회원 (탈퇴 등)",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "MEMBER404_1",
-                                      "message": "존재하지 않는 회원입니다.",
                                       "result": null
                                     }
                                     """)
