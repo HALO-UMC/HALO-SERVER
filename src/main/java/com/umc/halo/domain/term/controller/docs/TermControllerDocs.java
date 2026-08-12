@@ -98,25 +98,21 @@ public interface TermControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
-                    description = "필수 약관 미동의",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "TERM400_1",
-                                      "message": "필수 약관에 모두 동의해야 합니다.",
-                                      "result": null
-                                    }
-                                    """)
-                    )
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400",
-                    description = "요청 값 누락 또는 형식 오류",
+                    description = "필수 약관 미동의 또는 요청 값 누락/형식 오류",
                     content = @Content(
                             mediaType = "application/json",
                             examples = {
+                                    @ExampleObject(
+                                            name = "필수 약관 미동의",
+                                            value = """
+                                                {
+                                                    "isSuccess": false,
+                                                    "code": "TERM400_1",
+                                                    "message": "필수 약관에 모두 동의해야 합니다.",
+                                                    "result": null
+                                                }
+                                            """
+                                    ),
                                     @ExampleObject(
                                             name = "약관 ID 누락",
                                             value = """
@@ -128,7 +124,7 @@ public interface TermControllerDocs {
                                                         "termId": "termId는 필수입니다."
                                                       }
                                                     }
-                                                    """
+                                            """
                                     ),
                                     @ExampleObject(
                                             name = "동의 여부 누락",
@@ -141,7 +137,7 @@ public interface TermControllerDocs {
                                                         "isAgreed": "isAgreed는 필수입니다."
                                                       }
                                                     }
-                                                    """
+                                            """
                                     )
                             }
                     )
@@ -166,14 +162,30 @@ public interface TermControllerDocs {
                     description = "존재하지 않는 약관(TERM404_1) / 토큰의 회원이 존재하지 않음(MEMBER404_1)",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "TERM404_1",
-                                      "message": "존재하지 않는 약관입니다.",
-                                      "result": null
-                                    }
-                                    """)
+                            examples = {
+                                    @ExampleObject(
+                                            name = "존재하지 않는 약관",
+                                            value = """
+                                                {
+                                                    "isSuccess": false,
+                                                    "code": "TERM404_1",
+                                                    "message": "존재하지 않는 약관입니다.",
+                                                    "result": null
+                                                }
+                                            """
+                                    ),
+                                    @ExampleObject(
+                                            name = "존재하지 않는 회원",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "MEMBER404_1",
+                                                      "message": "존재하지 않는 회원입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             )
     })
