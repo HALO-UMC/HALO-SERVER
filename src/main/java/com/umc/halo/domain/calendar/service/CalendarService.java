@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -55,8 +56,16 @@ public class CalendarService {
         List<MemberStorybook> memberStorybooks = memberStorybookRepository
                 .findAllByMemberWithStorybook(member);
 
+        Map<Long, Long> completedChapterCountByStorybook = memberChapterRepository
+                .findAllByMemberWithChapter(member).stream()
+                .filter(mc -> mc.getStatus() == Status.COMPLETED)
+                .collect(Collectors.groupingBy(
+                        mc -> mc.getChapter().getStorybook().getId(),
+                        Collectors.counting()));
+
         List<MemberStorybook> completedThisMonth = memberStorybooks.stream()
-                .filter(ms -> ms.getLastChapterOrder() == TOTAL_CHAPTER_COUNT)
+                .filter(ms -> completedChapterCountByStorybook
+                        .getOrDefault(ms.getStorybook().getId(), 0L) == TOTAL_CHAPTER_COUNT)
                 .filter(ms -> ms.getLastCompletedDate() != null
                         && !ms.getLastCompletedDate().isBefore(startDate)
                         && !ms.getLastCompletedDate().isAfter(endDate))
@@ -68,7 +77,8 @@ public class CalendarService {
         int completedStorybookCount = completedStorybooks.size();
 
         int inProgressStorybookCount = (int) memberStorybooks.stream()
-                .filter(ms -> ms.getLastChapterOrder() < TOTAL_CHAPTER_COUNT)
+                .filter(ms -> completedChapterCountByStorybook
+                        .getOrDefault(ms.getStorybook().getId(), 0L) < TOTAL_CHAPTER_COUNT)
                 .filter(ms -> ms.getLastCompletedDate() != null
                         && !ms.getLastCompletedDate().isBefore(startDate)
                         && !ms.getLastCompletedDate().isAfter(endDate))
