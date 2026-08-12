@@ -6,6 +6,7 @@ import com.nimbusds.jose.jwk.JWKSelector;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.RemoteJWKSet;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jose.util.DefaultResourceRetriever;
 import com.umc.halo.domain.member.exception.code.AuthErrorCode;
 import com.umc.halo.global.apiPayload.exception.ProjectException;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class OidcJwksClient {
 
+    private static final int CONNECT_TIMEOUT_MS = 3000;
+    private static final int READ_TIMEOUT_MS = 5000;
+
     private final ConcurrentHashMap<String, RemoteJWKSet<SecurityContext>> jwkSources = new ConcurrentHashMap<>();
 
     public RSAPublicKey getPublicKey(String jwksUri, String kid) {
@@ -27,7 +31,8 @@ public class OidcJwksClient {
             JWKSource<SecurityContext> jwkSource = jwkSources.computeIfAbsent(
                     jwksUri,
                     uri -> new RemoteJWKSet<>(
-                            createURL(uri)
+                            createURL(uri),
+                            new DefaultResourceRetriever(CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS)
                     )
             );
 
