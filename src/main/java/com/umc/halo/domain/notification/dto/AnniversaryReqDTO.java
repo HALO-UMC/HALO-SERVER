@@ -1,12 +1,10 @@
 package com.umc.halo.domain.notification.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
-import java.util.List;
 
 public class AnniversaryReqDTO {
 
@@ -57,12 +55,6 @@ public class AnniversaryReqDTO {
 
             @Size(max = 50, message = "메모는 50자 이하로 입력해주세요.")
             String memo
-    ) {
-    }
-
-    public record Delete(
-            @NotEmpty(message = "삭제할 기념일 ID 목록은 필수입니다.")
-            List<Long> anniversaryIds
     ) {
     }
 }

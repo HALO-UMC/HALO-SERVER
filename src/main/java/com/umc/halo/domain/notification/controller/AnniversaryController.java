@@ -7,9 +7,13 @@ import com.umc.halo.domain.notification.exception.code.AnniversarySuccessCode;
 import com.umc.halo.domain.notification.service.AnniversaryService;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/anniversary")
@@ -18,6 +22,7 @@ public class AnniversaryController implements AnniversaryControllerDocs {
 
     private final AnniversaryService anniversaryService;
 
+    @Override
     @GetMapping
     public ApiResponse<AnniversaryResDTO.GetAnniversaries> getAnniversaries(
             @AuthenticationPrincipal Long memberId
@@ -28,17 +33,18 @@ public class AnniversaryController implements AnniversaryControllerDocs {
         );
     }
 
+    @Override
     @PostMapping
-    public ApiResponse<AnniversaryResDTO.CreateAnniversary> createAnniversary(
+    public ResponseEntity<ApiResponse<AnniversaryResDTO.CreateAnniversary>> createAnniversary(
             @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody AnniversaryReqDTO.Create request
     ) {
-        return ApiResponse.onSuccess(
-                AnniversarySuccessCode.ANNIVERSARY_CREATE_SUCCESS,
-                anniversaryService.createAnniversary(memberId, request)
-        );
+        AnniversaryResDTO.CreateAnniversary result = anniversaryService.createAnniversary(memberId, request);
+        return ResponseEntity.status(AnniversarySuccessCode.ANNIVERSARY_CREATE_SUCCESS.getStatus())
+                .body(ApiResponse.onSuccess(AnniversarySuccessCode.ANNIVERSARY_CREATE_SUCCESS, result));
     }
 
+    @Override
     @PatchMapping("/{anniversaryId}")
     public ApiResponse<AnniversaryResDTO.UpdateAnniversary> updateAnniversary(
             @AuthenticationPrincipal Long memberId,
@@ -51,12 +57,13 @@ public class AnniversaryController implements AnniversaryControllerDocs {
         );
     }
 
+    @Override
     @DeleteMapping
     public ApiResponse<Void> deleteAnniversaries(
             @AuthenticationPrincipal Long memberId,
-            @Valid @RequestBody AnniversaryReqDTO.Delete request
+            @RequestParam @NotEmpty(message = "삭제할 기념일 ID 목록은 필수입니다.") List<Long> anniversaryIds
     ) {
-        anniversaryService.deleteAnniversaries(memberId, request.anniversaryIds());
+        anniversaryService.deleteAnniversaries(memberId, anniversaryIds);
         return ApiResponse.onSuccess(AnniversarySuccessCode.ANNIVERSARY_DELETE_SUCCESS);
     }
 }

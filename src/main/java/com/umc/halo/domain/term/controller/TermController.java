@@ -26,6 +26,7 @@ public class TermController implements TermControllerDocs {
     private final TermService termService;
 
     // 약관 목록 조회
+    @Override
     @GetMapping
     public ApiResponse<List<TermResDTO.Info>> getTerms() {
         BaseSuccessCode code = TermSuccessCode.LIST_SUCCESS;
@@ -33,6 +34,7 @@ public class TermController implements TermControllerDocs {
     }
 
     // 약관 동의 처리
+    @Override
     @PostMapping("/agreements")
     public ApiResponse<Void> agree(
             @AuthenticationPrincipal Long memberId,
@@ -44,6 +46,7 @@ public class TermController implements TermControllerDocs {
     }
 
     // 약관 동의 여부 조회
+    @Override
     @GetMapping("/agreements")
     public ApiResponse<TermResDTO.AgreementStatus> getAgreementStatus(
             @AuthenticationPrincipal Long memberId
