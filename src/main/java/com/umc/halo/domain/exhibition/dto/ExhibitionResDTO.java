@@ -1,10 +1,13 @@
 package com.umc.halo.domain.exhibition.dto;
 
+import lombok.Builder;
+
 import java.time.LocalDate;
 import java.util.List;
 
 public class ExhibitionResDTO {
 
+    @Builder
     public record MainInfo(
             Stats stats,
             Long currentStorybookId,
@@ -14,12 +17,14 @@ public class ExhibitionResDTO {
     ) {
     }
 
+    @Builder
     public record Stats(
             Integer collectedCharacterCount,
             Integer inProgressStorybookCount
     ) {
     }
 
+    @Builder
     public record CompletedStorybook(
             Long storybookId,
             String title,
@@ -31,6 +36,7 @@ public class ExhibitionResDTO {
     ) {
     }
 
+    @Builder
     public record InProgressStorybook(
             Long storybookId,
             String title,
@@ -39,6 +45,7 @@ public class ExhibitionResDTO {
     ) {
     }
 
+    @Builder
     public record RecommendedStorybook(
             Long storybookId,
             String title,

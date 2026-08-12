@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/relationships")
 public class RelationshipController implements RelationshipControllerDocs {
     private final RelationshipService relationshipService;
+
+    @Override
     @GetMapping
     public ApiResponse<RelationshipResDTO.Info> getRelationshipInfo(
             @AuthenticationPrincipal Long memberId

@@ -6,15 +6,21 @@ import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.model.*;
 
 import java.time.*;
+import java.util.Map;
 
 public class ImageConverter {
 
-    public static PutObjectRequest toPutObjectRequest(String bucket, String imageKey, ImageContentType contentType, long fileSize) {
+    public static final String SSE_HEADER = "x-amz-server-side-encryption";
+    public static final String SSE_KMS_KEY_ID_HEADER = "x-amz-server-side-encryption-aws-kms-key-id";
+
+    public static PutObjectRequest toPutObjectRequest(String bucket, String imageKey, ImageContentType contentType, long fileSize, String kmsKeyId) {
         return PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(imageKey)
                 .contentType(contentType.getMimeType())
                 .contentLength(fileSize)
+                .serverSideEncryption(ServerSideEncryption.AWS_KMS)
+                .ssekmsKeyId(kmsKeyId)
                 .build();
     }
 
@@ -26,18 +32,24 @@ public class ImageConverter {
     }
 
     public static ImageResDTO.CreatePresignedUrl toCreatePresignedUrl(
-            PresignedPutObjectRequest presignedPutObjectRequest, String imageKey, Duration expiration) {
+            PresignedPutObjectRequest presignedPutObjectRequest, String imageKey, Duration expiration, String kmsKeyId) {
         return ImageResDTO.CreatePresignedUrl.builder()
                 .presignedUrl(presignedPutObjectRequest.url().toString())
                 .imageKey(imageKey)
+                .requiredHeaders(Map.of(
+                        SSE_HEADER, ServerSideEncryption.AWS_KMS.toString(),
+                        SSE_KMS_KEY_ID_HEADER, kmsKeyId
+                ))
                 .expires((int) expiration.toSeconds())
                 .build();
     }
 
-    public static CopyObjectRequest toCopyObjectRequest(String bucket, String imageKey, String finalKey) {
+    public static CopyObjectRequest toCopyObjectRequest(String bucket, String imageKey, String finalKey, String kmsKeyId) {
         return CopyObjectRequest.builder()
                 .sourceBucket(bucket)
                 .sourceKey(imageKey)
+                .serverSideEncryption(ServerSideEncryption.AWS_KMS)
+                .ssekmsKeyId(kmsKeyId)
                 .destinationBucket(bucket)
                 .destinationKey(finalKey)
                 .build();

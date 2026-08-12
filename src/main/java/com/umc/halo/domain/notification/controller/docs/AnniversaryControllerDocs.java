@@ -10,9 +10,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 @Tag(name = "기념일 API")
 public interface AnniversaryControllerDocs {
@@ -172,19 +177,6 @@ public interface AnniversaryControllerDocs {
                                                     """
                                     ),
                                     @ExampleObject(
-                                            name = "메모 길이 초과",
-                                            value = """
-                                                    {
-                                                      "isSuccess": false,
-                                                      "code": "COMMON400_1",
-                                                      "message": "잘못된 요청입니다.",
-                                                      "result": {
-                                                        "memo": "메모는 50자 이하로 입력해주세요."
-                                                      }
-                                                    }
-                                                    """
-                                    ),
-                                    @ExampleObject(
                                             name = "날짜 누락",
                                             value = """
                                                     {
@@ -250,6 +242,19 @@ public interface AnniversaryControllerDocs {
                                                     """
                                     ),
                                     @ExampleObject(
+                                            name = "메모 길이 초과",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "memo": "메모는 50자 이하로 입력해주세요."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
                                             name = "존재하지 않는 음력 날짜",
                                             value = """
                                                     {
@@ -305,7 +310,7 @@ public interface AnniversaryControllerDocs {
                     )
             )
     })
-    ApiResponse<AnniversaryResDTO.CreateAnniversary> createAnniversary(
+    ResponseEntity<ApiResponse<AnniversaryResDTO.CreateAnniversary>> createAnniversary(
             @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody AnniversaryReqDTO.Create request
     );
@@ -387,19 +392,6 @@ public interface AnniversaryControllerDocs {
                                                     """
                                     ),
                                     @ExampleObject(
-                                            name = "메모 길이 초과",
-                                            value = """
-                                                    {
-                                                      "isSuccess": false,
-                                                      "code": "COMMON400_1",
-                                                      "message": "잘못된 요청입니다.",
-                                                      "result": {
-                                                        "memo": "메모는 50자 이하로 입력해주세요."
-                                                      }
-                                                    }
-                                                    """
-                                    ),
-                                    @ExampleObject(
                                             name = "날짜 누락",
                                             value = """
                                                     {
@@ -460,6 +452,19 @@ public interface AnniversaryControllerDocs {
                                                       "message": "잘못된 요청입니다.",
                                                       "result": {
                                                         "dayAlarmEnabled": "당일 알림 여부는 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "메모 길이 초과",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "memo": "메모는 50자 이하로 입력해주세요."
                                                       }
                                                     }
                                                     """
@@ -550,10 +555,9 @@ public interface AnniversaryControllerDocs {
                     
                     ## 요청 형식
                     - **Header**
-                        - Content-Type: application/json
                         - Authorization: Bearer {accessToken}
-                    - **Body**
-                        - anniversaryIds : 삭제할 기념일 ID 목록 (필수, 예: [1, 2, 5])
+                    - **Query Parameter**
+                        - anniversaryIds : 삭제할 기념일 ID 목록 (필수, 예: ?anniversaryIds=1&anniversaryIds=2)
                     
                     ## 동작 방식
                     1. 요청한 ID 목록이 모두 존재하는지 확인하고, 하나라도 존재하지 않으면 404 예외를 반환합니다.
@@ -579,22 +583,35 @@ public interface AnniversaryControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
-                    description = "요청 값 누락",
+                    description = "anniversaryIds 누락 또는 빈 목록",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    name = "anniversaryIds 누락",
-                                    value = """
-                                            {
-                                              "isSuccess": false,
-                                              "code": "COMMON400_1",
-                                              "message": "잘못된 요청입니다.",
-                                              "result": {
-                                                "anniversaryIds": "삭제할 기념일 ID 목록은 필수입니다."
-                                              }
-                                            }
-                                            """
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "anniversaryIds 파라미터 자체가 없음",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": null
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "anniversaryIds가 빈 목록으로 전달됨",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "COMMON400_1",
+                                                      "message": "잘못된 요청입니다.",
+                                                      "result": {
+                                                        "anniversaryIds": "삭제할 기념일 ID 목록은 필수입니다."
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -646,6 +663,6 @@ public interface AnniversaryControllerDocs {
     })
     ApiResponse<Void> deleteAnniversaries(
             @AuthenticationPrincipal Long memberId,
-            @Valid @RequestBody AnniversaryReqDTO.Delete request
+            @RequestParam @NotEmpty(message = "삭제할 기념일 ID 목록은 필수입니다.") List<Long> anniversaryIds
     );
 }

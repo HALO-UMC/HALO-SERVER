@@ -5,6 +5,7 @@ import com.umc.halo.domain.image.dto.*;
 import com.umc.halo.domain.image.enums.*;
 import com.umc.halo.domain.image.exception.*;
 import com.umc.halo.domain.image.exception.code.*;
+import jakarta.annotation.PostConstruct;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.*;
@@ -31,6 +32,16 @@ public class ImageService {
     @Value("${spring.cloud.aws.s3.bucket}")
     private String bucket;
 
+    @Value("${spring.cloud.aws.s3.kms-key-id}")
+    private String kmsKeyId;
+
+    @PostConstruct
+    void validateKmsKeyId() {
+        if (kmsKeyId == null || kmsKeyId.isBlank()) {
+            throw new IllegalStateException("spring.cloud.aws.s3.kms-key-id는 공백이 아니어야 합니다.");
+        }
+    }
+
     // presigned Url 발급
     public ImageResDTO.CreatePresignedUrl createPresignedUrl(
             Long memberId, ImageReqDTO.CreatePresignedUrl dto) {
@@ -42,11 +53,11 @@ public class ImageService {
         ImageContentType contentType = ImageContentType.from(dto.contentType());
         String imageKey = generateImageKey(memberId, contentType);
 
-        PutObjectRequest putObjectRequest = ImageConverter.toPutObjectRequest(bucket, imageKey, contentType, dto.fileSize());
+        PutObjectRequest putObjectRequest = ImageConverter.toPutObjectRequest(bucket, imageKey, contentType, dto.fileSize(), kmsKeyId);
         PutObjectPresignRequest putPresignRequest = ImageConverter.toPutObjectPresignRequest(EXPIRATION, putObjectRequest);
         PresignedPutObjectRequest presignedPutObjectRequest = s3Presigner.presignPutObject(putPresignRequest);
 
-        return ImageConverter.toCreatePresignedUrl(presignedPutObjectRequest, imageKey, EXPIRATION);
+        return ImageConverter.toCreatePresignedUrl(presignedPutObjectRequest, imageKey, EXPIRATION, kmsKeyId);
     }
 
     // imageKey 발급 (presigned URL 발급시, pending/images/)
@@ -119,7 +130,7 @@ public class ImageService {
 
     // pending/images -> images 복제
     public void copyToFinal(String imageKey, String finalKey) {
-        CopyObjectRequest copyObjectRequest = ImageConverter.toCopyObjectRequest(bucket, imageKey, finalKey);
+        CopyObjectRequest copyObjectRequest = ImageConverter.toCopyObjectRequest(bucket, imageKey, finalKey, kmsKeyId);
         s3Client.copyObject(copyObjectRequest);
     }
 

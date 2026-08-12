@@ -7,6 +7,7 @@ import com.umc.halo.domain.content.storybook.exception.code.StorybookSuccessCode
 import com.umc.halo.domain.content.storybook.service.StorybookService;
 import com.umc.halo.global.apiPayload.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,15 +63,14 @@ public class StorybookController implements StorybookControllerDocs {
         );
     }
 
-    @PostMapping("/storybooks/{storybookId}/start")
+    @PostMapping("/storybooks/{storybookId}/member-storybooks")
     @Override
-    public ApiResponse<StorybookResDTO.StartStorybook> startStorybook(
+    public ResponseEntity<ApiResponse<StorybookResDTO.StartStorybook>> startStorybook(
             @PathVariable Long storybookId,
             @AuthenticationPrincipal Long memberId
     ) {
-        return ApiResponse.onSuccess(
-                StorybookSuccessCode.START_STORYBOOK,
-                storybookService.startStorybook(storybookId, memberId)
-        );
+        StorybookResDTO.StartStorybook result = storybookService.startStorybook(storybookId, memberId);
+        return ResponseEntity.status(StorybookSuccessCode.START_STORYBOOK.getStatus())
+                .body(ApiResponse.onSuccess(StorybookSuccessCode.START_STORYBOOK, result));
     }
 }

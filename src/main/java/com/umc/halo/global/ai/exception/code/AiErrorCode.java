@@ -11,19 +11,19 @@ public enum AiErrorCode implements BaseErrorCode {
 
     AI_RESPONSE_EMPTY(
             HttpStatus.BAD_GATEWAY,
-            "AI500_1",
+            "AI502_1",
             "AI 응답이 없습니다."
     ),
 
     AI_RESPONSE_INVALID(
             HttpStatus.BAD_GATEWAY,
-            "AI500_2",
+            "AI502_2",
             "AI 응답 형식이 올바르지 않습니다."
     ),
 
     AI_GENERATE_FAILED(
             HttpStatus.BAD_GATEWAY,
-            "AI500_3",
+            "AI502_3",
             "AI 요약 생성에 실패했습니다."
     );
 

@@ -36,6 +36,7 @@ jobs:
       S3_BUCKET_NAME: test
       S3_BUCKET_ACCESS_KEY: test
       S3_BUCKET_SECRET_KEY: test
+      S3_KMS_KEY_ID: test
       FIREBASE_SERVICE_ACCOUNT_B64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
 
     steps:

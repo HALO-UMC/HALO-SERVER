@@ -62,16 +62,47 @@ public interface MemberDeviceControllerDocs {
                     description = "요청값 누락",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                        {
-                                            "isSuccess": false,
-                                            "code": "COMMON400_1",
-                                            "message": "잘못된 요청입니다.",
-                                            "result": {
-                                                "fcmToken": "fcmToken은 필수입니다."
-                                            }
-                                        }
-                                    """)
+                            examples = {
+                                    @ExampleObject(
+                                            name = "FCM 토큰 누락",
+                                            value = """
+                                                {
+                                                    "isSuccess": false,
+                                                    "code": "COMMON400_1",
+                                                    "message": "잘못된 요청입니다.",
+                                                    "result": {
+                                                        "fcmToken": "fcmToken은 필수입니다."
+                                                    }
+                                                }
+                                            """
+                                    ),
+                                    @ExampleObject(
+                                            name = "디바이스 타입 누락",
+                                            value = """
+                                                {
+                                                    "isSuccess": false,
+                                                    "code": "COMMON400_1",
+                                                    "message": "잘못된 요청입니다.",
+                                                    "result": {
+                                                        "deviceType": "deviceType은 필수입니다."
+                                                    }
+                                                }
+                                            """
+                                    ),
+                                    @ExampleObject(
+                                            name = "디바이스 식별자 누락",
+                                            value = """
+                                                {
+                                                    "isSuccess": false,
+                                                    "code": "COMMON400_1",
+                                                    "message": "잘못된 요청입니다.",
+                                                    "result": {
+                                                        "deviceIdentifier": "deviceIdentifier는 필수입니다."
+                                                    }
+                                                }
+                                            """
+                                    )
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(

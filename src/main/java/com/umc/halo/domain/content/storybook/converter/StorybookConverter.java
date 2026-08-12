@@ -94,16 +94,6 @@ public class StorybookConverter {
                 .build();
     }
 
-    public static StorybookResDTO.RecommendedStorybook toRecommendedStorybook(StorybookTag st, String reasonText) {
-        return StorybookResDTO.RecommendedStorybook.builder()
-                .storybookId(st.getStorybook().getId())
-                .title(st.getStorybook().getTitle())
-                .shortDescription(st.getStorybook().getShortDescription())
-                .imageUrl(st.getStorybook().getImageUrl())
-                .recommendationReasonText(reasonText)
-                .build();
-    }
-
     public static StorybookResDTO.RecommendedStorybook toRecommendedStorybook(Storybook sb, String reasonText) {
         return StorybookResDTO.RecommendedStorybook.builder()
                 .storybookId(sb.getId())

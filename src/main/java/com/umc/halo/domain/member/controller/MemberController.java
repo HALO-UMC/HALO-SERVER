@@ -21,6 +21,7 @@ public class MemberController implements MemberControllerDocs {
 
     private final MemberService memberService;
 
+    @Override
     @PostMapping("/v1/auth/login")
     public ApiResponse<MemberResDTO.Login> login(
             @RequestBody @Valid MemberReqDTO.Login dto
@@ -29,6 +30,7 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.onSuccess(code, memberService.login(dto));
     }
 
+    @Override
     @PostMapping("/v1/auth/reissue")
     public ApiResponse<MemberResDTO.TokenReissue> tokenReissue(
             @RequestBody @Valid MemberReqDTO.TokenReissue dto
@@ -37,6 +39,7 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.onSuccess(code, memberService.tokenReissue(dto));
     }
 
+    @Override
     @PostMapping("/v1/auth/logout")
     public ApiResponse<Void> logout(
             @Parameter(hidden = true)
@@ -47,6 +50,7 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.onSuccess(code);
     }
 
+    @Override
     @DeleteMapping("/v1/members/me")
     public ApiResponse<Void> withdraw(
             @Parameter(hidden = true)
@@ -57,6 +61,7 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.onSuccess(code);
     }
 
+    @Override
     @GetMapping("/v1/members/me")
     public ApiResponse<MemberResDTO.MyInfo> getMyInfo(
             @Parameter(hidden = true)
@@ -66,7 +71,8 @@ public class MemberController implements MemberControllerDocs {
         return ApiResponse.onSuccess(code, memberService.getMyInfo(memberId));
     }
 
-    @PostMapping("/v1/members/access")
+    @Override
+    @PatchMapping("/v1/members/last-access-at")
     public ApiResponse<Void> updateAccess(
             @Parameter(hidden = true) @AuthenticationPrincipal Long memberId
     ) {

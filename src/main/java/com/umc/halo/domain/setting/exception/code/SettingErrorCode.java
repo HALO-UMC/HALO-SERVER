@@ -9,9 +9,6 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum SettingErrorCode implements BaseErrorCode {
 
-    INVALID_REGULAR_NOTIFICATION_TIME(HttpStatus.BAD_REQUEST,
-            "NOTIFICATION400_1",
-            "정기 알림 시간 형식이 올바르지 않습니다."),
     BGM_ENABLED_REQUIRED(HttpStatus.BAD_REQUEST,
             "BGM400_1",
             "BGM 사용 여부는 필수입니다."),
@@ -21,12 +18,12 @@ public enum SettingErrorCode implements BaseErrorCode {
     INVALID_BGM_VOLUME(HttpStatus.BAD_REQUEST,
             "BGM400_3",
             "BGM 볼륨 값이 올바르지 않습니다."),
-    BGM_NOT_FOUND(HttpStatus.NOT_FOUND,
-            "BGM400_4",
-            "존재하지 않는 BGM입니다."),
     SETTING_NOT_FOUND(HttpStatus.NOT_FOUND,
             "SETTING404_1",
-            "설정을 찾을 수 없습니다.")
+            "설정을 찾을 수 없습니다."),
+    BGM_NOT_FOUND(HttpStatus.NOT_FOUND,
+            "BGM404_1",
+            "존재하지 않는 BGM입니다."),
     ;
 
     private final HttpStatus status;

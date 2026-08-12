@@ -18,6 +18,7 @@ public class ExhibitionController implements ExhibitionControllerDocs {
 
     private final ExhibitionService exhibitionService;
 
+    @Override
     @GetMapping
     public ApiResponse<ExhibitionResDTO.MainInfo> getExhibition(
             @AuthenticationPrincipal Long memberId
@@ -26,6 +27,7 @@ public class ExhibitionController implements ExhibitionControllerDocs {
         return ApiResponse.onSuccess(code, exhibitionService.getExhibition(memberId));
     }
 
+    @Override
     @GetMapping("/{storybookId}/chapters")
     public ApiResponse<ExhibitionChapterResDTO.ChaptersInfo> getChapters(
             @AuthenticationPrincipal Long memberId,
