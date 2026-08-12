@@ -8,7 +8,9 @@ services:
     restart: unless-stopped
     init: true
     stop_grace_period: 40s
-    mem_limit: 1536m
+    mem_limit: 480m
+    environment:
+      - JVM_OPTS=-Xms128m -Xmx320m -XX:+UseG1GC -XX:MaxMetaspaceSize=128m -Duser.timezone=Asia/Seoul
     logging:
       driver: json-file
       options:
@@ -38,7 +40,9 @@ services:
     restart: unless-stopped
     init: true
     stop_grace_period: 40s
-    mem_limit: 1024m
+    mem_limit: 288m
+    environment:
+      - JVM_OPTS=-Xms64m -Xmx144m -XX:+UseG1GC -XX:MaxMetaspaceSize=112m -Duser.timezone=Asia/Seoul
     logging:
       driver: json-file
       options:
