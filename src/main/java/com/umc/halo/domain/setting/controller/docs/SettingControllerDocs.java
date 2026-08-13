@@ -13,7 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@Tag(name = "알림 API")
+@Tag(name = "설정 API")
 public interface SettingControllerDocs {
 
     // 알림 설정 조회
