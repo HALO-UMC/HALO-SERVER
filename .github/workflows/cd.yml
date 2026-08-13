@@ -67,104 +67,36 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Firebase 시크릿 유효성 사전검증
-        env:
-          FIREBASE_SERVICE_ACCOUNT_B64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
-        run: |
-          if [ -z "$FIREBASE_SERVICE_ACCOUNT_B64" ]; then
-            echo "FIREBASE_SERVICE_ACCOUNT_B64 시크릿이 비어 있습니다." >&2
-            exit 1
-          fi
-          if ! DECODED=$(printf '%s' "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d 2>/dev/null); then
-            echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 base64 값이 아닙니다." >&2
-            exit 1
-          fi
-          if ! printf '%s' "$DECODED" | jq -e '.private_key != null and .private_key != ""' > /dev/null 2>&1; then
-            echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 서비스 계정 JSON이 아니거나 private_key 필드가 비어 있습니다." >&2
-            exit 1
-          fi
-
-      # OIDC로 단기 자격증명 발급 -> 이후 스텝들의 job 환경에 자동으로 노출되므로
-      # 아래 "러너 IP 허용"과 job 끝의 "러너 IP 제거" 둘 다 별도 자격증명 설정 없이 aws 호출 가능
-      - name: AWS 자격증명 설정 (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: 배포 준비 (Firebase 검증 / AWS 인증 / 러너 IP 허용 / SSH 설정 / compose 및 nginx 백업 및 전송)
+        id: bootstrap
+        uses: ./.github/actions/deploy-bootstrap
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          firebase-service-account-b64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
+          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          ec2-security-group-id: ${{ secrets.EC2_SECURITY_GROUP_ID }}
+          ec2-known-hosts: ${{ secrets.EC2_KNOWN_HOSTS }}
+          ec2-ssh-key: ${{ secrets.EC2_SSH_KEY }}
+          ec2-username: ${{ secrets.EC2_USERNAME }}
+          ec2-host: ${{ secrets.EC2_HOST }}
+          ec2-app-dir: ${{ secrets.EC2_APP_DIR }}
 
-      # 배포 시작 시에만 이번 러너 IP를 22번 포트에 임시로 열고 끝나면 반드시 제거
-      # CIDR이 아니라 authorize가 만든 규칙의 rule ID로 추적
-      - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
-        id: allow-runner-ip
-        run: |
-          RUNNER_IP="$(curl -sf --connect-timeout 5 --max-time 15 https://checkip.amazonaws.com)/32"
-          RULE_ID=$(aws ec2 authorize-security-group-ingress \
-            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
-            --protocol tcp --port 22 --cidr "$RUNNER_IP" \
-            --output json | jq -r '.SecurityGroupRules[0].SecurityGroupRuleId')
-          echo "rule-id=$RULE_ID" >> "$GITHUB_OUTPUT"
-
+      # prod는 dev 전용 Basic Auth 시크릿이 없어도 배포를 막지 않음
       - name: dev Basic Auth 자격증명 준비
         id: htpasswd
-        env:
-          DEV_BASIC_AUTH_USER: ${{ secrets.DEV_BASIC_AUTH_USER }}
-          DEV_BASIC_AUTH_PASSWORD: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
-        run: |
-          # dev Basic Auth는 dev 라우팅 전용 값
-          # .htpasswd 갱신만 건너뛰고 기존 파일을 그대로 둠
-          if [ -z "$DEV_BASIC_AUTH_USER" ] || [ -z "$DEV_BASIC_AUTH_PASSWORD" ]; then
-            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. .htpasswd 갱신을 건너뜁니다." >&2
-            echo "user_b64=" >> "$GITHUB_OUTPUT"
-            echo "hash_b64=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          # 원격 서버로는 원문 비밀번호 대신 해시만 전달
-          HASH=$(printf '%s' "$DEV_BASIC_AUTH_PASSWORD" | openssl passwd -apr1 -stdin)
-          echo "::add-mask::$HASH"
-
-          # 원격 heredoc에 셸 인젝션 없이 안전하게 전달하기 위해 base64로 인코딩
-          USER_B64=$(printf '%s' "$DEV_BASIC_AUTH_USER" | base64 -w0)
-          HASH_B64=$(printf '%s' "$HASH" | base64 -w0)
-          echo "::add-mask::$USER_B64"
-          echo "::add-mask::$HASH_B64"
-          echo "user_b64=$USER_B64" >> "$GITHUB_OUTPUT"
-          echo "hash_b64=$HASH_B64" >> "$GITHUB_OUTPUT"
-
-      - name: known_hosts 등록
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
-
-      - name: SSH 키 설정
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: ./.github/actions/prepare-htpasswd
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-
-      - name: 배포 전 현재 compose/nginx 설정 백업
-        run: |
-          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
-            set -euo pipefail
-            cd ${{ secrets.EC2_APP_DIR }}
-            rm -rf .prev_release
-            mkdir -p .prev_release
-            [ -f docker-compose.yml ] && cp docker-compose.yml .prev_release/ || true
-            [ -d nginx ] && cp -r nginx .prev_release/ || true
-          EOF
-
-      - name: docker-compose.yml / nginx 설정 EC2로 복사
-        run: |
-          scp -r docker-compose.yml nginx ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_APP_DIR }}/
+          username: ${{ secrets.DEV_BASIC_AUTH_USER }}
+          password: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
+          strict: "false"
 
       - name: .env 생성 및 재배포
         run: |
-          # github.actor를 원격 셸의 $GITHUB_ACTOR로 전달
-          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "GITHUB_ACTOR='$GITHUB_ACTOR' HTPASSWD_USER_B64='${{ steps.htpasswd.outputs.user_b64 }}' HTPASSWD_HASH_B64='${{ steps.htpasswd.outputs.hash_b64 }}' bash -s" << 'EOF'
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "GITHUB_ACTOR='$GITHUB_ACTOR' HTPASSWD_USER_B64='${{ steps.htpasswd.outputs.user-b64 }}' HTPASSWD_HASH_B64='${{ steps.htpasswd.outputs.hash-b64 }}' bash -s" << 'EOF'
             set -euo pipefail
             cd ${{ secrets.EC2_APP_DIR }}
 
-            # 파일이 없으면 Docker가 bind mount 시 디렉터리로 만들어버려서 nginx가
-            # auth_basic_user_file을 못 여는 상태가 됨 -> compose 기동 전에 파일로 보장
+            # bind mount 시 파일이 없으면 Docker가 디렉터리로 만들어버려 nginx가 못 여는 상태가 됨
             [ -d .htpasswd ] && rmdir .htpasswd 2>/dev/null
             [ -f .htpasswd ] || install -m 640 /dev/null .htpasswd
 
@@ -188,10 +120,8 @@ jobs:
             if [ -n "$HTPASSWD_USER_B64" ] && [ -n "$HTPASSWD_HASH_B64" ]; then
               HTPASSWD_USER=$(printf '%s' "$HTPASSWD_USER_B64" | base64 -d)
               HTPASSWD_HASH=$(printf '%s' "$HTPASSWD_HASH_B64" | base64 -d)
-              # 소유자는 배포 계정으로 유지(재배포 시 chmod가 소유자 아닌 파일에 걸려 EPERM 나는 것 방지),
-              # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근하게 함
-              # 임시 파일에서 권한까지 맞춘 뒤 원자적으로 교체 -> 그룹 변경 실패 시
-              # nginx가 못 읽는 파일이 실제 .htpasswd 자리에 노출되는 일이 없음
+              # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근, 임시 파일에서 권한까지
+              # 맞춘 뒤 원자적으로 교체(그룹 변경 실패 시 못 읽는 파일이 노출되는 일 방지)
               install -m 640 /dev/null .htpasswd.new
               printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd.new
               if chgrp 101 .htpasswd.new 2>/dev/null || sudo -n chgrp 101 .htpasswd.new 2>/dev/null; then
@@ -204,17 +134,14 @@ jobs:
               echo ".htpasswd 갱신 건너뜀 (DEV_BASIC_AUTH 시크릿 미설정, 기존 파일 유지)"
             fi
 
-            # 같은 워크플로우 실행 안에서 build-and-push가 이미 이 패키지에 push
-            # 성공했으므로, 별도 PAT 없이 GITHUB_TOKEN으로도 pull 권한이 충분함
+            # build-and-push가 같은 워크플로우 실행 안에서 이미 push했으므로 별도 PAT 없이 pull
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
             # 롤백 대비, 직전에 성공적으로 배포된 이미지의 SHA 태그 기록 (최초 배포면 빈 값)
             PREV_SHA=$(cat .deployed_sha 2>/dev/null || true)
 
             export IMAGE_TAG="${{ github.sha }}"
-            # dev-app은 profiles: [dev]라 COMPOSE_PROFILES 없이는 config 검증에서 빠짐 ->
-            # app 서비스 정의 오류를 여기서 못 잡고 넘어갈 수 있어 명시적으로 활성화
-            # (up/pull은 서비스명을 직접 지정해서 --remove-orphans만 없으면 이 값과 무관하게 안전)
+            # dev-app은 profiles: [dev]라 COMPOSE_PROFILES 없이는 config 검증에서 빠짐
             export COMPOSE_PROFILES=prod
             docker compose config >/dev/null
 
@@ -228,9 +155,6 @@ jobs:
               echo "nginx 빌드 실패" >&2
               DEPLOY_OK=false
             fi
-            # --remove-orphans는 쓰지 않음: dev-app이 profiles: [dev]로 분리된 뒤에는
-            # prod 배포 시 활성 프로필(prod)에 없는 dev-app 컨테이너까지 orphan으로 간주해 삭제할 위험이 있음
-            # nginx는 app 헬스체크 통과 후 따로 재생성(동시 recreate 시 옛 IP 캐시 위험)
             if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --force-recreate app certbot; then
               echo "compose up 실패" >&2
               DEPLOY_OK=false
@@ -255,11 +179,9 @@ jobs:
               echo "배포 명령 실패로 헬스체크 생략, 롤백 절차로 진행" >&2
             fi
 
-            # --force-recreate 대신 up -d: nginx 이미지가 바뀐 경우(Dockerfile/entrypoint 수정)에만
-            # compose가 알아서 컨테이너를 재생성하고, 그 외(대부분의 배포)에는 기존 컨테이너를 그대로 두고
-            # reload.sh로 설정만 재로드한다 -> dev 배포 때문에 이 nginx가 같이 처리하는 prod까지 끊기지 않음
-            # exec는 동기 호출이라 컨테이너 안에서 nginx -t가 실패하면(=재구성 실패) 그 종료 코드가
-            # 그대로 여기로 전달되어 DEPLOY_OK=false로 이어짐 (신호만 보내고 끝나는 방식이 아님)
+            # nginx 이미지가 바뀐 경우에만 재생성
+            # 그 외엔 기존 컨테이너를 두고 reload.sh로 설정만 재로드
+            # dev 배포가 같이 처리하는 prod까지 끊기지 않음
             if [ "$DEPLOY_OK" = true ] && ! docker compose up -d nginx; then
               echo "nginx 기동 실패" >&2
               DEPLOY_OK=false
@@ -342,28 +264,14 @@ jobs:
             exit 1
           EOF
 
-      # rule-id가 없으면 revoke할 대상이 없으므로 건너뜀
-      # CIDR이 아닌 rule ID를 지정해 이 job이 만든 규칙만 정확히 제거
       - name: 보안그룹에서 러너 IP 제거
-        if: always() && steps.allow-runner-ip.outputs.rule-id != ''
-        run: |
-          RULE_ID="${{ steps.allow-runner-ip.outputs.rule-id }}"
-          for i in 1 2 3; do
-            if aws ec2 revoke-security-group-ingress \
-              --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
-              --security-group-rule-ids "$RULE_ID"; then
-              exit 0
-            fi
-            echo "보안그룹 규칙 제거 실패, 재시도 ($i/3)" >&2
-            sleep 5
-          done
-          echo "보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요" >&2
-          if [ -n "${{ secrets.CD_ALERTS_DISCORD_WEBHOOK_URL }}" ]; then
-            PAYLOAD=$(jq -n --arg msg "🚨 [CD/prod] 보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요
-              https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $msg}')
-            curl -sf --connect-timeout 5 --max-time 15 -H "Content-Type: application/json" -d "$PAYLOAD" "${{ secrets.CD_ALERTS_DISCORD_WEBHOOK_URL }}" || echo "Discord 알림 전송 실패" >&2
-          fi
-          exit 1
+        if: always() && steps.bootstrap.outputs.rule-id != ''
+        uses: ./.github/actions/release-runner-ip
+        with:
+          rule-id: ${{ steps.bootstrap.outputs.rule-id }}
+          ec2-security-group-id: ${{ secrets.EC2_SECURITY_GROUP_ID }}
+          env-label: prod
+          discord-webhook-url: ${{ secrets.CD_ALERTS_DISCORD_WEBHOOK_URL }}
 
   deploy-dev:
     if: github.ref == 'refs/heads/develop'
@@ -380,100 +288,36 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Firebase 시크릿 유효성 사전검증
-        env:
-          FIREBASE_SERVICE_ACCOUNT_B64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
-        run: |
-          if [ -z "$FIREBASE_SERVICE_ACCOUNT_B64" ]; then
-            echo "FIREBASE_SERVICE_ACCOUNT_B64 시크릿이 비어 있습니다." >&2
-            exit 1
-          fi
-          if ! DECODED=$(printf '%s' "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d 2>/dev/null); then
-            echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 base64 값이 아닙니다." >&2
-            exit 1
-          fi
-          if ! printf '%s' "$DECODED" | jq -e '.private_key != null and .private_key != ""' > /dev/null 2>&1; then
-            echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 서비스 계정 JSON이 아니거나 private_key 필드가 비어 있습니다." >&2
-            exit 1
-          fi
-
-      - name: AWS 자격증명 설정 (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: 배포 준비 (Firebase 검증 / AWS 인증 / 러너 IP 허용 / SSH 설정 / compose 및 nginx 백업 및 전송)
+        id: bootstrap
+        uses: ./.github/actions/deploy-bootstrap
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          firebase-service-account-b64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
+          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          ec2-security-group-id: ${{ secrets.EC2_SECURITY_GROUP_ID }}
+          ec2-known-hosts: ${{ secrets.EC2_KNOWN_HOSTS }}
+          ec2-ssh-key: ${{ secrets.EC2_SSH_KEY }}
+          ec2-username: ${{ secrets.EC2_USERNAME }}
+          ec2-host: ${{ secrets.EC2_HOST }}
+          ec2-app-dir: ${{ secrets.EC2_APP_DIR }}
 
-      # 배포 시작 시에만 이번 러너 IP를 22번 포트에 임시로 열고 끝나면 반드시 제거
-      # CIDR이 아니라 authorize가 만든 규칙의 rule ID로 추적
-      - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
-        id: allow-runner-ip
-        run: |
-          RUNNER_IP="$(curl -sf --connect-timeout 5 --max-time 15 https://checkip.amazonaws.com)/32"
-          RULE_ID=$(aws ec2 authorize-security-group-ingress \
-            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
-            --protocol tcp --port 22 --cidr "$RUNNER_IP" \
-            --output json | jq -r '.SecurityGroupRules[0].SecurityGroupRuleId')
-          echo "rule-id=$RULE_ID" >> "$GITHUB_OUTPUT"
-
+      # dev nginx는 자체 도메인 Basic Auth에 이 파일을 항상 의존하므로 미설정시 배포 실패
       - name: dev Basic Auth 자격증명 준비
         id: htpasswd
-        env:
-          DEV_BASIC_AUTH_USER: ${{ secrets.DEV_BASIC_AUTH_USER }}
-          DEV_BASIC_AUTH_PASSWORD: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
-        run: |
-          # prod와 달리 dev nginx는 이 파일에 항상 의존하므로(자체 도메인 Basic Auth),
-          # 미설정을 건너뛰지 않고 배포 실패로 처리한다
-          if [ -z "$DEV_BASIC_AUTH_USER" ] || [ -z "$DEV_BASIC_AUTH_PASSWORD" ]; then
-            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. dev 배포를 중단합니다." >&2
-            exit 1
-          fi
-
-          # 원격 서버로는 원문 비밀번호 대신 해시만 전달
-          HASH=$(printf '%s' "$DEV_BASIC_AUTH_PASSWORD" | openssl passwd -apr1 -stdin)
-          echo "::add-mask::$HASH"
-
-          # 원격 heredoc에 셸 인젝션 없이 안전하게 전달하기 위해 base64로 인코딩
-          USER_B64=$(printf '%s' "$DEV_BASIC_AUTH_USER" | base64 -w0)
-          HASH_B64=$(printf '%s' "$HASH" | base64 -w0)
-          echo "::add-mask::$USER_B64"
-          echo "::add-mask::$HASH_B64"
-          echo "user_b64=$USER_B64" >> "$GITHUB_OUTPUT"
-          echo "hash_b64=$HASH_B64" >> "$GITHUB_OUTPUT"
-
-      - name: known_hosts 등록
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
-
-      - name: SSH 키 설정
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: ./.github/actions/prepare-htpasswd
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-
-      - name: 배포 전 현재 compose/nginx 설정 백업
-        run: |
-          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
-            set -euo pipefail
-            cd ${{ secrets.EC2_APP_DIR }}
-            rm -rf .prev_release
-            mkdir -p .prev_release
-            [ -f docker-compose.yml ] && cp docker-compose.yml .prev_release/ || true
-            [ -d nginx ] && cp -r nginx .prev_release/ || true
-          EOF
-
-      - name: docker-compose.yml / nginx 설정 EC2로 복사
-        run: |
-          scp -r docker-compose.yml nginx ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_APP_DIR }}/
+          username: ${{ secrets.DEV_BASIC_AUTH_USER }}
+          password: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
+          strict: "true"
 
       - name: .env.dev 생성 및 dev 재배포
         run: |
-          # github.actor를 원격 셸의 $GITHUB_ACTOR로 전달
-          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "GITHUB_ACTOR='$GITHUB_ACTOR' HTPASSWD_USER_B64='${{ steps.htpasswd.outputs.user_b64 }}' HTPASSWD_HASH_B64='${{ steps.htpasswd.outputs.hash_b64 }}' bash -s" << 'EOF'
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "GITHUB_ACTOR='$GITHUB_ACTOR' HTPASSWD_USER_B64='${{ steps.htpasswd.outputs.user-b64 }}' HTPASSWD_HASH_B64='${{ steps.htpasswd.outputs.hash-b64 }}' bash -s" << 'EOF'
             set -euo pipefail
             cd ${{ secrets.EC2_APP_DIR }}
 
-            # 파일이 없으면 Docker가 bind mount 시 디렉터리로 만들어버려서 nginx가
-            # auth_basic_user_file을 못 여는 상태가 됨 -> compose 기동 전에 파일로 보장
+            # bind mount 시 파일이 없으면 Docker가 디렉터리로 만들어버려 nginx가 못 여는 상태가 됨
             [ -d .htpasswd ] && rmdir .htpasswd 2>/dev/null
             [ -f .htpasswd ] || install -m 640 /dev/null .htpasswd
 
@@ -491,14 +335,9 @@ jobs:
             if [ -n "$HTPASSWD_USER_B64" ] && [ -n "$HTPASSWD_HASH_B64" ]; then
               HTPASSWD_USER=$(printf '%s' "$HTPASSWD_USER_B64" | base64 -d)
               HTPASSWD_HASH=$(printf '%s' "$HTPASSWD_HASH_B64" | base64 -d)
-              # 소유자는 배포 계정으로 유지(재배포 시 chmod가 소유자 아닌 파일에 걸려 EPERM 나는 것 방지),
-              # nginx 워커(uid/gid 101)는 그룹 읽기 권한으로만 접근하게 함.
-              # 임시 파일에서 권한까지 맞춘 뒤 원자적으로 교체 -> 그룹 변경 실패 시
-              # nginx가 못 읽는 파일이 실제 .htpasswd 자리에 노출되는 일이 없음
               install -m 640 /dev/null .htpasswd.new
               printf '%s:%s\n' "$HTPASSWD_USER" "$HTPASSWD_HASH" > .htpasswd.new
-              # dev nginx는 이 파일에 항상 의존하므로, prod와 달리 그룹 변경 실패를
-              # 경고로 넘기지 않고 nginx 재생성 전에 배포 자체를 중단시킨다
+              # dev nginx는 이 파일에 항상 의존하므로 그룹 변경 실패시 nginx 재생성 전 배포 중단
               if chgrp 101 .htpasswd.new 2>/dev/null || sudo -n chgrp 101 .htpasswd.new 2>/dev/null; then
                 mv .htpasswd.new .htpasswd
               else
@@ -529,13 +368,9 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
             export DEV_IMAGE_TAG="${{ github.sha }}"
-            # dev-app이 profiles: [dev]라 COMPOSE_PROFILES 없이는 config 검증에서 빠짐 ->
-            # dev-app 서비스 정의 오류를 여기서 못 잡고 넘어갈 수 있어 명시적으로 활성화
             export COMPOSE_PROFILES=dev
             docker compose config >/dev/null
 
-            # prod와 동일하게 실패를 즉시 죽이지 않고 플래그로 모아서,
-            # 실패해도 로그 덤프까지는 남기고 종료하도록 함
             DEPLOY_OK=true
             if ! docker compose pull dev-app; then
               echo "dev 이미지 pull 실패" >&2
@@ -565,14 +400,9 @@ jobs:
               exit 1
             fi
 
-            # nginx는 fragments/*.template을 컨테이너 기동 시점에만 렌더링하므로,
-            # 이미 떠 있는 nginx는 재생성 없이 reload.sh로 재렌더링+reload해서 새 DEV_DOMAIN 서버 블록을 반영
-            # exec는 동기 호출이라 컨테이너 안에서 재구성이 실제로 실패하면(nginx -t 실패) 
-            # 아래 스냅샷 복구로 이어짐
-            # up -d는 --force-recreate 없이: nginx 이미지 자체가 바뀐 경우(Dockerfile/entrypoint
-            # 수정)에만 compose가 알아서 재생성하고, 그 외에는 컨테이너를 그대로 둬서 같은
-            # 컨테이너가 처리하는 prod 트래픽이 dev 배포 때문에 끊기지 않게 함
-            # 실패하면 prod 라우팅까지 깨질 수 있음 -> 실패 시 배포 전 스냅샷으로 복구
+            # nginx는 fragments/*.template을 컨테이너 기동 시점에만 렌더링하므로, 이미 떠 있는
+            # nginx는 재생성 없이 reload.sh로 재렌더링+reload해서 새 DEV_DOMAIN 서버 블록을 반영.
+            # 실패하면 prod 라우팅까지 깨질 수 있어 실패 시 배포 전 스냅샷으로 복구
             if docker compose build nginx && docker compose up -d nginx && docker compose exec -T nginx /usr/local/bin/reload.sh; then
               docker image prune -f || true
               exit 0
@@ -601,25 +431,11 @@ jobs:
             exit 1
           EOF
 
-      # rule-id가 없으면 revoke할 대상이 없으므로 건너뜀
-      # CIDR이 아닌 rule ID를 지정해 이 job이 만든 규칙만 정확히 제거
       - name: 보안그룹에서 러너 IP 제거
-        if: always() && steps.allow-runner-ip.outputs.rule-id != ''
-        run: |
-          RULE_ID="${{ steps.allow-runner-ip.outputs.rule-id }}"
-          for i in 1 2 3; do
-            if aws ec2 revoke-security-group-ingress \
-              --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
-              --security-group-rule-ids "$RULE_ID"; then
-              exit 0
-            fi
-            echo "보안그룹 규칙 제거 실패, 재시도 ($i/3)" >&2
-            sleep 5
-          done
-          echo "보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요" >&2
-          if [ -n "${{ secrets.CD_ALERTS_DISCORD_WEBHOOK_URL }}" ]; then
-            PAYLOAD=$(jq -n --arg msg "🚨 [CD/dev] 보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요
-            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{content: $msg}')
-            curl -sf --connect-timeout 5 --max-time 15 -H "Content-Type: application/json" -d "$PAYLOAD" "${{ secrets.CD_ALERTS_DISCORD_WEBHOOK_URL }}" || echo "Discord 알림 전송 실패" >&2
-          fi
-          exit 1
+        if: always() && steps.bootstrap.outputs.rule-id != ''
+        uses: ./.github/actions/release-runner-ip
+        with:
+          rule-id: ${{ steps.bootstrap.outputs.rule-id }}
+          ec2-security-group-id: ${{ secrets.EC2_SECURITY_GROUP_ID }}
+          env-label: dev
+          discord-webhook-url: ${{ secrets.CD_ALERTS_DISCORD_WEBHOOK_URL }}

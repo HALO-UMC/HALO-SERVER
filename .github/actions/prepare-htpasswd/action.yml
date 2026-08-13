@@ -1,0 +1,50 @@
+name: dev Basic Auth 자격증명 준비
+description: DEV_BASIC_AUTH 시크릿으로 htpasswd 해시를 만들어 base64로 출력. strict=true면 시크릿 미설정 시 실패(exit 1), false면 갱신을 건너뜀.
+
+inputs:
+  username:
+    required: false
+    default: ""
+  password:
+    required: false
+    default: ""
+  strict:
+    required: true
+    description: "true면 미설정 시 실패 처리(dev), false면 건너뜀(prod)"
+
+outputs:
+  user-b64:
+    value: ${{ steps.build.outputs.user_b64 }}
+  hash-b64:
+    value: ${{ steps.build.outputs.hash_b64 }}
+
+runs:
+  using: composite
+  steps:
+    - id: build
+      shell: bash
+      env:
+        HTPASSWD_USER: ${{ inputs.username }}
+        HTPASSWD_PASSWORD: ${{ inputs.password }}
+        STRICT: ${{ inputs.strict }}
+      run: |
+        if [ -z "$HTPASSWD_USER" ] || [ -z "$HTPASSWD_PASSWORD" ]; then
+          if [ "$STRICT" = "true" ]; then
+            echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. 배포를 중단합니다." >&2
+            exit 1
+          fi
+          echo "DEV_BASIC_AUTH_USER/DEV_BASIC_AUTH_PASSWORD가 설정되지 않았습니다. .htpasswd 갱신을 건너뜁니다." >&2
+          echo "user_b64=" >> "$GITHUB_OUTPUT"
+          echo "hash_b64=" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        HASH=$(printf '%s' "$HTPASSWD_PASSWORD" | openssl passwd -apr1 -stdin)
+        echo "::add-mask::$HASH"
+
+        USER_B64=$(printf '%s' "$HTPASSWD_USER" | base64 -w0)
+        HASH_B64=$(printf '%s' "$HASH" | base64 -w0)
+        echo "::add-mask::$USER_B64"
+        echo "::add-mask::$HASH_B64"
+        echo "user_b64=$USER_B64" >> "$GITHUB_OUTPUT"
+        echo "hash_b64=$HASH_B64" >> "$GITHUB_OUTPUT"
