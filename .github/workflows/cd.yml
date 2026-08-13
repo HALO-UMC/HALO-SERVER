@@ -181,8 +181,6 @@ jobs:
           KAKAO_NATIVE_APP_KEY=${{ secrets.KAKAO_NATIVE_APP_KEY }}
           GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
           S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
-          S3_BUCKET_ACCESS_KEY=${{ secrets.S3_BUCKET_ACCESS_KEY }}
-          S3_BUCKET_SECRET_KEY=${{ secrets.S3_BUCKET_SECRET_KEY }}
           S3_KMS_KEY_ID=${{ secrets.S3_KMS_KEY_ID }}
           FIREBASE_SERVICE_ACCOUNT_B64=${{secrets.FIREBASE_SERVICE_ACCOUNT_B64}}
           ENVEOF
@@ -524,8 +522,6 @@ jobs:
           KAKAO_NATIVE_APP_KEY=${{ secrets.KAKAO_NATIVE_APP_KEY }}
           GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
           S3_BUCKET_NAME=${{ secrets.DEV_S3_BUCKET_NAME }}
-          S3_BUCKET_ACCESS_KEY=${{ secrets.DEV_S3_BUCKET_ACCESS_KEY }}
-          S3_BUCKET_SECRET_KEY=${{ secrets.DEV_S3_BUCKET_SECRET_KEY }}
           S3_KMS_KEY_ID=${{ secrets.DEV_S3_KMS_KEY_ID }}
           FIREBASE_SERVICE_ACCOUNT_B64=${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
           ENVEOF
