@@ -97,6 +97,36 @@ public class RecordService {
             }
         }
 
+        // 같은 질문에 답변이 중복 전송되었는지 검증
+        List<Long> answeredQuestionIdList = recordReqDTO.answers() == null ? List.of()
+                : recordReqDTO.answers().stream()
+                .map(RecordReqDTO.WriteChapterRecord.Answer::chapterQuestionId)
+                .toList();
+        Set<Long> answeredQuestionIds = new HashSet<>(answeredQuestionIdList);
+        if (answeredQuestionIds.size() != answeredQuestionIdList.size()) {
+            throw new RecordException(RecordErrorCode.DUPLICATE_ANSWER);
+        }
+
+        // 해당 장의 질문 ID (소속 검증과 완료 검증에 공통 사용, 둘 다 필요 없으면 조회 생략)
+        boolean needsChapterQuestions = !answeredQuestionIds.isEmpty() || recordReqDTO.status() == Status.COMPLETED;
+        Set<Long> chapterQuestionIds = needsChapterQuestions
+                ? chapterQuestionRepository.findByChapter(chapter).stream()
+                .map(ChapterQuestion::getId)
+                .collect(Collectors.toSet())
+                : Set.of();
+
+        // 답변한 질문이 해당 장의 질문이 맞는지 검증
+        if (!chapterQuestionIds.containsAll(answeredQuestionIds)) {
+            Set<Long> unknownQuestionIds = answeredQuestionIds.stream()
+                    .filter(id -> !chapterQuestionIds.contains(id))
+                    .collect(Collectors.toSet());
+            // 실재하지 않는 질문인지 검증
+            if (chapterQuestionRepository.findAllById(unknownQuestionIds).size() < unknownQuestionIds.size()) {
+                throw new ChapterException(ChapterErrorCode.NOT_FOUND_CHAPTER_QUESTION);
+            }
+            throw new ChapterException(ChapterErrorCode.UNMATCHED_CHAPTER_QUESTION);
+        }
+
         // COMPLETED 상태일 경우 필수값 검증
         if (recordReqDTO.status() == Status.COMPLETED) {
             if (recordReqDTO.coverType() == null) {
@@ -107,14 +137,7 @@ public class RecordService {
             }
 
             // 장 질문 답변이 모두 채워졌는지 검증
-            Set<Long> requiredQuestionIds = chapterQuestionRepository.findByChapter(chapter).stream()
-                    .map(ChapterQuestion::getId)
-                    .collect(Collectors.toSet());
-            Set<Long> answeredQuestionIds = recordReqDTO.answers() == null ? Set.of()
-                    : recordReqDTO.answers().stream()
-                    .map(RecordReqDTO.WriteChapterRecord.Answer::chapterQuestionId)
-                    .collect(Collectors.toSet());
-            if (!answeredQuestionIds.containsAll(requiredQuestionIds)) {
+            if (!answeredQuestionIds.containsAll(chapterQuestionIds)) {
                 throw new RecordException(RecordErrorCode.INCOMPLETE_ANSWERS);
             }
         }
