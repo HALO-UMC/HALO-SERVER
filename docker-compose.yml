@@ -8,10 +8,7 @@ services:
     restart: unless-stopped
     init: true
     stop_grace_period: 40s
-    mem_limit: 480m
-    memswap_limit: 480m
-    environment:
-      - JVM_OPTS=-Xms128m -Xmx280m -XX:+UseG1GC -XX:MaxMetaspaceSize=100m -Duser.timezone=Asia/Seoul
+    mem_limit: 1536m
     logging:
       driver: json-file
       options:
@@ -41,10 +38,7 @@ services:
     restart: unless-stopped
     init: true
     stop_grace_period: 40s
-    mem_limit: 288m
-    memswap_limit: 288m
-    environment:
-      - JVM_OPTS=-Xms64m -Xmx144m -XX:+UseG1GC -XX:MaxMetaspaceSize=64m -Duser.timezone=Asia/Seoul
+    mem_limit: 1024m
     logging:
       driver: json-file
       options:
