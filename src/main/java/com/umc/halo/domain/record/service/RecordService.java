@@ -97,6 +97,27 @@ public class RecordService {
             }
         }
 
+        // 답변한 질문이 실재하는지, 해당 장의 질문이 맞는지 검증
+        Set<Long> answeredQuestionIds = recordReqDTO.answers() == null ? Set.of()
+                : recordReqDTO.answers().stream()
+                .map(RecordReqDTO.WriteChapterRecord.Answer::chapterQuestionId)
+                .collect(Collectors.toSet());
+
+        if (!answeredQuestionIds.isEmpty()) {
+            Map<Long, ChapterQuestion> chapterQuestionById = chapterQuestionRepository.findAllById(answeredQuestionIds)
+                    .stream().collect(Collectors.toMap(ChapterQuestion::getId, cq -> cq));
+
+            for (Long chapterQuestionId : answeredQuestionIds) {
+                ChapterQuestion chapterQuestion = chapterQuestionById.get(chapterQuestionId);
+                if (chapterQuestion == null) {
+                    throw new ChapterException(ChapterErrorCode.NOT_FOUND_CHAPTER_QUESTION);
+                }
+                if (!chapterQuestion.getChapter().getId().equals(chapter.getId())) {
+                    throw new ChapterException(ChapterErrorCode.UNMATCHED_CHAPTER_QUESTION);
+                }
+            }
+        }
+
         // COMPLETED 상태일 경우 필수값 검증
         if (recordReqDTO.status() == Status.COMPLETED) {
             if (recordReqDTO.coverType() == null) {
@@ -109,10 +130,6 @@ public class RecordService {
             // 장 질문 답변이 모두 채워졌는지 검증
             Set<Long> requiredQuestionIds = chapterQuestionRepository.findByChapter(chapter).stream()
                     .map(ChapterQuestion::getId)
-                    .collect(Collectors.toSet());
-            Set<Long> answeredQuestionIds = recordReqDTO.answers() == null ? Set.of()
-                    : recordReqDTO.answers().stream()
-                    .map(RecordReqDTO.WriteChapterRecord.Answer::chapterQuestionId)
                     .collect(Collectors.toSet());
             if (!answeredQuestionIds.containsAll(requiredQuestionIds)) {
                 throw new RecordException(RecordErrorCode.INCOMPLETE_ANSWERS);
