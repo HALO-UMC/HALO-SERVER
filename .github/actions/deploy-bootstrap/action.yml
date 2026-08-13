@@ -1,0 +1,106 @@
+name: 배포 부트스트랩
+description: AWS OIDC 인증, 러너 IP 임시 허용, SSH 설정, compose/nginx 설정 백업 및 EC2 전송까지 prod/dev 배포 job 공통 준비 단계. 호출 전에 actions/checkout이 먼저 실행되어 있어야 함.
+
+inputs:
+  firebase-service-account-b64:
+    required: true
+  aws-role-arn:
+    required: true
+  aws-region:
+    required: true
+  ec2-security-group-id:
+    required: true
+  ec2-known-hosts:
+    required: true
+  ec2-ssh-key:
+    required: true
+  ec2-username:
+    required: true
+  ec2-host:
+    required: true
+  ec2-app-dir:
+    required: true
+
+outputs:
+  rule-id:
+    description: 이번 job에서 보안그룹에 임시로 연 SSH 인그레스 규칙 ID (해제 시 CIDR이 아닌 이 ID로 추적)
+    value: ${{ steps.allow-runner-ip.outputs.rule-id }}
+
+runs:
+  using: composite
+  steps:
+    - name: Firebase 시크릿 유효성 사전검증
+      shell: bash
+      env:
+        FIREBASE_SERVICE_ACCOUNT_B64: ${{ inputs.firebase-service-account-b64 }}
+      run: |
+        if [ -z "$FIREBASE_SERVICE_ACCOUNT_B64" ]; then
+          echo "FIREBASE_SERVICE_ACCOUNT_B64 시크릿이 비어 있습니다." >&2
+          exit 1
+        fi
+        if ! DECODED=$(printf '%s' "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d 2>/dev/null); then
+          echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 base64 값이 아닙니다." >&2
+          exit 1
+        fi
+        if ! printf '%s' "$DECODED" | jq -e '.private_key != null and .private_key != ""' > /dev/null 2>&1; then
+          echo "FIREBASE_SERVICE_ACCOUNT_B64가 유효한 서비스 계정 JSON이 아니거나 private_key 필드가 비어 있습니다." >&2
+          exit 1
+        fi
+
+    # OIDC로 단기 자격증명 발급
+    - name: AWS 자격증명 설정 (OIDC)
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
+      id: allow-runner-ip
+      shell: bash
+      env:
+        EC2_SECURITY_GROUP_ID: ${{ inputs.ec2-security-group-id }}
+      run: |
+        RUNNER_IP="$(curl -sf --connect-timeout 5 --max-time 15 https://checkip.amazonaws.com)/32"
+        RULE_ID=$(aws ec2 authorize-security-group-ingress \
+          --group-id "$EC2_SECURITY_GROUP_ID" \
+          --protocol tcp --port 22 --cidr "$RUNNER_IP" \
+          --output json | jq -r '.SecurityGroupRules[0].SecurityGroupRuleId')
+        echo "rule-id=$RULE_ID" >> "$GITHUB_OUTPUT"
+
+    - name: known_hosts 등록
+      shell: bash
+      env:
+        EC2_KNOWN_HOSTS: ${{ inputs.ec2-known-hosts }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$EC2_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+
+    - name: SSH 키 설정
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ inputs.ec2-ssh-key }}
+
+    - name: 배포 전 현재 compose/nginx 설정 백업
+      shell: bash
+      env:
+        EC2_USERNAME: ${{ inputs.ec2-username }}
+        EC2_HOST: ${{ inputs.ec2-host }}
+        EC2_APP_DIR: ${{ inputs.ec2-app-dir }}
+      run: |
+        ssh "$EC2_USERNAME@$EC2_HOST" "EC2_APP_DIR='$EC2_APP_DIR' bash -s" << 'EOF'
+          set -euo pipefail
+          cd "$EC2_APP_DIR"
+          rm -rf .prev_release
+          mkdir -p .prev_release
+          [ -f docker-compose.yml ] && cp docker-compose.yml .prev_release/ || true
+          [ -d nginx ] && cp -r nginx .prev_release/ || true
+        EOF
+
+    - name: docker-compose.yml / nginx 설정 EC2로 복사
+      shell: bash
+      env:
+        EC2_USERNAME: ${{ inputs.ec2-username }}
+        EC2_HOST: ${{ inputs.ec2-host }}
+        EC2_APP_DIR: ${{ inputs.ec2-app-dir }}
+      run: |
+        scp -r docker-compose.yml nginx "$EC2_USERNAME@$EC2_HOST:$EC2_APP_DIR/"

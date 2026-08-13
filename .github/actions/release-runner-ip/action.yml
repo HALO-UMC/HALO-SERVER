@@ -1,0 +1,43 @@
+name: 보안그룹에서 러너 IP 제거
+description: deploy-bootstrap이 임시로 연 SSH 인그레스 규칙을 제거하고, 최종 실패 시 Discord로 알림. rule-id로 추적하므로 이 job이 만든 규칙만 정확히 제거함.
+
+inputs:
+  rule-id:
+    required: true
+  ec2-security-group-id:
+    required: true
+  env-label:
+    required: true
+    description: "Discord 알림 메시지에 붙는 환경 표시 (prod/dev)"
+  discord-webhook-url:
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        RULE_ID: ${{ inputs.rule-id }}
+        EC2_SECURITY_GROUP_ID: ${{ inputs.ec2-security-group-id }}
+        ENV_LABEL: ${{ inputs.env-label }}
+        DISCORD_WEBHOOK_URL: ${{ inputs.discord-webhook-url }}
+        RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        for i in 1 2 3; do
+          if aws ec2 revoke-security-group-ingress \
+            --group-id "$EC2_SECURITY_GROUP_ID" \
+            --security-group-rule-ids "$RULE_ID"; then
+            exit 0
+          fi
+          echo "보안그룹 규칙 제거 실패, 재시도 ($i/3)" >&2
+          sleep 5
+        done
+
+        echo "보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요" >&2
+        if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+          PAYLOAD=$(jq -n --arg msg "🚨 [CD/$ENV_LABEL] 보안그룹 규칙(rule-id: $RULE_ID) 제거 최종 실패 - SSH 인그레스가 열린 채로 남아있을 수 있음, 수동 확인 필요
+            $RUN_URL" '{content: $msg}')
+          curl -sf --connect-timeout 5 --max-time 15 -H "Content-Type: application/json" -d "$PAYLOAD" "$DISCORD_WEBHOOK_URL" || echo "Discord 알림 전송 실패" >&2
+        fi
+        exit 1
