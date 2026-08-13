@@ -12,6 +12,7 @@ public enum RecordErrorCode implements BaseErrorCode {
     INCOMPLETE_ANSWERS(HttpStatus.BAD_REQUEST, "CHAPTER400_4", "모든 장 질문에 대한 답변이 필요합니다."),
     MISSING_COVER_TYPE(HttpStatus.BAD_REQUEST, "CHAPTER400_5", "커버 타입 선택이 필요합니다."),
     MISSING_EMOTION(HttpStatus.BAD_REQUEST, "CHAPTER400_6", "감정 선택이 필요합니다."),
+    DUPLICATE_ANSWER(HttpStatus.BAD_REQUEST, "CHAPTER400_7", "같은 질문에 대한 답변이 중복되었습니다."),
 
     NOT_COMPLETED_MEMBER_CHAPTER(HttpStatus.FORBIDDEN, "CHAPTER403_4", "아직 완료되지 않은 장 기록입니다."),
 

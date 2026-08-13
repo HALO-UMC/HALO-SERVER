@@ -36,7 +36,7 @@ public interface RecordControllerDocs {
                     4. 진행 중인 장 순서를 기준으로 요청한 장에 접근 가능한지 검증합니다. 아직 열리지 않은 장이면 403(CHAPTER403_1), 이미 완료한 장이면 403(CHAPTER403_2)을 반환합니다.
                     5. coverType과 imageKey/sceneCardId 조합이 일치하는지 검증합니다. (CHAPTER400_1)
                     6. coverType이 IMAGE이고 새로 업로드한 imageKey(기존 기록과 다른 값)이면, 소유권 및 S3 실재 여부를 확인합니다. 본인이 업로드한 이미지가 아니거나 S3에 존재하지 않으면 404(IMAGE404_1), 용량 제한을 초과했으면 400(IMAGE400_2)을 반환합니다.
-                    7. 각 답변의 chapterQuestionId가 실재하는 질문인지(CHAPTER404_2), 해당 장의 질문이 맞는지(CHAPTER400_3) 검증합니다.
+                    7. 같은 chapterQuestionId에 대한 답변이 중복되지 않았는지(CHAPTER400_7), 각 답변의 chapterQuestionId가 실재하는 질문인지(CHAPTER404_2), 해당 장의 질문이 맞는지(CHAPTER400_3) 검증합니다.
                     8. status가 COMPLETED이면 coverType, emotion이 모두 입력되었는지, 장의 모든 질문에 답변했는지 검증합니다. (CHAPTER400_4~6)
                     9. sceneCardId가 있으면 해당 장의 장면 카드가 맞는지 확인합니다. (CHAPTER400_2)
                     10. 장 기록(MemberChapter)을 생성하거나 갱신합니다. 동시 요청으로 중복 저장이 발생하면 409(CHAPTER409_2)를 반환합니다.
@@ -150,6 +150,17 @@ public interface RecordControllerDocs {
                                                                 "isSuccess": false,
                                                                 "code": "CHAPTER400_6",
                                                                 "message": "감정 선택이 필요합니다.",
+                                                                "result": null
+                                                            }
+                                                            """
+                                            ),
+                                            @ExampleObject(
+                                                    name = "같은 질문(answers[].chapterQuestionId)에 대한 답변 중복",
+                                                    value = """
+                                                            {
+                                                                "isSuccess": false,
+                                                                "code": "CHAPTER400_7",
+                                                                "message": "같은 질문에 대한 답변이 중복되었습니다.",
                                                                 "result": null
                                                             }
                                                             """
