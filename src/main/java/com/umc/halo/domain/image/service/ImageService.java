@@ -53,7 +53,7 @@ public class ImageService {
         ImageContentType contentType = ImageContentType.from(dto.contentType());
         String imageKey = generateImageKey(memberId, contentType);
 
-        PutObjectRequest putObjectRequest = ImageConverter.toPutObjectRequest(bucket, imageKey, contentType, dto.fileSize(), kmsKeyId);
+        PutObjectRequest putObjectRequest = ImageConverter.toPutObjectRequest(bucket, imageKey, contentType, kmsKeyId);
         PutObjectPresignRequest putPresignRequest = ImageConverter.toPutObjectPresignRequest(EXPIRATION, putObjectRequest);
         PresignedPutObjectRequest presignedPutObjectRequest = s3Presigner.presignPutObject(putPresignRequest);
 
