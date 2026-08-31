@@ -13,12 +13,11 @@ public class ImageConverter {
     public static final String SSE_HEADER = "x-amz-server-side-encryption";
     public static final String SSE_KMS_KEY_ID_HEADER = "x-amz-server-side-encryption-aws-kms-key-id";
 
-    public static PutObjectRequest toPutObjectRequest(String bucket, String imageKey, ImageContentType contentType, long fileSize, String kmsKeyId) {
+    public static PutObjectRequest toPutObjectRequest(String bucket, String imageKey, ImageContentType contentType, String kmsKeyId) {
         return PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(imageKey)
                 .contentType(contentType.getMimeType())
-                .contentLength(fileSize)
                 .serverSideEncryption(ServerSideEncryption.AWS_KMS)
                 .ssekmsKeyId(kmsKeyId)
                 .build();
