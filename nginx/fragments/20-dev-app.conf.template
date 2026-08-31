@@ -28,9 +28,8 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
 
     # 개발 환경은 팀 외 접근 차단
-    # TODO: 과제 제출 기간 임시 해제 (issue #110)
-    # auth_basic "Restricted";
-    # auth_basic_user_file /etc/nginx/.htpasswd;
+    auth_basic "Restricted";
+    auth_basic_user_file /etc/nginx/.htpasswd;
 
     location /actuator {
         return 404;
