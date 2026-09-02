@@ -65,6 +65,7 @@ server {
     }
 
     location / {
+        proxy_set_header Authorization "";
         proxy_pass http://dev_app_upstream;
         include /etc/nginx/fragments/proxy-common.conf;
     }
