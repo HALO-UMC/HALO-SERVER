@@ -28,6 +28,9 @@ public enum OnboardingErrorCode implements BaseErrorCode {
     INVALID_TAG_CATEGORY(HttpStatus.BAD_REQUEST,
             "ONBOARDING400_6",
             "해당 단계에 맞지 않는 태그입니다."),
+    INVALID_STEP_SEQUENCE(HttpStatus.BAD_REQUEST,
+            "ONBOARDING400_7",
+            "이전 단계를 먼저 완료해주세요."),
 
     // 404
     TAG_NOT_FOUND(HttpStatus.NOT_FOUND,
