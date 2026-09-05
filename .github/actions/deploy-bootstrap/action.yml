@@ -20,6 +20,10 @@ inputs:
     required: true
   ec2-app-dir:
     required: true
+  compose-file:
+    required: false
+    default: docker-compose.yml
+    description: "EC2로 전송/백업할 compose 파일명 (prod: docker-compose.yml, dev: docker-compose.dev.yml)"
 
 outputs:
   rule-id:
@@ -86,21 +90,23 @@ runs:
         EC2_USERNAME: ${{ inputs.ec2-username }}
         EC2_HOST: ${{ inputs.ec2-host }}
         EC2_APP_DIR: ${{ inputs.ec2-app-dir }}
+        COMPOSE_FILE_NAME: ${{ inputs.compose-file }}
       run: |
-        ssh "$EC2_USERNAME@$EC2_HOST" "EC2_APP_DIR='$EC2_APP_DIR' bash -s" << 'EOF'
+        ssh "$EC2_USERNAME@$EC2_HOST" "EC2_APP_DIR='$EC2_APP_DIR' COMPOSE_FILE_NAME='$COMPOSE_FILE_NAME' bash -s" << 'EOF'
           set -euo pipefail
           cd "$EC2_APP_DIR"
           rm -rf .prev_release
           mkdir -p .prev_release
-          [ -f docker-compose.yml ] && cp docker-compose.yml .prev_release/ || true
+          [ -f "$COMPOSE_FILE_NAME" ] && cp "$COMPOSE_FILE_NAME" .prev_release/ || true
           [ -d nginx ] && cp -r nginx .prev_release/ || true
         EOF
 
-    - name: docker-compose.yml / nginx 설정 EC2로 복사
+    - name: compose 파일 / nginx 설정 EC2로 복사
       shell: bash
       env:
         EC2_USERNAME: ${{ inputs.ec2-username }}
         EC2_HOST: ${{ inputs.ec2-host }}
         EC2_APP_DIR: ${{ inputs.ec2-app-dir }}
+        COMPOSE_FILE_NAME: ${{ inputs.compose-file }}
       run: |
-        scp -r docker-compose.yml nginx "$EC2_USERNAME@$EC2_HOST:$EC2_APP_DIR/"
+        scp -r "$COMPOSE_FILE_NAME" nginx "$EC2_USERNAME@$EC2_HOST:$EC2_APP_DIR/"
