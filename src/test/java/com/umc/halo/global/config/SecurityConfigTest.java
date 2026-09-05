@@ -88,6 +88,12 @@ class SecurityConfigTest {
     }
 
     @Test
+    void 약관_목록_POST_요청은_토큰_없으면_401이다() throws Exception {
+        mockMvc.perform(post("/api/v1/terms"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void 약관_동의는_POST라서_토큰_없으면_401이다() throws Exception {
         mockMvc.perform(post("/api/v1/terms/agreements")
                         .contentType(MediaType.APPLICATION_JSON)
