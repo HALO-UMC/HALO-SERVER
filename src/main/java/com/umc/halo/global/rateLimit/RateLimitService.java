@@ -1,0 +1,73 @@
+package com.umc.halo.global.rateLimit;
+
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class RateLimitService {
+
+    private final Map<RateLimitKey, Bucket> buckets = new ConcurrentHashMap<>();
+
+    public boolean tryConsume(Long memberId, AiRateLimitType aiRateLimitType) {
+
+        RateLimitKey rateLimitKey = new RateLimitKey(memberId, aiRateLimitType);
+
+        Bucket bucket = buckets.computeIfAbsent(rateLimitKey, k -> createBucket(aiRateLimitType));
+
+        boolean allowed = bucket.tryConsume(1);
+
+        if (!allowed) {
+            log.warn("AI Rate Limit 초과 memberId={}, remaining={}", memberId, bucket.getAvailableTokens());
+        }
+
+        return allowed;
+    }
+
+    private Bucket createBucket(AiRateLimitType aiRateLimitType) {
+
+        Bandwidth minuteLimit;
+        Bandwidth dayLimit;
+
+        switch (aiRateLimitType) {
+            case CHAPTER_SUMMARY -> {
+                    minuteLimit = Bandwidth.builder()
+                            .capacity(3)
+                            .refillIntervally(3, Duration.ofMinutes(1))
+                            .build();
+
+                    dayLimit = Bandwidth.builder()
+                            .capacity(10)
+                            .refillIntervally(10, Duration.ofDays(1))
+                            .build();
+            }
+
+            case ANNIVERSARY_MESSAGE -> {
+                    minuteLimit = Bandwidth.builder()
+                            .capacity(5)
+                            .refillIntervally(5, Duration.ofMinutes(1))
+                            .build();
+
+                    dayLimit = Bandwidth.builder()
+                        .capacity(30)
+                        .refillIntervally(30, Duration.ofDays(1))
+                        .build();
+            }
+
+            default -> throw new IllegalStateException();
+        };
+
+        return Bucket.builder()
+                .addLimit(minuteLimit)
+                .addLimit(dayLimit)
+                .build();
+    }
+}

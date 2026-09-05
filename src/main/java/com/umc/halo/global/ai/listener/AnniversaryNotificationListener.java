@@ -60,8 +60,8 @@ public class AnniversaryNotificationListener {
 
         String d7Title = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_D7);
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
-        String d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
-        String ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
+        String d7Message = createNotificationMessage(memberId, anniversary, NotificationType.ANNIVERSARY_D7);
+        String ddayMessage = createNotificationMessage(memberId, anniversary, NotificationType.ANNIVERSARY_DDAY);
 
         notificationTransactionService.saveOrUpdateBoth(anniversary, memberSetting, d7Title, d7Message, d7, ddayTitle, ddayMessage, dday, now);
     }
@@ -94,8 +94,8 @@ public class AnniversaryNotificationListener {
         String ddayMessage = null;
 
         if(event.titleChanged() || event.memoChanged()) {
-            d7Message = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7);
-            ddayMessage = createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY);
+            d7Message = createNotificationMessage(memberId, anniversary, NotificationType.ANNIVERSARY_D7);
+            ddayMessage = createNotificationMessage(memberId, anniversary, NotificationType.ANNIVERSARY_DDAY);
         }
 
         notificationTransactionService.updateOrCancelBoth(anniversary, memberSetting,
@@ -135,10 +135,10 @@ public class AnniversaryNotificationListener {
         String ddayTitle = createNotificationTitle(anniversary, NotificationType.ANNIVERSARY_DDAY);
 
         String d7Message = (anniversary.getSevenDaysAlarmEnabled() && d7.isAfter(now))
-                ? createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_D7)
+                ? createNotificationMessage(memberId, anniversary, NotificationType.ANNIVERSARY_D7)
                 : null;
         String ddayMessage = (anniversary.getDayAlarmEnabled() && dday.isAfter(now))
-                ? createNotificationMessage(anniversary, NotificationType.ANNIVERSARY_DDAY)
+                ? createNotificationMessage(memberId, anniversary, NotificationType.ANNIVERSARY_DDAY)
                 : null;
 
         notificationTransactionService.saveOrUpdateBoth(anniversary, memberSetting, d7Title, d7Message, d7, ddayTitle, ddayMessage, dday, now);
@@ -152,14 +152,14 @@ public class AnniversaryNotificationListener {
         return "오늘은 " + anniversary.getTitle() + "입니다.";
     }
 
-    private String createNotificationMessage(Anniversary anniversary, NotificationType notificationType) {
+    private String createNotificationMessage(Long memberId, Anniversary anniversary, NotificationType notificationType) {
 
         if (anniversary.getMemo() == null || anniversary.getMemo().isBlank()) {
             return createDefaultNotificationMessage(notificationType);
         }
 
         try {
-            return aiService.generateAnniversaryNotificationMessage(anniversary.getTitle(), anniversary.getMemo());
+            return aiService.generateAnniversaryNotificationMessage(memberId, anniversary.getTitle(), anniversary.getMemo());
         } catch (AiException e) {
             log.warn("AI 알림 문구 생성 실패. anniversaryId={}", anniversary.getId(), e);
             return createDefaultNotificationMessage(notificationType);

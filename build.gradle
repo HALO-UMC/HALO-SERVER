@@ -63,6 +63,9 @@ dependencies {
 
     // Firebase
     implementation 'com.google.firebase:firebase-admin:9.8.0'
+
+    // Ai Rate Limit
+    implementation "com.bucket4j:bucket4j-core:8.10.1"
 }
 
 tasks.named('test') {
