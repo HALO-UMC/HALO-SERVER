@@ -12,7 +12,7 @@ if [ -f "$CONF_OUT" ]; then
   cp -f "$CONF_OUT" "$CONF_BAK"
 fi
 
-if try_full || try_partial; then
+if try_full; then
   # 컨테이너가 방금 재생성된 직후라면 watch-and-reload.sh가 아직 최초 기동
   # 대기 루프(최대 60초) 중이라 nginx 마스터가 안 떠 있을 수 있음
   # pid 파일이 생길 때까지 잠깐 기다렸다 reload
