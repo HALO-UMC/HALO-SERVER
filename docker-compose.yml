@@ -40,6 +40,7 @@ services:
       - "443:443"
     environment:
       - DOMAIN=${DOMAIN:?DOMAIN is required}
+      - APP_FRAGMENT=10-app-prod.conf.template
     volumes:
       - ./nginx/fragments:/etc/nginx/fragments:ro
       - certbot-webroot:/var/www/certbot

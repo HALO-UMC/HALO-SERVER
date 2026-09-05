@@ -38,6 +38,7 @@ services:
       - "443:443"
     environment:
       - DEV_DOMAIN=${DEV_DOMAIN:?DEV_DOMAIN is required}
+      - APP_FRAGMENT=10-app-dev.conf.template
     volumes:
       - ./nginx/fragments:/etc/nginx/fragments:ro
       - ./.htpasswd:/etc/nginx/.htpasswd:ro
