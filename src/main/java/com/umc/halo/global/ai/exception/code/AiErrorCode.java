@@ -12,7 +12,7 @@ public enum AiErrorCode implements BaseErrorCode {
     AI_RATE_LIMIT_EXCEEDED(
             HttpStatus.TOO_MANY_REQUESTS,
             "AI429_1",
-            "AI 요청 횟수를 초과했습니다. 잠시 후 다시 시도해주세요."
+            "AI 요청 횟수를 초과했습니다. 한도 갱신 후 다시 시도해주세요."
     ),
 
     AI_RESPONSE_EMPTY(

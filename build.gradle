@@ -66,6 +66,7 @@ dependencies {
 
     // Ai Rate Limit
     implementation "com.bucket4j:bucket4j-core:8.10.1"
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.2.0'
 }
 
 tasks.named('test') {

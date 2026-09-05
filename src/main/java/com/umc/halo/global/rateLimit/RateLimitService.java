@@ -1,5 +1,7 @@
 package com.umc.halo.global.rateLimit;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
@@ -7,21 +9,28 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * AI API Rate Limit.
+ * 현재 EC2 단일 인스턴스 환경을 기준으로 메모리 기반 Bucket을 사용한다.
+ * 멀티 인스턴스 환경에서는 Redis 기반 Bucket4j 저장소로 교체해야 한다.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RateLimitService {
 
-    private final Map<RateLimitKey, Bucket> buckets = new ConcurrentHashMap<>();
+    private final Cache<RateLimitKey, Bucket> buckets =
+            Caffeine.newBuilder()
+                    .expireAfterAccess(Duration.ofDays(1))
+                    .maximumSize(100_000)
+                    .build();
 
     public boolean tryConsume(Long memberId, AiRateLimitType aiRateLimitType) {
 
         RateLimitKey rateLimitKey = new RateLimitKey(memberId, aiRateLimitType);
 
-        Bucket bucket = buckets.computeIfAbsent(rateLimitKey, k -> createBucket(aiRateLimitType));
+        Bucket bucket = buckets.get(rateLimitKey, key -> createBucket(aiRateLimitType));
 
         boolean allowed = bucket.tryConsume(1);
 

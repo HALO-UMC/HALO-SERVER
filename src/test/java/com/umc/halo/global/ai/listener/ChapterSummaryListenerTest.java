@@ -20,6 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -43,7 +44,7 @@ class ChapterSummaryListenerTest {
     private ChapterSummaryListener chapterSummaryListener;
 
     private final ChapterCompletedEvent event =
-            new ChapterCompletedEvent(1L, 1L, "storybook", "chapter", "desc", Emotion.HAPPY.getDescription());
+            new ChapterCompletedEvent(11L, 1L, "storybook", "chapter", "desc", Emotion.HAPPY.getDescription());
 
     @Test
     void AI_요약_생성에_성공하면_memberChapter에_반영하고_명시적으로_저장한다() {
@@ -51,7 +52,7 @@ class ChapterSummaryListenerTest {
         given(memberChapterRepository.findById(1L)).willReturn(Optional.of(memberChapter));
         given(memberChapterAnswerRepository.findAllByMemberChapterOrderByQuestionOrder(memberChapter))
                 .willReturn(List.of());
-        given(aiService.generateChapterSummary(any(), any(), any(), any(), any(), any()))
+        given(aiService.generateChapterSummary(eq(11L), any(), any(), any(), any(), any()))
                 .willReturn("생성된 요약");
 
         chapterSummaryListener.generateSummary(event);
@@ -66,7 +67,7 @@ class ChapterSummaryListenerTest {
         given(memberChapterRepository.findById(1L)).willReturn(Optional.of(memberChapter));
         given(memberChapterAnswerRepository.findAllByMemberChapterOrderByQuestionOrder(memberChapter))
                 .willReturn(List.of());
-        given(aiService.generateChapterSummary(any(), any(), any(), any(), any(), any()))
+        given(aiService.generateChapterSummary(eq(11L), any(), any(), any(), any(), any()))
                 .willThrow(new AiException(AiErrorCode.AI_GENERATE_FAILED));
 
         assertThatCode(() -> chapterSummaryListener.generateSummary(event))
