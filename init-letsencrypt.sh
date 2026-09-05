@@ -22,6 +22,12 @@ if [ -z "$CERT_DOMAIN" ] || [ -z "$EMAIL" ]; then
   exit 1
 fi
 
+if [ -n "$DOMAIN" ]; then
+  export COMPOSE_FILE=docker-compose.yml
+else
+  export COMPOSE_FILE=docker-compose.dev.yml
+fi
+
 DOMAIN_ARGS="-d $CERT_DOMAIN"
 
 echo "### 0. 기존 인증서/갱신 설정 확인 ###"
