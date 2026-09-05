@@ -2,6 +2,7 @@ package com.umc.halo.global.config;
 
 import com.umc.halo.global.security.*;
 import lombok.*;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.*;
 import org.springframework.http.*;
 import org.springframework.security.config.annotation.web.builders.*;
@@ -62,5 +63,17 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // JwtAuthFilter는 SecurityFilterChain 안(addFilterBefore)에서만 실행돼야 함.
+    // @Component로 등록된 Filter 빈은 Spring Boot가 서블릿 컨테이너에도 별도로 자동 등록하는데,
+    // 그러면 Security 체인 밖에서 한 번 더 실행되어(OncePerRequestFilter 특성상) 인증 결과가 무효화될 수 있음.
+    // (운영에서는 우연히 순서상 문제가 안 드러났지만, @WebMvcTest 슬라이스에서는 401로 드러남)
+    // -> 전역 자동 등록을 막고 Security 체인 안에서만 동작하도록 고정.
+    @Bean
+    public FilterRegistrationBean<JwtAuthFilter> jwtAuthFilterRegistration() {
+        FilterRegistrationBean<JwtAuthFilter> registrationBean = new FilterRegistrationBean<>(jwtAuthFilter);
+        registrationBean.setEnabled(false);
+        return registrationBean;
     }
 }
