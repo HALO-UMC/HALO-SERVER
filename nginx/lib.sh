@@ -3,8 +3,8 @@ CONF_OUT=/etc/nginx/conf.d/app.conf
 
 render() {
   cat "$FRAGMENTS_DIR/00-redirect.conf.template" \
-      "$FRAGMENTS_DIR/${APP_FRAGMENT}" > "$CONF_OUT" &&
-  envsubst '${DOMAIN} ${DEV_DOMAIN}' < "$CONF_OUT" > "${CONF_OUT}.rendered" &&
+      "$FRAGMENTS_DIR/${APP_FRAGMENT}" > "${CONF_OUT}.tmp" &&
+  envsubst '${DOMAIN} ${DEV_DOMAIN}' < "${CONF_OUT}.tmp" > "${CONF_OUT}.rendered" &&
   mv "${CONF_OUT}.rendered" "$CONF_OUT"
 }
 
