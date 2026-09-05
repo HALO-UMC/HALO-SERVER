@@ -26,7 +26,7 @@ public class RateLimitService {
         boolean allowed = bucket.tryConsume(1);
 
         if (!allowed) {
-            log.warn("AI Rate Limit 초과 memberId={}, remaining={}", memberId, bucket.getAvailableTokens());
+            log.warn("AI Rate Limit 초과 memberId={}, api={}, remaining={}", memberId, aiRateLimitType, bucket.getAvailableTokens());
         }
 
         return allowed;
@@ -62,8 +62,8 @@ public class RateLimitService {
                         .build();
             }
 
-            default -> throw new IllegalStateException();
-        };
+            default -> throw new IllegalStateException("Unknown AI RateLimitType");
+        }
 
         return Bucket.builder()
                 .addLimit(minuteLimit)
