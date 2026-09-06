@@ -23,6 +23,7 @@ import java.util.List;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -88,6 +89,8 @@ class StorybookControllerTest {
 
         mockMvc.perform(get("/api/v1/storybooks").header("Authorization", "Bearer " + TOKEN))
                 .andExpect(status().isOk());
+
+        verify(storybookService).getStorybookList(MEMBER_ID);
     }
 
     @Test
@@ -100,6 +103,8 @@ class StorybookControllerTest {
 
         mockMvc.perform(get("/api/v1/storybooks/recommended").header("Authorization", "Bearer " + TOKEN))
                 .andExpect(status().isOk());
+
+        verify(storybookService).getRecommendedStorybooks(MEMBER_ID);
     }
 
     @Test

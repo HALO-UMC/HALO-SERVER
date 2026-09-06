@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -372,6 +373,26 @@ class StorybookServiceTest {
         StorybookResDTO.GetStorybookList result = storybookService.getStorybookList(1L);
 
         assertThat(result.storybooks().get(0).status()).isEqualTo(StorybookStatus.TODAY_DONE);
+    }
+
+    @Test
+    void 스토리북_목록조회시_배치조회는_스토리북_개수와_상관없이_한_번씩만_호출된다() {
+        Member member = member(1L);
+        Storybook storybook1 = storybook(1L);
+        Storybook storybook2 = storybook(2L);
+
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(storybookRepository.findAll()).willReturn(List.of(storybook1, storybook2));
+        given(memberStorybookRepository.findByMember(member)).willReturn(List.of());
+        given(memberChapterRepository.findAllByMemberWithChapter(member)).willReturn(List.of());
+        given(chapterRepository.findByStorybook_IdIn(List.of(1L, 2L))).willReturn(List.of());
+
+        storybookService.getStorybookList(1L);
+
+        // 스토리북이 2개여도 배치 조회 메서드는 각각 딱 한 번씩만 호출돼야 한다 (N+1 방지)
+        verify(memberChapterRepository, times(1)).findAllByMemberWithChapter(member);
+        verify(chapterRepository, times(1)).findByStorybook_IdIn(List.of(1L, 2L));
+        verify(chapterRepository, never()).findByStorybook_IdOrderByChapterOrderAsc(any());
     }
 
     // ===== getRecommendedStorybooks =====
