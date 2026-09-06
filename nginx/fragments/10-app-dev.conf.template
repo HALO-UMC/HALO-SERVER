@@ -22,9 +22,8 @@ server {
     http2 on;
     server_name ${DEV_DOMAIN};
 
-    # 인증서는 DOMAIN 발급 시 --expand로 DEV_DOMAIN을 SAN에 포함시켜 공유
-    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/${DEV_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DEV_DOMAIN}/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
 
     # 개발 환경은 팀 외 접근 차단
