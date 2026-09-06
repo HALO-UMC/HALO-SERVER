@@ -254,6 +254,8 @@ class AnniversaryNotificationListenerTest {
 
         listener.createNextNotification(new CreateNextYearNotificationEvent(1L));
 
+        verify(anniversaryRepository).findMemberIdById(1L);
+        verify(memberSettingRepository).findByMemberId(5L);
         verifyNoInteractions(notificationTransactionService);
     }
 
@@ -311,6 +313,96 @@ class AnniversaryNotificationListenerTest {
 
         assertThat(d7MessageCaptor.getValue()).isNull();
         assertThat(ddayMessageCaptor.getValue()).isNull();
+    }
+
+    @Test
+    void createNextNotification은_D7만_활성화되어_있으면_D7_메시지만_채운다() {
+        Anniversary anniversary = Anniversary.builder()
+                .id(1L)
+                .member(member)
+                .title("결혼기념일")
+                .anniversaryDate(LocalDate.now().plusDays(30))
+                .isRepeated(true)
+                .sevenDaysAlarmEnabled(true)
+                .dayAlarmEnabled(false)
+                .build();
+
+        given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
+        given(memberSettingRepository.findByMemberId(5L)).willReturn(Optional.of(memberSetting));
+
+        listener.createNextNotification(new CreateNextYearNotificationEvent(1L));
+
+        ArgumentCaptor<String> d7MessageCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ddayMessageCaptor = ArgumentCaptor.forClass(String.class);
+        verify(notificationTransactionService).saveOrUpdateBoth(
+                eq(anniversary), eq(memberSetting),
+                any(), d7MessageCaptor.capture(), any(),
+                any(), ddayMessageCaptor.capture(), any(),
+                any());
+
+        assertThat(d7MessageCaptor.getValue()).isEqualTo("오늘부터 조금씩 마음을 준비해 보세요.");
+        assertThat(ddayMessageCaptor.getValue()).isNull();
+    }
+
+    @Test
+    void createNextNotification은_DDay만_활성화되어_있으면_DDay_메시지만_채운다() {
+        Anniversary anniversary = Anniversary.builder()
+                .id(1L)
+                .member(member)
+                .title("결혼기념일")
+                .anniversaryDate(LocalDate.now().plusDays(30))
+                .isRepeated(true)
+                .sevenDaysAlarmEnabled(false)
+                .dayAlarmEnabled(true)
+                .build();
+
+        given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
+        given(memberSettingRepository.findByMemberId(5L)).willReturn(Optional.of(memberSetting));
+
+        listener.createNextNotification(new CreateNextYearNotificationEvent(1L));
+
+        ArgumentCaptor<String> d7MessageCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ddayMessageCaptor = ArgumentCaptor.forClass(String.class);
+        verify(notificationTransactionService).saveOrUpdateBoth(
+                eq(anniversary), eq(memberSetting),
+                any(), d7MessageCaptor.capture(), any(),
+                any(), ddayMessageCaptor.capture(), any(),
+                any());
+
+        assertThat(d7MessageCaptor.getValue()).isNull();
+        assertThat(ddayMessageCaptor.getValue()).isEqualTo("오늘의 따뜻한 안녕을 전해보세요.");
+    }
+
+    @Test
+    void createNextNotification은_D7_발생일이_이미_지났으면_DDay_메시지만_채운다() {
+        Anniversary anniversary = Anniversary.builder()
+                .id(1L)
+                .member(member)
+                .title("결혼기념일")
+                .anniversaryDate(LocalDate.now().plusDays(3))
+                .isRepeated(true)
+                .sevenDaysAlarmEnabled(true)
+                .dayAlarmEnabled(true)
+                .build();
+
+        given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
+        given(memberSettingRepository.findByMemberId(5L)).willReturn(Optional.of(memberSetting));
+
+        listener.createNextNotification(new CreateNextYearNotificationEvent(1L));
+
+        ArgumentCaptor<String> d7MessageCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ddayMessageCaptor = ArgumentCaptor.forClass(String.class);
+        verify(notificationTransactionService).saveOrUpdateBoth(
+                eq(anniversary), eq(memberSetting),
+                any(), d7MessageCaptor.capture(), any(),
+                any(), ddayMessageCaptor.capture(), any(),
+                any());
+
+        assertThat(d7MessageCaptor.getValue()).isNull();
+        assertThat(ddayMessageCaptor.getValue()).isEqualTo("오늘의 따뜻한 안녕을 전해보세요.");
     }
 
     @Test
