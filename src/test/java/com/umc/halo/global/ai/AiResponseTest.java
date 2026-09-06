@@ -89,7 +89,7 @@ class AiResponseTest {
 
     @Test
     void getText는_모든_part의_텍스트가_공백이면_AI_RESPONSE_INVALID_예외를_던진다() {
-        AiResponse response = response(List.of(candidate(content(List.of(part(""), part(null))))));
+        AiResponse response = response(List.of(candidate(content(List.of(part(" \t\n"), part(null))))));
 
         assertThatThrownBy(response::getText)
                 .isInstanceOf(AiException.class)

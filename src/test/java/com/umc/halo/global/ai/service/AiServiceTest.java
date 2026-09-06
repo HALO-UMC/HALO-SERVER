@@ -51,6 +51,7 @@ class AiServiceTest {
                 .isInstanceOf(AiException.class)
                 .satisfies(e -> assertThat(((AiException) e).getErrorCode()).isEqualTo(AiErrorCode.AI_RATE_LIMIT_EXCEEDED));
 
+        verify(rateLimitService).tryConsume(1L, AiRateLimitType.CHAPTER_SUMMARY);
         verifyNoInteractions(aiClient);
         verifyNoInteractions(sensitiveDataFilter);
     }
@@ -87,6 +88,7 @@ class AiServiceTest {
                 .isInstanceOf(AiException.class)
                 .satisfies(e -> assertThat(((AiException) e).getErrorCode()).isEqualTo(AiErrorCode.AI_RATE_LIMIT_EXCEEDED));
 
+        verify(rateLimitService).tryConsume(1L, AiRateLimitType.ANNIVERSARY_MESSAGE);
         verifyNoInteractions(aiClient);
         verifyNoInteractions(sensitiveDataFilter);
     }
@@ -94,12 +96,12 @@ class AiServiceTest {
     @Test
     void generateAnniversaryNotificationMessage는_한도_내이면_제목과_메모를_마스킹한_뒤_프롬프트를_생성해_AiClient에_전달한다() {
         given(rateLimitService.tryConsume(1L, AiRateLimitType.ANNIVERSARY_MESSAGE)).willReturn(true);
-        given(sensitiveDataFilter.mask("생일 (test@example.com)")).willReturn("생일 ([이메일])");
+        given(sensitiveDataFilter.mask("생일 (010-1234-5678)")).willReturn("생일 ([전화번호])");
         given(sensitiveDataFilter.mask("연락주세요 test@example.com")).willReturn("연락주세요 [이메일]");
         given(aiClient.generate(anyString())).willReturn("생성된 알림 문구");
 
         String result = aiService.generateAnniversaryNotificationMessage(
-                1L, "생일 (test@example.com)", "연락주세요 test@example.com");
+                1L, "생일 (010-1234-5678)", "연락주세요 test@example.com");
 
         assertThat(result).isEqualTo("생성된 알림 문구");
 
@@ -107,7 +109,10 @@ class AiServiceTest {
         verify(aiClient).generate(promptCaptor.capture());
         String prompt = promptCaptor.getValue();
 
+        // 제목과 메모가 서로 다른 값으로 마스킹되므로 둘 다 프롬프트에 들어갔는지 각각 확인 가능
+        assertThat(prompt).contains("[전화번호]");
         assertThat(prompt).contains("[이메일]");
+        assertThat(prompt).doesNotContain("010-1234-5678");
         assertThat(prompt).doesNotContain("test@example.com");
     }
 }
