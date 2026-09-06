@@ -8,6 +8,7 @@ import com.umc.halo.domain.setting.entity.MemberSetting;
 import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
+import com.umc.halo.global.ai.event.CreateNextYearNotificationEvent;
 import com.umc.halo.global.ai.service.AiService;
 import com.umc.halo.global.ai.exception.AiException;
 import com.umc.halo.global.ai.exception.code.AiErrorCode;
@@ -30,6 +31,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * generateNotificationMessage/updateNotificationMessage는 AI 문구 생성
@@ -211,5 +213,106 @@ class AnniversaryNotificationListenerTest {
         assertThat(d7MessageCaptor.getValue()).isEqualTo("오늘부터 조금씩 마음을 준비해 보세요.");
         assertThat(ddayMessageCaptor.getValue()).isEqualTo("오늘의 따뜻한 안녕을 전해보세요.");
         verify(notificationTransactionService, never()).cancelBoth(any());
+    }
+
+    @Test
+    void createNextNotification은_반복_기념일이_아니면_아무것도_하지_않는다() {
+        Anniversary anniversary = Anniversary.builder()
+                .id(1L)
+                .member(member)
+                .title("결혼기념일")
+                .anniversaryDate(LocalDate.now().plusDays(30))
+                .isRepeated(false)
+                .build();
+
+        given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+
+        listener.createNextNotification(new CreateNextYearNotificationEvent(1L));
+
+        verify(anniversaryRepository, never()).findMemberIdById(any());
+        verifyNoInteractions(memberSettingRepository, notificationTransactionService);
+    }
+
+    @Test
+    void createNextNotification은_회원설정이_없으면_아무것도_하지_않는다() {
+        Anniversary anniversary = Anniversary.builder()
+                .id(1L)
+                .member(member)
+                .title("결혼기념일")
+                .anniversaryDate(LocalDate.now().plusDays(30))
+                .isRepeated(true)
+                .build();
+
+        given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
+        given(memberSettingRepository.findByMemberId(5L)).willReturn(Optional.empty());
+
+        listener.createNextNotification(new CreateNextYearNotificationEvent(1L));
+
+        verifyNoInteractions(notificationTransactionService);
+    }
+
+    @Test
+    void createNextNotification은_알림이_비활성화되어_있으면_메시지_없이_저장한다() {
+        Anniversary anniversary = Anniversary.builder()
+                .id(1L)
+                .member(member)
+                .title("결혼기념일")
+                .anniversaryDate(LocalDate.now().plusDays(30))
+                .isRepeated(true)
+                .sevenDaysAlarmEnabled(false)
+                .dayAlarmEnabled(false)
+                .build();
+
+        given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
+        given(memberSettingRepository.findByMemberId(5L)).willReturn(Optional.of(memberSetting));
+
+        listener.createNextNotification(new CreateNextYearNotificationEvent(1L));
+
+        ArgumentCaptor<String> d7MessageCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ddayMessageCaptor = ArgumentCaptor.forClass(String.class);
+        verify(notificationTransactionService).saveOrUpdateBoth(
+                eq(anniversary), eq(memberSetting),
+                any(), d7MessageCaptor.capture(), any(),
+                any(), ddayMessageCaptor.capture(), any(),
+                any());
+
+        assertThat(d7MessageCaptor.getValue()).isNull();
+        assertThat(ddayMessageCaptor.getValue()).isNull();
+    }
+
+    @Test
+    void createNextNotification은_D7_DDay_메시지를_묶어서_한번에_넘긴다() {
+        Anniversary anniversary = Anniversary.builder()
+                .id(1L)
+                .member(member)
+                .title("결혼기념일")
+                .anniversaryDate(LocalDate.now().plusDays(30))
+                .isRepeated(true)
+                .sevenDaysAlarmEnabled(true)
+                .dayAlarmEnabled(true)
+                .build();
+
+        given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
+        given(memberSettingRepository.findByMemberId(5L)).willReturn(Optional.of(memberSetting));
+
+        listener.createNextNotification(new CreateNextYearNotificationEvent(1L));
+
+        ArgumentCaptor<String> d7TitleCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> d7MessageCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ddayTitleCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ddayMessageCaptor = ArgumentCaptor.forClass(String.class);
+        verify(notificationTransactionService).saveOrUpdateBoth(
+                eq(anniversary), eq(memberSetting),
+                d7TitleCaptor.capture(), d7MessageCaptor.capture(), any(),
+                ddayTitleCaptor.capture(), ddayMessageCaptor.capture(), any(),
+                any());
+
+        assertThat(d7TitleCaptor.getValue()).isEqualTo("결혼기념일까지 7일 남았어요.");
+        assertThat(ddayTitleCaptor.getValue()).isEqualTo("오늘은 결혼기념일입니다.");
+        assertThat(d7MessageCaptor.getValue()).isEqualTo("오늘부터 조금씩 마음을 준비해 보세요.");
+        assertThat(ddayMessageCaptor.getValue()).isEqualTo("오늘의 따뜻한 안녕을 전해보세요.");
     }
 }
