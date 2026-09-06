@@ -169,12 +169,18 @@ jobs:
               exit 1
             fi
 
+            if [ ! -f .prev_release/.env ]; then
+              echo "이전 .env 스냅샷 없음, 롤백 불가" >&2
+              exit 1
+            fi
+
             echo "이전 이미지(SHA: $PREV_SHA)로 롤백 시도" >&2
 
-            # app 이미지뿐 아니라 새로 배포된 compose/nginx 설정도 함께 되돌림
+            # app 이미지뿐 아니라 새로 배포된 compose/nginx/.env 설정도 함께 되돌림
             cp .prev_release/docker-compose.yml docker-compose.yml
             rm -rf nginx
             cp -r .prev_release/nginx nginx
+            cp -p .prev_release/.env .env
 
             export IMAGE_TAG="$PREV_SHA"
             docker compose config >/dev/null
@@ -374,7 +380,7 @@ jobs:
             echo "nginx 설정 반영 실패" >&2
             docker compose logs --tail=50 nginx || true
 
-            if [ ! -f .prev_release/docker-compose.dev.yml ]; then
+            if [ ! -f .prev_release/docker-compose.dev.yml ] || [ ! -f .prev_release/.env ]; then
               echo "이전 설정 스냅샷 없음, 복구 불가" >&2
               exit 1
             fi
@@ -383,6 +389,7 @@ jobs:
             cp .prev_release/docker-compose.dev.yml docker-compose.dev.yml
             rm -rf nginx
             cp -r .prev_release/nginx nginx
+            cp -p .prev_release/.env .env
 
             if docker compose build nginx && docker compose up -d --force-recreate nginx; then
               echo "이전 nginx 설정으로 복구 완료" >&2
