@@ -12,6 +12,7 @@ import jakarta.validation.Path;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.MethodParameter;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -242,5 +244,50 @@ class GeneralExceptionAdviceTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         ApiResponse<?> body = (ApiResponse<?>) response.getBody();
         assertThat(body.getCode()).isEqualTo(GeneralErrorCode.NOT_FOUND.getCode());
+    }
+
+    @Test
+    void handleDataIntegrityViolationException은_유니크_제약_위반시_CONFLICT로_응답하고_DB_상세정보를_노출하지_않는다() {
+        SQLException sqlException = new SQLException("Duplicate entry 'test@test.com' for key 'uk_email'", "23000", 1062);
+        DataIntegrityViolationException ex = new DataIntegrityViolationException("could not execute statement", sqlException);
+
+        ResponseEntity<Object> response = advice.handleDataIntegrityViolationException(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(GeneralErrorCode.CONFLICT.getStatus());
+        ApiResponse<?> body = (ApiResponse<?>) response.getBody();
+        assertThat(body.getCode()).isEqualTo(GeneralErrorCode.CONFLICT.getCode());
+        assertThat(body.getResult()).isNull();
+    }
+
+    @Test
+    void handleDataIntegrityViolationException은_원인이_없어도_CONFLICT로_응답한다() {
+        DataIntegrityViolationException ex = new DataIntegrityViolationException("제약 조건 위반");
+
+        ResponseEntity<Object> response = advice.handleDataIntegrityViolationException(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(GeneralErrorCode.CONFLICT.getStatus());
+        ApiResponse<?> body = (ApiResponse<?>) response.getBody();
+        assertThat(body.getResult()).isNull();
+    }
+
+    @Test
+    void handleExceptionInternal은_4xx여도_5xx여도_같은_UNHANDLED_포맷으로_응답한다() {
+        Exception ex4xx = new IllegalStateException("잘못된 요청 상태");
+        Exception ex5xx = new IllegalStateException("서버 처리 실패");
+
+        ResponseEntity<Object> response4xx = advice.handleExceptionInternal(
+                ex4xx, null, HttpHeaders.EMPTY, HttpStatus.BAD_REQUEST, mock(WebRequest.class));
+        ResponseEntity<Object> response5xx = advice.handleExceptionInternal(
+                ex5xx, null, HttpHeaders.EMPTY, HttpStatus.INTERNAL_SERVER_ERROR, mock(WebRequest.class));
+
+        ApiResponse<?> body4xx = (ApiResponse<?>) response4xx.getBody();
+        ApiResponse<?> body5xx = (ApiResponse<?>) response5xx.getBody();
+
+        assertThat(response4xx.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response5xx.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(body4xx.getCode()).isEqualTo("UNHANDLED_IllegalStateException");
+        assertThat(body5xx.getCode()).isEqualTo("UNHANDLED_IllegalStateException");
+        assertThat(body4xx.getMessage()).isEqualTo("요청을 처리할 수 없습니다.");
+        assertThat(body5xx.getMessage()).isEqualTo("요청을 처리할 수 없습니다.");
     }
 }
