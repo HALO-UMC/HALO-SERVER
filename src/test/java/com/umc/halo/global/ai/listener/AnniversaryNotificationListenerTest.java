@@ -9,6 +9,8 @@ import com.umc.halo.domain.setting.repository.MemberSettingRepository;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
 import com.umc.halo.global.ai.service.AiService;
+import com.umc.halo.global.ai.exception.AiException;
+import com.umc.halo.global.ai.exception.code.AiErrorCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -84,6 +86,72 @@ class AnniversaryNotificationListenerTest {
 
         assertThat(d7TitleCaptor.getValue()).isEqualTo("결혼기념일까지 7일 남았어요.");
         assertThat(ddayTitleCaptor.getValue()).isEqualTo("오늘은 결혼기념일입니다.");
+        assertThat(d7MessageCaptor.getValue()).isEqualTo("오늘부터 조금씩 마음을 준비해 보세요.");
+        assertThat(ddayMessageCaptor.getValue()).isEqualTo("오늘의 따뜻한 안녕을 전해보세요.");
+    }
+
+    @Test
+    void generateNotificationMessage는_메모가_있으면_AI가_생성한_문구를_사용한다() {
+        Anniversary anniversary = Anniversary.builder()
+                .id(1L)
+                .member(member)
+                .title("결혼기념일")
+                .memo("우리가 처음 만난 날")
+                .anniversaryDate(LocalDate.now().plusDays(30))
+                .isRepeated(false)
+                .sevenDaysAlarmEnabled(true)
+                .dayAlarmEnabled(true)
+                .build();
+
+        given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
+        given(memberSettingRepository.findByMemberId(any())).willReturn(Optional.of(memberSetting));
+        given(aiService.generateAnniversaryNotificationMessage(5L, "결혼기념일", "우리가 처음 만난 날"))
+                .willReturn("AI가 만든 문구");
+
+        listener.generateNotificationMessage(new AnniversaryCreatedEvent(1L));
+
+        ArgumentCaptor<String> d7MessageCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ddayMessageCaptor = ArgumentCaptor.forClass(String.class);
+        verify(notificationTransactionService).saveOrUpdateBoth(
+                eq(anniversary), eq(memberSetting),
+                any(), d7MessageCaptor.capture(), any(),
+                any(), ddayMessageCaptor.capture(), any(),
+                any());
+
+        assertThat(d7MessageCaptor.getValue()).isEqualTo("AI가 만든 문구");
+        assertThat(ddayMessageCaptor.getValue()).isEqualTo("AI가 만든 문구");
+    }
+
+    @Test
+    void generateNotificationMessage는_AI_호출이_실패하면_기본_문구로_폴백한다() {
+        Anniversary anniversary = Anniversary.builder()
+                .id(1L)
+                .member(member)
+                .title("결혼기념일")
+                .memo("우리가 처음 만난 날")
+                .anniversaryDate(LocalDate.now().plusDays(30))
+                .isRepeated(false)
+                .sevenDaysAlarmEnabled(true)
+                .dayAlarmEnabled(true)
+                .build();
+
+        given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
+        given(memberSettingRepository.findByMemberId(any())).willReturn(Optional.of(memberSetting));
+        given(aiService.generateAnniversaryNotificationMessage(5L, "결혼기념일", "우리가 처음 만난 날"))
+                .willThrow(new AiException(AiErrorCode.AI_GENERATE_FAILED));
+
+        listener.generateNotificationMessage(new AnniversaryCreatedEvent(1L));
+
+        ArgumentCaptor<String> d7MessageCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> ddayMessageCaptor = ArgumentCaptor.forClass(String.class);
+        verify(notificationTransactionService).saveOrUpdateBoth(
+                eq(anniversary), eq(memberSetting),
+                any(), d7MessageCaptor.capture(), any(),
+                any(), ddayMessageCaptor.capture(), any(),
+                any());
+
         assertThat(d7MessageCaptor.getValue()).isEqualTo("오늘부터 조금씩 마음을 준비해 보세요.");
         assertThat(ddayMessageCaptor.getValue()).isEqualTo("오늘의 따뜻한 안녕을 전해보세요.");
     }
