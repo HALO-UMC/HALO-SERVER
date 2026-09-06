@@ -33,6 +33,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -159,6 +160,7 @@ class AnniversaryNotificationListenerTest {
 
         assertThat(d7MessageCaptor.getValue()).isEqualTo("오늘부터 조금씩 마음을 준비해 보세요.");
         assertThat(ddayMessageCaptor.getValue()).isEqualTo("오늘의 따뜻한 안녕을 전해보세요.");
+        verify(aiService, times(2)).generateAnniversaryNotificationMessage(5L, "결혼기념일", "우리가 처음 만난 날");
     }
 
     @Test
@@ -274,6 +276,8 @@ class AnniversaryNotificationListenerTest {
                     .thenReturn(null);
 
             listener.createNextNotification(new CreateNextYearNotificationEvent(1L));
+
+            mockedResolver.verify(() -> AnniversaryOccurrenceResolver.resolveNextOccurrence(eq(anniversary), any(LocalDate.class)));
         }
 
         verifyNoInteractions(notificationTransactionService);
