@@ -15,13 +15,19 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.method.ParameterValidationResult;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -157,5 +163,84 @@ class GeneralExceptionAdviceTest {
         @SuppressWarnings("unchecked")
         Map<String, String> errors = (Map<String, String>) body.getResult();
         assertThat(errors).containsEntry("size", "size는 양수여야 합니다.");
+    }
+
+    @Test
+    void handleHttpMessageNotReadable는_BAD_REQUEST와_고정_메시지로_응답한다() {
+        HttpMessageNotReadableException ex = mock(HttpMessageNotReadableException.class);
+        when(ex.getCause()).thenReturn(new RuntimeException("Unexpected character"));
+
+        ResponseEntity<Object> response = advice.handleHttpMessageNotReadable(
+                ex, HttpHeaders.EMPTY, HttpStatus.BAD_REQUEST, mock(WebRequest.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        ApiResponse<?> body = (ApiResponse<?>) response.getBody();
+        assertThat(body.getResult()).isEqualTo("요청 Body 형식이 잘못되었습니다.");
+    }
+
+    @Test
+    void handleMissingServletRequestParameter는_BAD_REQUEST로_응답한다() {
+        MissingServletRequestParameterException ex = mock(MissingServletRequestParameterException.class);
+        when(ex.getMessage()).thenReturn("Required request parameter 'page' is not present");
+
+        ResponseEntity<Object> response = advice.handleMissingServletRequestParameter(
+                ex, HttpHeaders.EMPTY, HttpStatus.BAD_REQUEST, mock(WebRequest.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        ApiResponse<?> body = (ApiResponse<?>) response.getBody();
+        assertThat(body.getCode()).isEqualTo(GeneralErrorCode.BAD_REQUEST.getCode());
+    }
+
+    @Test
+    void handleHttpMediaTypeNotSupported는_UNSUPPORTED_MEDIA_TYPE으로_응답한다() {
+        HttpMediaTypeNotSupportedException ex = mock(HttpMediaTypeNotSupportedException.class);
+        when(ex.getMessage()).thenReturn("Content-Type 'text/plain' is not supported");
+
+        ResponseEntity<Object> response = advice.handleHttpMediaTypeNotSupported(
+                ex, HttpHeaders.EMPTY, HttpStatus.UNSUPPORTED_MEDIA_TYPE, mock(WebRequest.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        ApiResponse<?> body = (ApiResponse<?>) response.getBody();
+        assertThat(body.getCode()).isEqualTo(GeneralErrorCode.UNSUPPORTED_MEDIA_TYPE.getCode());
+    }
+
+    @Test
+    void handleHttpRequestMethodNotSupported는_METHOD_NOT_ALLOWED로_응답한다() {
+        HttpRequestMethodNotSupportedException ex = mock(HttpRequestMethodNotSupportedException.class);
+        when(ex.getMessage()).thenReturn("Request method 'DELETE' is not supported");
+
+        ResponseEntity<Object> response = advice.handleHttpRequestMethodNotSupported(
+                ex, HttpHeaders.EMPTY, HttpStatus.METHOD_NOT_ALLOWED, mock(WebRequest.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
+        ApiResponse<?> body = (ApiResponse<?>) response.getBody();
+        assertThat(body.getCode()).isEqualTo(GeneralErrorCode.METHOD_NOT_ALLOWED.getCode());
+    }
+
+    @Test
+    void handleTypeMismatch은_MethodArgumentTypeMismatchException이면_BAD_REQUEST로_응답한다() {
+        MethodArgumentTypeMismatchException ex = mock(MethodArgumentTypeMismatchException.class);
+        when(ex.getValue()).thenReturn("abc");
+        when(ex.getName()).thenReturn("page");
+
+        ResponseEntity<Object> response = advice.handleTypeMismatch(
+                ex, HttpHeaders.EMPTY, HttpStatus.BAD_REQUEST, mock(WebRequest.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        ApiResponse<?> body = (ApiResponse<?>) response.getBody();
+        assertThat(body.getCode()).isEqualTo(GeneralErrorCode.BAD_REQUEST.getCode());
+    }
+
+    @Test
+    void handleNoResourceFoundException은_NOT_FOUND로_응답한다() {
+        NoResourceFoundException ex = mock(NoResourceFoundException.class);
+        when(ex.getMessage()).thenReturn("No static resource no-such-path.");
+
+        ResponseEntity<Object> response = advice.handleNoResourceFoundException(
+                ex, HttpHeaders.EMPTY, HttpStatus.NOT_FOUND, mock(WebRequest.class));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        ApiResponse<?> body = (ApiResponse<?>) response.getBody();
+        assertThat(body.getCode()).isEqualTo(GeneralErrorCode.NOT_FOUND.getCode());
     }
 }
