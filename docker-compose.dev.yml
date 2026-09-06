@@ -1,24 +1,22 @@
 services:
-  app:
+  dev-app:
     build: .
-    image: ghcr.io/halo-umc/halo-server:${IMAGE_TAG:-latest}
+    image: ghcr.io/halo-umc/halo-server:${DEV_IMAGE_TAG:-latest}
     pull_policy: always
-    container_name: halo-app
+    container_name: halo-dev-app
     restart: unless-stopped
     init: true
     stop_grace_period: 40s
-    mem_limit: 1536m
+    mem_limit: 1024m
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
     env_file:
-      - .env
+      - .env.dev
     expose:
       - "8080"
-    ports:
-      - "127.0.0.1:8080:8080"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://127.0.0.1:8080/actuator/health" ]
       interval: 10s
@@ -33,16 +31,17 @@ services:
     container_name: halo-nginx
     restart: unless-stopped
     depends_on:
-      app:
+      dev-app:
         condition: service_healthy
     ports:
       - "80:80"
       - "443:443"
     environment:
-      - DOMAIN=${DOMAIN:?DOMAIN is required}
-      - APP_FRAGMENT=10-app-prod.conf.template
+      - DEV_DOMAIN=${DEV_DOMAIN:?DEV_DOMAIN is required}
+      - APP_FRAGMENT=10-app-dev.conf.template
     volumes:
       - ./nginx/fragments:/etc/nginx/fragments:ro
+      - ./.htpasswd:/etc/nginx/.htpasswd:ro
       - certbot-webroot:/var/www/certbot
       - certbot-certs:/etc/letsencrypt
     networks:
