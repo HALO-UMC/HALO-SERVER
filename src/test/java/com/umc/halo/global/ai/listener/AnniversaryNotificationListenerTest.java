@@ -10,6 +10,7 @@ import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
 import com.umc.halo.global.ai.event.CreateNextYearNotificationEvent;
 import com.umc.halo.global.ai.service.AiService;
+import com.umc.halo.global.util.AnniversaryOccurrenceResolver;
 import com.umc.halo.global.ai.exception.AiException;
 import com.umc.halo.global.ai.exception.code.AiErrorCode;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
@@ -30,6 +32,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -248,6 +251,30 @@ class AnniversaryNotificationListenerTest {
         given(memberSettingRepository.findByMemberId(5L)).willReturn(Optional.empty());
 
         listener.createNextNotification(new CreateNextYearNotificationEvent(1L));
+
+        verifyNoInteractions(notificationTransactionService);
+    }
+
+    @Test
+    void createNextNotification은_다음_발생일이_없으면_아무것도_하지_않는다() {
+        Anniversary anniversary = Anniversary.builder()
+                .id(1L)
+                .member(member)
+                .title("결혼기념일")
+                .anniversaryDate(LocalDate.now().plusDays(30))
+                .isRepeated(true)
+                .build();
+
+        given(anniversaryRepository.findById(1L)).willReturn(Optional.of(anniversary));
+        given(anniversaryRepository.findMemberIdById(1L)).willReturn(Optional.of(5L));
+        given(memberSettingRepository.findByMemberId(5L)).willReturn(Optional.of(memberSetting));
+
+        try (MockedStatic<AnniversaryOccurrenceResolver> mockedResolver = mockStatic(AnniversaryOccurrenceResolver.class)) {
+            mockedResolver.when(() -> AnniversaryOccurrenceResolver.resolveNextOccurrence(eq(anniversary), any(LocalDate.class)))
+                    .thenReturn(null);
+
+            listener.createNextNotification(new CreateNextYearNotificationEvent(1L));
+        }
 
         verifyNoInteractions(notificationTransactionService);
     }

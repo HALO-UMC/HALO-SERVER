@@ -2,6 +2,7 @@ package com.umc.halo.global.config;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -25,6 +26,7 @@ class AsyncConfigTest {
         assertThat(executor.getMaxPoolSize()).isEqualTo(8);
         assertThat(executor.getQueueCapacity()).isEqualTo(50);
         assertThat(executor.getKeepAliveSeconds()).isEqualTo(60);
+        assertThat((Long) ReflectionTestUtils.getField(executor, "awaitTerminationMillis")).isEqualTo(20_000L);
         assertThat(executor.getThreadNamePrefix()).isEqualTo("halo-async-");
     }
 
