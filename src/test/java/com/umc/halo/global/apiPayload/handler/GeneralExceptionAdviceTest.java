@@ -91,6 +91,7 @@ class GeneralExceptionAdviceTest {
         assertThat(body.getCode()).isEqualTo(GeneralErrorCode.INTERNAL_SERVER_ERROR.getCode());
         assertThat(body.getMessage()).isEqualTo("서버 내부 오류가 발생했습니다.");
         assertThat(body.getMessage()).doesNotContain("DB 연결 실패");
+        assertThat(body.getResult()).isNull();
     }
 
     @Test
@@ -257,6 +258,7 @@ class GeneralExceptionAdviceTest {
         ApiResponse<?> body = (ApiResponse<?>) response.getBody();
         assertThat(body.getCode()).isEqualTo(GeneralErrorCode.CONFLICT.getCode());
         assertThat(body.getResult()).isNull();
+        assertThat(body.getMessage()).doesNotContain("test@test.com", "23000", "1062");
     }
 
     @Test
@@ -289,5 +291,7 @@ class GeneralExceptionAdviceTest {
         assertThat(body5xx.getCode()).isEqualTo("UNHANDLED_IllegalStateException");
         assertThat(body4xx.getMessage()).isEqualTo("요청을 처리할 수 없습니다.");
         assertThat(body5xx.getMessage()).isEqualTo("요청을 처리할 수 없습니다.");
+        assertThat(body4xx.getResult()).isNull();
+        assertThat(body5xx.getResult()).isNull();
     }
 }
