@@ -17,6 +17,7 @@ import com.umc.halo.domain.record.service.ValidatedChapterRecord;
 import com.umc.halo.global.ai.event.AnniversaryCreatedEvent;
 import com.umc.halo.global.ai.event.AnniversaryUpdatedEvent;
 import com.umc.halo.global.ai.event.ChapterCompletedEvent;
+import com.umc.halo.global.ai.event.CreateNextYearNotificationEvent;
 import com.umc.halo.domain.notification.entity.Anniversary;
 import com.umc.halo.domain.notification.service.NotificationTransactionService;
 import com.umc.halo.domain.setting.entity.MemberSetting;
@@ -24,6 +25,7 @@ import com.umc.halo.global.ai.listener.AnniversaryNotificationListener;
 import com.umc.halo.global.ai.listener.ChapterSummaryListener;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,23 +43,52 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class TransactionBoundaryTest {
 
-    @TestFactory
-    Stream<DynamicTest> 외부_호출을_포함한_메서드는_트랜잭션이_없어야_한다() throws NoSuchMethodException {
-        List<Method> methods = List.of(
+    /**
+     * S3/JWKS/AI 등 느린 외부 호출을 담은 메서드들 — @Transactional이 없어야 한다.
+     * (이 중 이벤트 리스너들만 별도로 @Async 여부도 검증한다. MemberService.login,
+     * RecordService.writeChapterRecord/validate는 요청 흐름상 동기 호출이라 @Async 대상이 아님)
+     */
+    private static List<Method> externalCallMethods() throws NoSuchMethodException {
+        return List.of(
                 MemberService.class.getDeclaredMethod("login", MemberReqDTO.Login.class),
                 RecordService.class.getDeclaredMethod("writeChapterRecord", Long.class, RecordReqDTO.WriteChapterRecord.class),
                 RecordService.class.getDeclaredMethod("validate", Long.class, RecordReqDTO.WriteChapterRecord.class),
                 ImageFinalizeListener.class.getDeclaredMethod("handle", ImageFinalizeRequestedEvent.class),
                 ChapterSummaryListener.class.getDeclaredMethod("generateSummary", ChapterCompletedEvent.class),
                 AnniversaryNotificationListener.class.getDeclaredMethod("generateNotificationMessage", AnniversaryCreatedEvent.class),
-                AnniversaryNotificationListener.class.getDeclaredMethod("updateNotificationMessage", AnniversaryUpdatedEvent.class)
+                AnniversaryNotificationListener.class.getDeclaredMethod("updateNotificationMessage", AnniversaryUpdatedEvent.class),
+                AnniversaryNotificationListener.class.getDeclaredMethod("createNextNotification", CreateNextYearNotificationEvent.class)
         );
+    }
 
-        return methods.stream().map(method ->
+    @TestFactory
+    Stream<DynamicTest> 외부_호출을_포함한_메서드는_트랜잭션이_없어야_한다() throws NoSuchMethodException {
+        return externalCallMethods().stream().map(method ->
                 DynamicTest.dynamicTest(method.getDeclaringClass().getSimpleName() + "." + method.getName(), () ->
                         assertThat(method.isAnnotationPresent(Transactional.class))
                                 .as("%s는 외부 호출(S3/JWKS/AI)을 포함하므로 @Transactional이 없어야 함", method)
                                 .isFalse()
+                )
+        );
+    }
+
+    @TestFactory
+    Stream<DynamicTest> 외부_호출을_포함한_메서드는_Async여야_한다() throws NoSuchMethodException {
+        // MemberService.login, RecordService.writeChapterRecord/validate는 요청 흐름상 동기 호출이라 제외하고,
+        // 요청 스레드를 막지 않아야 하는 이벤트 리스너들만 검증한다.
+        List<Method> listenerMethods = List.of(
+                ImageFinalizeListener.class.getDeclaredMethod("handle", ImageFinalizeRequestedEvent.class),
+                ChapterSummaryListener.class.getDeclaredMethod("generateSummary", ChapterCompletedEvent.class),
+                AnniversaryNotificationListener.class.getDeclaredMethod("generateNotificationMessage", AnniversaryCreatedEvent.class),
+                AnniversaryNotificationListener.class.getDeclaredMethod("updateNotificationMessage", AnniversaryUpdatedEvent.class),
+                AnniversaryNotificationListener.class.getDeclaredMethod("createNextNotification", CreateNextYearNotificationEvent.class)
+        );
+
+        return listenerMethods.stream().map(method ->
+                DynamicTest.dynamicTest(method.getDeclaringClass().getSimpleName() + "." + method.getName(), () ->
+                        assertThat(method.isAnnotationPresent(Async.class))
+                                .as("%s는 이벤트 리스너이므로 요청 스레드를 막지 않도록 @Async가 있어야 함", method)
+                                .isTrue()
                 )
         );
     }
