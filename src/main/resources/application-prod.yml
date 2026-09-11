@@ -22,3 +22,7 @@ management:
     web:
       exposure:
         include: health
+
+sentry:
+  dsn: ${SENTRY_DSN}
+  environment: ${SPRING_PROFILES_ACTIVE}

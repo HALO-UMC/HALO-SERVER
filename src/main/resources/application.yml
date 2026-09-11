@@ -74,3 +74,7 @@ management:
     web:
       exposure:
         include: health
+
+sentry:
+  dsn:
+  exception-resolver-order: -2147483647
