@@ -100,6 +100,7 @@ jobs:
           S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
           S3_KMS_KEY_ID=${{ secrets.S3_KMS_KEY_ID }}
           FIREBASE_SERVICE_ACCOUNT_B64=${{secrets.FIREBASE_SERVICE_ACCOUNT_B64}}
+          SENTRY_DSN=${{ secrets.SENTRY_DSN }}
           ENVEOF
 
             # build-and-push가 같은 워크플로우 실행 안에서 이미 push했으므로 별도 PAT 없이 pull
@@ -333,6 +334,7 @@ jobs:
           S3_BUCKET_NAME=${{ secrets.DEV_S3_BUCKET_NAME }}
           S3_KMS_KEY_ID=${{ secrets.DEV_S3_KMS_KEY_ID }}
           FIREBASE_SERVICE_ACCOUNT_B64=${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
+          SENTRY_DSN=${{ secrets.SENTRY_DSN }}
           ENVEOF
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
