@@ -117,12 +117,13 @@ public interface OnboardingControllerDocs {
 
                     ## 동작 방식
                     1. 요청받은 step(1~5)에 따라 필요한 필드를 검증합니다. 필수값이 없으면 400(ONBOARDING400_3)을 반환합니다.
-                    2. step 1은 이름/닉네임 형식을, step 2는 성별과 생년월일(미래 날짜 불가)을 검증합니다.
-                    3. step 3(부모님 성향 태그, 최대 3개)/step 4(현재 관계 상태 태그, 1개)/step 5(목표 관계 태그, 1~2개)는 각각 해당 카테고리의 태그인지 확인하고, 존재하지 않는 태그면 404(ONBOARDING404_1)를 반환합니다.
-                    4. 태그가 포함된 step은 기존 태그를 삭제하고 새로 저장합니다.
-                    5. 회원의 온보딩 단계(onboardingStep)를 갱신합니다.
-                    6. step이 5(마지막 단계)이면 온보딩을 완료 처리하고, 등록된 캐릭터 중 하나를 무작위로 배정합니다.
-                    7. 저장된 단계와 완료 여부를 반환합니다.
+                    2. 이전 단계를 완료하지 않고 건너뛴 경우 400(ONBOARDING400_7)을 반환합니다. 저장된 단계 + 1 이하만 허용하며, 이전 단계 재저장(수정)은 가능합니다.
+                    3. step 1은 이름/닉네임 형식을, step 2는 성별과 생년월일(미래 날짜 불가)을 검증합니다.
+                    4. step 3(부모님 성향 태그, 최대 3개)/step 4(현재 관계 상태 태그, 1개)/step 5(목표 관계 태그, 1~2개)는 각각 해당 카테고리의 태그인지 확인하고, 존재하지 않는 태그면 404(ONBOARDING404_1)를 반환합니다.
+                    5. 태그가 포함된 step은 기존 태그를 삭제하고 새로 저장합니다.
+                    6. 회원의 온보딩 단계(onboardingStep)를 갱신합니다.
+                    7. step이 5(마지막 단계)이면 온보딩을 완료 처리하고, 등록된 캐릭터 중 하나를 무작위로 배정합니다.
+                    8. 저장된 단계와 완료 여부를 반환합니다.
                     """
     )
     @ApiResponses(value = {
@@ -143,17 +144,31 @@ public interface OnboardingControllerDocs {
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
-                    description = "필수값 누락 / 태그 개수 초과",
+                    description = "필수값 누락 / 태그 개수 초과 / 단계 순서 위반",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "isSuccess": false,
-                                      "code": "ONBOARDING400_3",
-                                      "message": "필수 입력값이 누락되었습니다.",
-                                      "result": null
-                                    }
-                                    """)
+                            examples = {
+                                    @ExampleObject(
+                                            name = "필수값 누락",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ONBOARDING400_3",
+                                                      "message": "필수 입력값이 누락되었습니다.",
+                                                      "result": null
+                                                    }
+                                                    """),
+                                    @ExampleObject(
+                                            name = "단계 순서 위반",
+                                            value = """
+                                                    {
+                                                      "isSuccess": false,
+                                                      "code": "ONBOARDING400_7",
+                                                      "message": "이전 단계를 먼저 완료해주세요.",
+                                                      "result": null
+                                                    }
+                                                    """)
+                            }
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(

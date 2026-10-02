@@ -9,6 +9,12 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum AiErrorCode implements BaseErrorCode {
 
+    AI_RATE_LIMIT_EXCEEDED(
+            HttpStatus.TOO_MANY_REQUESTS,
+            "AI429_1",
+            "AI 요청 횟수를 초과했습니다. 한도 갱신 후 다시 시도해주세요."
+    ),
+
     AI_RESPONSE_EMPTY(
             HttpStatus.BAD_GATEWAY,
             "AI502_1",

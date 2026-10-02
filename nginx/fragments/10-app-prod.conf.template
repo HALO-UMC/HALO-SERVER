@@ -7,7 +7,6 @@ server {
         root /var/www/certbot;
     }
 
-    # server_name이 ${DOMAIN} 하나로 고정이라 $host 대신 리터럴 도메인으로 리다이렉트
     location / {
         return 301 https://${DOMAIN}$request_uri;
     }

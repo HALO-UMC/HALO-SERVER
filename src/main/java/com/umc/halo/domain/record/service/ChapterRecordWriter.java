@@ -150,6 +150,7 @@ public class ChapterRecordWriter {
 
             // ai로 answer 3개 요약
             applicationEventPublisher.publishEvent(new ChapterCompletedEvent(
+                    memberId,
                     memberChapter.getId(),
                     chapter.getStorybook().getTitle(),
                     chapter.getTitle(),

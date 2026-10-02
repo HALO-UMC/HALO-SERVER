@@ -77,6 +77,11 @@ public class OnboardingService {
             throw new OnboardingException(OnboardingErrorCode.MISSING_REQUIRED_FIELD);
         }
 
+        int savedStep = (member.getOnboardingStep() == null) ? 0 : member.getOnboardingStep();
+        if (step > savedStep + 1) {
+            throw new OnboardingException(OnboardingErrorCode.INVALID_STEP_SEQUENCE);
+        }
+
         switch (step) {
             case 1 -> {
                 if (request.name() == null) {

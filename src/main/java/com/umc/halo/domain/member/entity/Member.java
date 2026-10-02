@@ -75,7 +75,12 @@ public class Member extends BaseEntity {
     }
 
     public void updateOnboardingStep(Integer step) {
-        this.onboardingStep = step;
+        if (step == null) {
+            return;
+        }
+        if (this.onboardingStep == null || step > this.onboardingStep) {
+            this.onboardingStep = step;
+        }
     }
 
     public void completeOnboarding() {
