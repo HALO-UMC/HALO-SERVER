@@ -1,14 +1,12 @@
 name: 배포 부트스트랩
-description: AWS OIDC 인증, 러너 IP 임시 허용, SSH 설정, compose/nginx/.env 설정 백업 및 compose/nginx/배포 스크립트 EC2 전송까지 prod 배포 준비 단계. 호출 전에 actions/checkout이 먼저 실행되어 있어야 함.
+description: Tailscale 접속, SSH 설정, compose/nginx/.env 설정 백업 및 compose/nginx/배포 스크립트 서버 전송까지 prod 배포 준비 단계. 호출 전에 actions/checkout이 먼저 실행되어 있어야 함.
 
 inputs:
   firebase-service-account-b64:
     required: true
-  aws-role-arn:
+  tailscale-oauth-client-id:
     required: true
-  aws-region:
-    required: true
-  ec2-security-group-id:
+  tailscale-oauth-secret:
     required: true
   ec2-known-hosts:
     required: true
@@ -18,13 +16,9 @@ inputs:
     required: true
   ec2-host:
     required: true
+    description: 서버의 Tailscale 주소 (MagicDNS 이름 또는 100.x IP)
   ec2-app-dir:
     required: true
-
-outputs:
-  rule-id:
-    description: 이번 job에서 보안그룹에 임시로 연 SSH 인그레스 규칙 ID (해제 시 CIDR이 아닌 이 ID로 추적)
-    value: ${{ steps.allow-runner-ip.outputs.rule-id }}
 
 runs:
   using: composite
@@ -47,25 +41,14 @@ runs:
           exit 1
         fi
 
-    # OIDC로 단기 자격증명 발급
-    - name: AWS 자격증명 설정 (OIDC)
-      uses: aws-actions/configure-aws-credentials@v4
+    # 러너를 tailnet에 임시 노드(ephemeral)로 붙여 서버 SSH에 접근, job 종료 시 자동 로그아웃
+    - name: Tailscale 접속
+      uses: tailscale/github-action@v4
       with:
-        role-to-assume: ${{ inputs.aws-role-arn }}
-        aws-region: ${{ inputs.aws-region }}
-
-    - name: 러너 IP를 보안그룹에 임시 허용 (SSH 22번 포트)
-      id: allow-runner-ip
-      shell: bash
-      env:
-        EC2_SECURITY_GROUP_ID: ${{ inputs.ec2-security-group-id }}
-      run: |
-        RUNNER_IP="$(curl -sf --connect-timeout 5 --max-time 15 https://checkip.amazonaws.com)/32"
-        RULE_ID=$(aws ec2 authorize-security-group-ingress \
-          --group-id "$EC2_SECURITY_GROUP_ID" \
-          --protocol tcp --port 22 --cidr "$RUNNER_IP" \
-          --output json | jq -r '.SecurityGroupRules[0].SecurityGroupRuleId')
-        echo "rule-id=$RULE_ID" >> "$GITHUB_OUTPUT"
+        oauth-client-id: ${{ inputs.tailscale-oauth-client-id }}
+        oauth-secret: ${{ inputs.tailscale-oauth-secret }}
+        tags: tag:ci
+        ping: ${{ inputs.ec2-host }}
 
     - name: known_hosts 등록
       shell: bash

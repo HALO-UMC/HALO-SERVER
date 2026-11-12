@@ -70,7 +70,6 @@ jobs:
     permissions:
       contents: read
       packages: read
-      id-token: write
 
     steps:
       - name: 소스 체크아웃
@@ -78,14 +77,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: 배포 준비 (Firebase 검증 / AWS 인증 / 러너 IP 허용 / SSH 설정 / compose 및 nginx 백업 및 전송)
-        id: bootstrap
+      - name: 배포 준비 (Firebase 검증 / Tailscale 접속 / SSH 설정 / compose 및 nginx 백업 및 전송)
         uses: ./.github/actions/deploy-bootstrap
         with:
           firebase-service-account-b64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
-          aws-role-arn: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
-          ec2-security-group-id: ${{ secrets.EC2_SECURITY_GROUP_ID }}
+          tailscale-oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          tailscale-oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           ec2-known-hosts: ${{ secrets.EC2_KNOWN_HOSTS }}
           ec2-ssh-key: ${{ secrets.EC2_SSH_KEY }}
           ec2-username: ${{ secrets.EC2_USERNAME }}
@@ -121,12 +118,3 @@ jobs:
             # 배포/헬스체크/롤백 로직은 deploy-bootstrap이 함께 전송한 스크립트에서 수행
             IMAGE_TAG="${{ github.sha }}" bash deploy/deploy.sh
           EOF
-
-      - name: 보안그룹에서 러너 IP 제거
-        if: always() && steps.bootstrap.outputs.rule-id != ''
-        uses: ./.github/actions/release-runner-ip
-        with:
-          rule-id: ${{ steps.bootstrap.outputs.rule-id }}
-          ec2-security-group-id: ${{ secrets.EC2_SECURITY_GROUP_ID }}
-          env-label: prod
-          discord-webhook-url: ${{ secrets.CD_ALERTS_DISCORD_WEBHOOK_URL }}
