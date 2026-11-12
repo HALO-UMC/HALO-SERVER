@@ -26,6 +26,19 @@ wait_app_healthy() {
   return 1
 }
 
+# SHA 태그가 붙은 예전 app 이미지는 prune 대상이 아니라 계속 쌓이므로,
+# 현재 버전과 직전 버전(롤백용)만 남기고 삭제. 정리 실패는 배포 결과에 영향 주지 않음
+remove_old_app_images() {
+  local repo
+  repo=$(docker compose config --images app 2>/dev/null | head -n 1) || return 0
+  repo=${repo%:*}
+  [ -n "$repo" ] || return 0
+
+  docker image ls "$repo" --format '{{.Repository}}:{{.Tag}}' \
+    | grep -v -x -e "$repo:$IMAGE_TAG" -e "$repo:${PREV_SHA:-}" -e "$repo:<none>" \
+    | xargs -r docker image rm >/dev/null 2>&1 || true
+}
+
 # 롤백 대비, 직전에 성공적으로 배포된 이미지의 SHA 태그 기록 (최초 배포면 빈 값)
 PREV_SHA=$(cat .deployed_sha 2>/dev/null || true)
 
@@ -70,6 +83,7 @@ fi
 
 if [ "$DEPLOY_OK" = true ]; then
   echo "$IMAGE_TAG" > .deployed_sha
+  remove_old_app_images
   docker image prune -f || true
   exit 0
 fi
