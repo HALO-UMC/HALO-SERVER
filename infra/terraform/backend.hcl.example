@@ -1,0 +1,6 @@
+# backend.hcl로 복사해서 사용 (커밋 금지)
+# 버킷은 state를 담아야 해서 Terraform 밖에서 미리 만들어 둠 (콘솔 Object Storage, Standard 티어)
+bucket    = "halo-terraform-state"
+namespace = "<Object Storage 네임스페이스>"
+region    = "ap-osaka-1"
+key       = "prod/terraform.tfstate"

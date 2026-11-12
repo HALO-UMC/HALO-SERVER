@@ -1,0 +1,4 @@
+# terraform.tfvars로 복사해서 사용 (커밋 금지)
+compartment_ocid = "ocid1.tenancy.oc1..xxxx"
+# region      = "ap-osaka-1"
+# oci_profile = "DEFAULT"
