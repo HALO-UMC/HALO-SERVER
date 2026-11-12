@@ -1,0 +1,16 @@
+#cloud-config
+# 최초 부팅 때 1회 실행: Tailscale 등록 → Tailscale 포트 허용 → init-server.sh (Docker, 스왑, 시간대, 80/443, 배포 디렉터리)
+# 진행 로그: /var/log/cloud-init-output.log
+
+write_files:
+  - path: /opt/halo/init-server.sh
+    permissions: "0755"
+    encoding: b64
+    content: ${init_server_b64}
+
+runcmd:
+  - curl -fsSL https://tailscale.com/install.sh | sh
+  - tailscale up --auth-key='${tailscale_auth_key}' --hostname=halo-prod --advertise-tags=tag:server
+  # OCI Ubuntu 이미지의 iptables는 22번 외 인바운드를 막으므로 Tailscale 직접 연결 포트를 열어둠 (init-server.sh가 규칙을 저장)
+  - iptables -I INPUT 1 -p udp --dport 41641 -j ACCEPT
+  - APP_DIR='${app_dir}' DEPLOY_USER=ubuntu bash /opt/halo/init-server.sh

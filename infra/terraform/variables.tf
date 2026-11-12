@@ -10,6 +10,11 @@ variable "oci_profile" {
   default     = "DEFAULT"
 }
 
+variable "tenancy_ocid" {
+  description = "tenancy OCID (가용 도메인 조회용)"
+  type        = string
+}
+
 variable "compartment_ocid" {
   description = "리소스를 만들 compartment OCID (루트면 tenancy OCID)"
   type        = string
@@ -19,4 +24,21 @@ variable "admin_ssh_cidr" {
   description = "SSH 22번을 임시로 열 CIDR (예: 내 IP/32), null이면 닫힘"
   type        = string
   default     = null
+}
+
+variable "ssh_authorized_keys" {
+  description = "ubuntu 계정에 등록할 SSH 공개키 (내 키와 CD용 키, 줄바꿈으로 구분)"
+  type        = string
+}
+
+variable "app_dir" {
+  description = "CD가 배포할 디렉터리, GitHub Secrets의 EC2_APP_DIR과 같아야 함"
+  type        = string
+  default     = "/home/ubuntu/halo"
+}
+
+variable "tailscale_auth_key" {
+  description = "서버를 tailnet에 등록할 Tailscale 인증 키 (1회용, tag:server)"
+  type        = string
+  sensitive   = true
 }
