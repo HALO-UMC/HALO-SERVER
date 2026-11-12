@@ -31,6 +31,18 @@ if docker compose run --rm --entrypoint /bin/sh certbot -ec "
   exit 1
 fi
 
+remove_cert_files() {
+  docker compose run -T --rm --entrypoint /bin/sh certbot -ec "
+    rm -rf /etc/letsencrypt/live/$CERT_DOMAIN &&
+    rm -rf /etc/letsencrypt/archive/$CERT_DOMAIN &&
+    rm -rf /etc/letsencrypt/renewal/$CERT_DOMAIN.conf
+  "
+}
+
+# 더미 인증서가 남으면 다음 실행에서 인증서가 있는 것으로 판단해 실제 발급을 건너뛰므로,
+# 더미 생성~삭제 사이에 실패하면 종료 시 정리
+trap 'remove_cert_files || echo "더미 인증서 정리 실패, 수동 삭제 필요" >&2' EXIT
+
 echo "### 1. 더미 인증서 생성 ###"
 docker compose run --rm --entrypoint /bin/sh certbot -ec "
   mkdir -p /etc/letsencrypt/live/$CERT_DOMAIN &&
@@ -44,11 +56,8 @@ echo "### 2. nginx 기동 ###"
 docker compose up -d nginx
 
 echo "### 3. 더미 인증서 삭제 ###"
-docker compose run --rm --entrypoint /bin/sh certbot -ec "
-  rm -rf /etc/letsencrypt/live/$CERT_DOMAIN &&
-  rm -rf /etc/letsencrypt/archive/$CERT_DOMAIN &&
-  rm -rf /etc/letsencrypt/renewal/$CERT_DOMAIN.conf
-"
+remove_cert_files
+trap - EXIT
 
 echo "### 4. 실제 인증서 발급 ###"
 docker compose run --rm --entrypoint /bin/sh certbot -ec "
