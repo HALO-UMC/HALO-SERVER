@@ -135,10 +135,13 @@ if [ "$ROLLBACK_OK" = true ] && ! docker compose up -d --force-recreate nginx; t
   ROLLBACK_OK=false
 fi
 
+# Host 헤더 없이 요청하면 default_server(444)로 빠지므로 도메인을 지정해 HTTPS 리다이렉트(301) 확인
+ROLLBACK_DOMAIN=$(sed -n 's/^DOMAIN=//p' .env | head -n 1)
+
 if [ "$ROLLBACK_OK" = true ]; then
   for i in $(seq 1 15); do
     if app_healthy \
-      && [ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' http://127.0.0.1/)" = "301" ]; then
+      && [ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' -H "Host: $ROLLBACK_DOMAIN" http://127.0.0.1/)" = "301" ]; then
       echo "롤백 완료, 이전 버전으로 정상 기동"
       exit 1
     fi
