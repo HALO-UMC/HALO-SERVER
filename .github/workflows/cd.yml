@@ -39,11 +39,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # 현재 EC2(x86)와 이전 대상 OCI A1(ARM)을 모두 지원하도록 멀티아키 빌드, arm64는 QEMU 에뮬레이션
+      - name: QEMU 설정
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Buildx 설정
+        uses: docker/setup-buildx-action@v3
+
       - name: 이미지 빌드 및 푸시
         uses: docker/build-push-action@v6
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
