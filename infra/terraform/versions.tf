@@ -7,6 +7,10 @@ terraform {
       source  = "oracle/oci"
       version = "~> 7.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 
   # state는 OCI Object Storage 버킷에 저장 (값은 backend.hcl로 주입)

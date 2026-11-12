@@ -43,3 +43,15 @@ variable "tailscale_auth_key" {
   type        = string
   sensitive   = true
 }
+
+variable "mysql_version" {
+  description = "HeatWave MySQL 버전 (예: 8.4.6), null이면 OCI 기본값"
+  type        = string
+  default     = null
+}
+
+variable "db_admin_username" {
+  description = "HeatWave 관리자 계정 이름"
+  type        = string
+  default     = "admin"
+}
