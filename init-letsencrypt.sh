@@ -5,28 +5,18 @@
 # 2) certbot으로 진짜 인증서를 발급받은 뒤
 # 3) nginx를 재시작해서 진짜 인증서를 적용한다.
 
-# 사용법(prod): DOMAIN=your.domain EMAIL=you@example.com ./init-letsencrypt.sh
-# 사용법(dev) : DEV_DOMAIN=dev.your.domain EMAIL=you@example.com ./init-letsencrypt.sh
+# 사용법: DOMAIN=your.domain EMAIL=you@example.com ./init-letsencrypt.sh
 
 set -e
 
-if [ -n "$DOMAIN" ] && [ -n "$DEV_DOMAIN" ]; then
-  echo "DOMAIN과 DEV_DOMAIN을 동시에 지정할 수 없습니다. 실행할 Compose 환경의 도메인 하나만 넣으세요." >&2
-  exit 1
-fi
-
-CERT_DOMAIN="${DOMAIN:-$DEV_DOMAIN}"
+CERT_DOMAIN="$DOMAIN"
 
 if [ -z "$CERT_DOMAIN" ] || [ -z "$EMAIL" ]; then
   echo "DOMAIN과 EMAIL을 설정하세요." >&2
   exit 1
 fi
 
-if [ -n "$DOMAIN" ]; then
-  export COMPOSE_FILE=docker-compose.yml
-else
-  export COMPOSE_FILE=docker-compose.dev.yml
-fi
+export COMPOSE_FILE=docker-compose.yml
 
 DOMAIN_ARGS="-d $CERT_DOMAIN"
 
