@@ -49,7 +49,7 @@ services:
       - internal
 
   certbot:
-    image: certbot/certbot
+    image: certbot/certbot:v5.9.0
     container_name: halo-certbot
     restart: unless-stopped
     volumes:

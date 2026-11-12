@@ -46,7 +46,7 @@ docker compose config >/dev/null
 
 # elif 대신 개별 if: 앞 단계 실패 시 up을 건너뛰면 구버전이 헬스체크를 통과해 잘못된 SHA가 기록될 수 있음
 DEPLOY_OK=true
-if ! docker compose pull app certbot; then
+if ! docker compose pull app; then
   echo "이미지 pull 실패" >&2
   DEPLOY_OK=false
 fi
@@ -54,9 +54,13 @@ if [ "$DEPLOY_OK" = true ] && ! docker compose build nginx; then
   echo "nginx 빌드 실패" >&2
   DEPLOY_OK=false
 fi
-if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --force-recreate app certbot; then
+if [ "$DEPLOY_OK" = true ] && ! docker compose up -d --force-recreate app; then
   echo "compose up 실패" >&2
   DEPLOY_OK=false
+fi
+# certbot은 이미지 태그나 설정이 바뀐 경우에만 재생성되며, 실패해도 앱 배포 결과와는 무관
+if [ "$DEPLOY_OK" = true ] && ! docker compose up -d certbot; then
+  echo "certbot 기동 실패 (인증서 자동 갱신 확인 필요)" >&2
 fi
 
 if [ "$DEPLOY_OK" = true ]; then
