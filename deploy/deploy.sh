@@ -77,7 +77,7 @@ fi
 # 새 서버 최초 배포: 인증서가 없으면 nginx가 기동하지 못하므로 먼저 발급
 DOMAIN=$(sed -n 's/^DOMAIN=//p' .env | head -n 1)
 cert_exists() {
-  docker compose run --rm --no-deps --entrypoint sh certbot \
+  docker compose run -T --rm --no-deps --entrypoint sh certbot \
     -c "[ -e /etc/letsencrypt/live/$DOMAIN/fullchain.pem ]" >/dev/null 2>&1
 }
 if [ "$DEPLOY_OK" = true ] && ! cert_exists; then
