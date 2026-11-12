@@ -5,7 +5,8 @@
 # 2) certbot으로 진짜 인증서를 발급받은 뒤
 # 3) nginx를 재시작해서 진짜 인증서를 적용한다.
 
-# 사용법: DOMAIN=your.domain EMAIL=you@example.com ./init-letsencrypt.sh
+# 사용법: 앱 디렉터리에서 DOMAIN=your.domain EMAIL=you@example.com bash deploy/init-letsencrypt.sh
+# CD 최초 배포 시 인증서가 없으면 deploy.sh가 자동으로 호출함
 
 set -e
 

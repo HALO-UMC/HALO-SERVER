@@ -74,6 +74,23 @@ else
   echo "배포 명령 실패로 헬스체크 생략, 롤백 절차로 진행" >&2
 fi
 
+# 새 서버 최초 배포: 인증서가 없으면 nginx가 기동하지 못하므로 먼저 발급
+DOMAIN=$(sed -n 's/^DOMAIN=//p' .env | head -n 1)
+cert_exists() {
+  docker compose run --rm --no-deps --entrypoint sh certbot \
+    -c "[ -e /etc/letsencrypt/live/$DOMAIN/fullchain.pem ]" >/dev/null 2>&1
+}
+if [ "$DEPLOY_OK" = true ] && ! cert_exists; then
+  echo "$DOMAIN 인증서 없음, 최초 발급 진행"
+  if [ -z "${CERTBOT_EMAIL:-}" ]; then
+    echo "CERTBOT_EMAIL이 비어 있어 인증서를 발급할 수 없습니다." >&2
+    DEPLOY_OK=false
+  elif ! DOMAIN="$DOMAIN" EMAIL="$CERTBOT_EMAIL" sh deploy/init-letsencrypt.sh; then
+    echo "인증서 발급 실패 (DNS A 레코드가 이 서버를 가리키는지 확인)" >&2
+    DEPLOY_OK=false
+  fi
+fi
+
 # nginx 이미지가 바뀐 경우에만 재생성
 # 그 외엔 기존 컨테이너를 두고 reload.sh로 설정만 재로드
 if [ "$DEPLOY_OK" = true ] && ! docker compose up -d nginx; then
