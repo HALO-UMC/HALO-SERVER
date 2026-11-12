@@ -5,33 +5,24 @@
 # 2) certbot으로 진짜 인증서를 발급받은 뒤
 # 3) nginx를 재시작해서 진짜 인증서를 적용한다.
 
-# 사용법(prod): DOMAIN=your.domain EMAIL=you@example.com ./init-letsencrypt.sh
-# 사용법(dev) : DEV_DOMAIN=dev.your.domain EMAIL=you@example.com ./init-letsencrypt.sh
+# 사용법: 앱 디렉터리에서 DOMAIN=your.domain sh deploy/init-letsencrypt.sh
+# CD 최초 배포 시 인증서가 없으면 deploy.sh가 자동으로 호출함
 
 set -e
 
-if [ -n "$DOMAIN" ] && [ -n "$DEV_DOMAIN" ]; then
-  echo "DOMAIN과 DEV_DOMAIN을 동시에 지정할 수 없습니다. 실행할 Compose 환경의 도메인 하나만 넣으세요." >&2
+CERT_DOMAIN="$DOMAIN"
+
+if [ -z "$CERT_DOMAIN" ]; then
+  echo "DOMAIN을 설정하세요." >&2
   exit 1
 fi
 
-CERT_DOMAIN="${DOMAIN:-$DEV_DOMAIN}"
-
-if [ -z "$CERT_DOMAIN" ] || [ -z "$EMAIL" ]; then
-  echo "DOMAIN과 EMAIL을 설정하세요." >&2
-  exit 1
-fi
-
-if [ -n "$DOMAIN" ]; then
-  export COMPOSE_FILE=docker-compose.yml
-else
-  export COMPOSE_FILE=docker-compose.dev.yml
-fi
+export COMPOSE_FILE=docker-compose.yml
 
 DOMAIN_ARGS="-d $CERT_DOMAIN"
 
 echo "### 0. 기존 인증서/갱신 설정 확인 ###"
-if docker compose run --rm --entrypoint /bin/sh certbot -ec "
+if docker compose run -T --rm --entrypoint /bin/sh certbot -ec "
   [ -e /etc/letsencrypt/renewal/$CERT_DOMAIN.conf ] || [ -e /etc/letsencrypt/live/$CERT_DOMAIN/fullchain.pem ]
 "; then
   echo "이미 $CERT_DOMAIN 에 대한 인증서 또는 renewal 설정이 존재합니다."
@@ -40,8 +31,20 @@ if docker compose run --rm --entrypoint /bin/sh certbot -ec "
   exit 1
 fi
 
+remove_cert_files() {
+  docker compose run -T --rm --entrypoint /bin/sh certbot -ec "
+    rm -rf /etc/letsencrypt/live/$CERT_DOMAIN &&
+    rm -rf /etc/letsencrypt/archive/$CERT_DOMAIN &&
+    rm -rf /etc/letsencrypt/renewal/$CERT_DOMAIN.conf
+  "
+}
+
+# 더미 인증서가 남으면 다음 실행에서 인증서가 있는 것으로 판단해 실제 발급을 건너뛰므로,
+# 더미 생성~삭제 사이에 실패하면 종료 시 정리
+trap 'remove_cert_files || echo "더미 인증서 정리 실패, 수동 삭제 필요" >&2' EXIT
+
 echo "### 1. 더미 인증서 생성 ###"
-docker compose run --rm --entrypoint /bin/sh certbot -ec "
+docker compose run -T --rm --entrypoint /bin/sh certbot -ec "
   mkdir -p /etc/letsencrypt/live/$CERT_DOMAIN &&
   openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
     -keyout /etc/letsencrypt/live/$CERT_DOMAIN/privkey.pem \
@@ -53,20 +56,17 @@ echo "### 2. nginx 기동 ###"
 docker compose up -d nginx
 
 echo "### 3. 더미 인증서 삭제 ###"
-docker compose run --rm --entrypoint /bin/sh certbot -ec "
-  rm -rf /etc/letsencrypt/live/$CERT_DOMAIN &&
-  rm -rf /etc/letsencrypt/archive/$CERT_DOMAIN &&
-  rm -rf /etc/letsencrypt/renewal/$CERT_DOMAIN.conf
-"
+remove_cert_files
+trap - EXIT
 
 echo "### 4. 실제 인증서 발급 ###"
-docker compose run --rm --entrypoint /bin/sh certbot -ec "
+docker compose run -T --rm --entrypoint /bin/sh certbot -ec "
   certbot certonly --webroot -w /var/www/certbot \
     $DOMAIN_ARGS \
-    --email $EMAIL --agree-tos --no-eff-email
+    --register-unsafely-without-email --agree-tos
 "
 
 echo "### 5. nginx 재시작 ###"
-docker compose exec nginx nginx -s reload
+docker compose exec -T nginx nginx -s reload
 
 echo "완료. https://$CERT_DOMAIN 로 접속해보세요."

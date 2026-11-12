@@ -5,7 +5,7 @@ RENDER_LOCK=/tmp/nginx-render.lock
 render() {
   cat "$FRAGMENTS_DIR/00-redirect.conf.template" \
       "$FRAGMENTS_DIR/${APP_FRAGMENT}" > "${CONF_OUT}.tmp" &&
-  envsubst '${DOMAIN} ${DEV_DOMAIN}' < "${CONF_OUT}.tmp" > "${CONF_OUT}.rendered" &&
+  envsubst '${DOMAIN}' < "${CONF_OUT}.tmp" > "${CONF_OUT}.rendered" &&
   mv "${CONF_OUT}.rendered" "$CONF_OUT"
 }
 

@@ -8,7 +8,7 @@ inputs:
     required: true
   env-label:
     required: true
-    description: "Discord 알림 메시지에 붙는 환경 표시 (prod/dev)"
+    description: "Discord 알림 메시지에 붙는 환경 표시"
   discord-webhook-url:
     required: false
     default: ""
