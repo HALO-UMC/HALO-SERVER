@@ -16,8 +16,9 @@ variable "tenancy_ocid" {
 }
 
 variable "compartment_ocid" {
-  description = "리소스를 만들 compartment OCID (루트면 tenancy OCID)"
+  description = "리소스를 만들 compartment OCID, null이면 루트(tenancy)에 생성"
   type        = string
+  default     = null
 }
 
 variable "admin_ssh_cidr" {

@@ -4,7 +4,7 @@ data "oci_identity_availability_domains" "ads" {
 
 # 최신 Ubuntu 24.04 aarch64 이미지
 data "oci_core_images" "ubuntu" {
-  compartment_id           = var.compartment_ocid
+  compartment_id           = local.compartment_id
   operating_system         = "Canonical Ubuntu"
   operating_system_version = "24.04"
   shape                    = "VM.Standard.A1.Flex"
@@ -14,7 +14,7 @@ data "oci_core_images" "ubuntu" {
 
 # Always Free 한도: A1 합계 2 OCPU / 12GB (넘기면 과금 또는 회수)
 resource "oci_core_instance" "app" {
-  compartment_id      = var.compartment_ocid
+  compartment_id      = local.compartment_id
   availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name
   display_name        = "halo-prod"
   shape               = "VM.Standard.A1.Flex"

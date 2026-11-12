@@ -1,6 +1,5 @@
 # terraform.tfvars로 복사해서 사용 (커밋 금지)
-tenancy_ocid     = "ocid1.tenancy.oc1..xxxx"
-compartment_ocid = "ocid1.tenancy.oc1..xxxx" # 루트 compartment면 tenancy OCID와 같음
+tenancy_ocid = "ocid1.tenancy.oc1..xxxx"
 
 ssh_authorized_keys = <<-KEYS
   ssh-ed25519 AAAA... my-pc
@@ -9,6 +8,7 @@ KEYS
 
 tailscale_auth_key = "tskey-auth-xxxx"
 
+# compartment_ocid = "ocid1.compartment.oc1..xxxx" # 비우면 루트에 생성
 # admin_ssh_cidr = "1.2.3.4/32" # Tailscale 접속 전 비상용, 평소엔 주석
 # app_dir        = "/home/ubuntu/halo"
 # region         = "ap-osaka-1"

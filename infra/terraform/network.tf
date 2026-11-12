@@ -1,24 +1,26 @@
 locals {
+  compartment_id = coalesce(var.compartment_ocid, var.tenancy_ocid)
+
   vcn_cidr            = "10.0.0.0/16"
   public_subnet_cidr  = "10.0.0.0/24"
   private_subnet_cidr = "10.0.1.0/24"
 }
 
 resource "oci_core_vcn" "main" {
-  compartment_id = var.compartment_ocid
+  compartment_id = local.compartment_id
   display_name   = "halo-vcn"
   cidr_blocks    = [local.vcn_cidr]
   dns_label      = "halo"
 }
 
 resource "oci_core_internet_gateway" "main" {
-  compartment_id = var.compartment_ocid
+  compartment_id = local.compartment_id
   vcn_id         = oci_core_vcn.main.id
   display_name   = "halo-igw"
 }
 
 resource "oci_core_route_table" "public" {
-  compartment_id = var.compartment_ocid
+  compartment_id = local.compartment_id
   vcn_id         = oci_core_vcn.main.id
   display_name   = "halo-public-rt"
 
@@ -31,7 +33,7 @@ resource "oci_core_route_table" "public" {
 
 # 앱 서버: 웹(80/443)만 공개, SSH는 Tailscale로만 접속
 resource "oci_core_security_list" "public" {
-  compartment_id = var.compartment_ocid
+  compartment_id = local.compartment_id
   vcn_id         = oci_core_vcn.main.id
   display_name   = "halo-public-sl"
 
@@ -88,7 +90,7 @@ resource "oci_core_security_list" "public" {
 
 # DB: 앱 서버 서브넷에서 오는 MySQL만 허용
 resource "oci_core_security_list" "private" {
-  compartment_id = var.compartment_ocid
+  compartment_id = local.compartment_id
   vcn_id         = oci_core_vcn.main.id
   display_name   = "halo-private-sl"
 
@@ -103,7 +105,7 @@ resource "oci_core_security_list" "private" {
 }
 
 resource "oci_core_subnet" "public" {
-  compartment_id    = var.compartment_ocid
+  compartment_id    = local.compartment_id
   vcn_id            = oci_core_vcn.main.id
   display_name      = "halo-public"
   cidr_block        = local.public_subnet_cidr
@@ -114,7 +116,7 @@ resource "oci_core_subnet" "public" {
 
 # 인터넷 경로 없음 (VCN 기본 라우트 테이블 사용)
 resource "oci_core_subnet" "private" {
-  compartment_id             = var.compartment_ocid
+  compartment_id             = local.compartment_id
   vcn_id                     = oci_core_vcn.main.id
   display_name               = "halo-private"
   cidr_block                 = local.private_subnet_cidr
