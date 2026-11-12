@@ -82,10 +82,7 @@ cert_exists() {
 }
 if [ "$DEPLOY_OK" = true ] && ! cert_exists; then
   echo "$DOMAIN 인증서 없음, 최초 발급 진행"
-  if [ -z "${CERTBOT_EMAIL:-}" ]; then
-    echo "CERTBOT_EMAIL이 비어 있어 인증서를 발급할 수 없습니다." >&2
-    DEPLOY_OK=false
-  elif ! DOMAIN="$DOMAIN" EMAIL="$CERTBOT_EMAIL" sh deploy/init-letsencrypt.sh; then
+  if ! DOMAIN="$DOMAIN" sh deploy/init-letsencrypt.sh; then
     echo "인증서 발급 실패 (DNS A 레코드가 이 서버를 가리키는지 확인)" >&2
     DEPLOY_OK=false
   fi

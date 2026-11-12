@@ -5,15 +5,15 @@
 # 2) certbot으로 진짜 인증서를 발급받은 뒤
 # 3) nginx를 재시작해서 진짜 인증서를 적용한다.
 
-# 사용법: 앱 디렉터리에서 DOMAIN=your.domain EMAIL=you@example.com bash deploy/init-letsencrypt.sh
+# 사용법: 앱 디렉터리에서 DOMAIN=your.domain sh deploy/init-letsencrypt.sh
 # CD 최초 배포 시 인증서가 없으면 deploy.sh가 자동으로 호출함
 
 set -e
 
 CERT_DOMAIN="$DOMAIN"
 
-if [ -z "$CERT_DOMAIN" ] || [ -z "$EMAIL" ]; then
-  echo "DOMAIN과 EMAIL을 설정하세요." >&2
+if [ -z "$CERT_DOMAIN" ]; then
+  echo "DOMAIN을 설정하세요." >&2
   exit 1
 fi
 
@@ -54,7 +54,7 @@ echo "### 4. 실제 인증서 발급 ###"
 docker compose run --rm --entrypoint /bin/sh certbot -ec "
   certbot certonly --webroot -w /var/www/certbot \
     $DOMAIN_ARGS \
-    --email $EMAIL --agree-tos --no-eff-email
+    --register-unsafely-without-email --agree-tos
 "
 
 echo "### 5. nginx 재시작 ###"
