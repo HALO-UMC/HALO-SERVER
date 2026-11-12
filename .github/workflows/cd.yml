@@ -108,6 +108,8 @@ jobs:
           GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
           S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
           S3_KMS_KEY_ID=${{ secrets.S3_KMS_KEY_ID }}
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           FIREBASE_SERVICE_ACCOUNT_B64=${{secrets.FIREBASE_SERVICE_ACCOUNT_B64}}
           SENTRY_DSN=${{ secrets.SENTRY_DSN }}
           ENVEOF
