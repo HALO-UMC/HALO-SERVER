@@ -1,5 +1,5 @@
 name: 배포 부트스트랩
-description: AWS OIDC 인증, 러너 IP 임시 허용, SSH 설정, compose/nginx/.env 설정 백업 및 EC2 전송까지 prod 배포 준비 단계. 호출 전에 actions/checkout이 먼저 실행되어 있어야 함.
+description: AWS OIDC 인증, 러너 IP 임시 허용, SSH 설정, compose/nginx/.env 설정 백업 및 compose/nginx/배포 스크립트 EC2 전송까지 prod 배포 준비 단계. 호출 전에 actions/checkout이 먼저 실행되어 있어야 함.
 
 inputs:
   firebase-service-account-b64:
@@ -98,7 +98,7 @@ runs:
           [ -f .env ] && cp -p .env .prev_release/.env || true
         EOF
 
-    - name: compose 파일 / nginx 설정 EC2로 복사
+    - name: compose 파일 / nginx 설정 / 배포 스크립트 EC2로 복사
       shell: bash
       env:
         EC2_USERNAME: ${{ inputs.ec2-username }}
@@ -106,4 +106,4 @@ runs:
         EC2_APP_DIR: ${{ inputs.ec2-app-dir }}
         COMPOSE_FILE_NAME: docker-compose.yml
       run: |
-        scp -r "$COMPOSE_FILE_NAME" nginx "$EC2_USERNAME@$EC2_HOST:$EC2_APP_DIR/"
+        scp -r "$COMPOSE_FILE_NAME" nginx deploy "$EC2_USERNAME@$EC2_HOST:$EC2_APP_DIR/"
